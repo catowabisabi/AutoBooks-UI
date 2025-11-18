@@ -1,0 +1,404 @@
+'use client';
+
+import PageContainer from '@/components/layout/page-container';
+import { Heading } from '@/components/ui/heading';
+import { Separator } from '@/components/ui/separator';
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardAction,
+  CardFooter
+} from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Button } from '@/components/ui/button';
+import {
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  Tooltip,
+  ResponsiveContainer,
+  PieChart,
+  Pie,
+  Cell,
+  Legend
+} from 'recharts';
+import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
+import { useState, useEffect } from 'react';
+
+// Metadata needs to be in a separate layout file when using 'use client'
+
+const revenueData = [
+  { month: 'Jan', Income: 45000, Expenses: 38000 },
+  { month: 'Feb', Income: 50000, Expenses: 42000 },
+  { month: 'Mar', Income: 52000, Expenses: 46000 },
+  { month: 'Apr', Income: 58000, Expenses: 40000 },
+  { month: 'May', Income: 55000, Expenses: 50000 },
+  { month: 'Jun', Income: 60000, Expenses: 55000 }
+];
+
+const expenseDistribution = [
+  { name: 'Operations', value: 50 },
+  { name: 'Marketing', value: 28 },
+  { name: 'Payroll', value: 35 },
+  { name: 'Equipment', value: 15 },
+  { name: 'Miscellaneous', value: 7 }
+];
+
+const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#06b6d4', '#8b5cf6'];
+
+export default function FinanceHomePage() {
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+  if (!isClient) {
+    return null;
+  }
+
+  return (
+    <div className='flex flex-1 flex-col space-y-2'>
+      <div className='flex items-center justify-between space-y-2'>
+        <h2 className='text-2xl font-bold tracking-tight'>
+          Finance Overview 💰
+        </h2>
+      </div>
+
+      {/*<Separator />*/}
+
+      {/* Top Metrics */}
+      <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
+        <Card className='@container/card'>
+          <CardHeader>
+            <CardDescription>Total Revenue</CardDescription>
+            <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+              $325,890
+            </CardTitle>
+            <CardAction>
+              <Badge variant='outline'>
+                <IconTrendingUp className='mr-1 size-4' />
+                +8%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+            <div className='line-clamp-1 flex gap-2 font-medium'>
+              Higher than last month <IconTrendingUp className='size-4' />
+            </div>
+            <div className='text-muted-foreground'>Strong revenue growth</div>
+          </CardFooter>
+        </Card>
+
+        <Card className='@container/card'>
+          <CardHeader>
+            <CardDescription>Total Expenses</CardDescription>
+            <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+              $231,450
+            </CardTitle>
+            <CardAction>
+              <Badge variant='outline'>
+                <IconTrendingDown className='mr-1 size-4' />
+                -3%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+            <div className='line-clamp-1 flex gap-2 font-medium'>
+              Lower than last month <IconTrendingDown className='size-4' />
+            </div>
+            <div className='text-muted-foreground'>
+              Improved cost management
+            </div>
+          </CardFooter>
+        </Card>
+
+        <Card className='@container/card'>
+          <CardHeader>
+            <CardDescription>Pending Invoices</CardDescription>
+            <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+              24
+            </CardTitle>
+            <CardAction>
+              <Badge variant='outline'>
+                <IconTrendingUp className='mr-1 size-4' />
+                +2
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+            <div className='line-clamp-1 flex gap-2 font-medium'>
+              Two more than yesterday <IconTrendingUp className='size-4' />
+            </div>
+            <div className='text-muted-foreground'>Needs attention</div>
+          </CardFooter>
+        </Card>
+
+        <Card className='@container/card'>
+          <CardHeader>
+            <CardDescription>Cash Flow</CardDescription>
+            <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
+              $94,440
+            </CardTitle>
+            <CardAction>
+              <Badge variant='outline'>
+                <IconTrendingUp className='mr-1 size-4' />
+                +12%
+              </Badge>
+            </CardAction>
+          </CardHeader>
+          <CardFooter className='flex-col items-start gap-1.5 text-sm'>
+            <div className='line-clamp-1 flex gap-2 font-medium'>
+              Increased this quarter <IconTrendingUp className='size-4' />
+            </div>
+            <div className='text-muted-foreground'>Healthy cash position</div>
+          </CardFooter>
+        </Card>
+      </div>
+
+      {/* Graphs */}
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
+        <Card className='@container/card col-span-4'>
+          <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+            <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+              <CardTitle>Revenue vs Expenses</CardTitle>
+              <CardDescription>
+                <span className='hidden @[540px]/card:block'>
+                  Financial performance for the last 6 months
+                </span>
+                <span className='@[540px]/card:hidden'>Last 6 months</span>
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className='h-[250px] px-2 pt-4 sm:px-6 sm:pt-6'>
+            <ResponsiveContainer width='100%' height='100%'>
+              <AreaChart data={revenueData}>
+                <defs>
+                  <linearGradient id='colorIncome' x1='0' y1='0' x2='0' y2='1'>
+                    <stop offset='5%' stopColor='#3b82f6' stopOpacity={0.8} />
+                    <stop offset='95%' stopColor='#3b82f6' stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient
+                    id='colorExpenses'
+                    x1='0'
+                    y1='0'
+                    x2='0'
+                    y2='1'
+                  >
+                    <stop offset='5%' stopColor='#22c55e' stopOpacity={0.8} />
+                    <stop offset='95%' stopColor='#22c55e' stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis
+                  dataKey='month'
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                />
+                <CartesianGrid vertical={false} strokeDasharray='3 3' />
+                <Tooltip cursor={{ fill: 'var(--primary)', opacity: 0.1 }} />
+                <Area
+                  type='monotone'
+                  dataKey='Income'
+                  stroke='#3b82f6'
+                  fillOpacity={1}
+                  fill='url(#colorIncome)'
+                />
+                <Area
+                  type='monotone'
+                  dataKey='Expenses'
+                  stroke='#22c55e'
+                  fillOpacity={1}
+                  fill='url(#colorExpenses)'
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+
+        <Card className='@container/card col-span-3'>
+          <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+            <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+              <CardTitle>Expense Distribution</CardTitle>
+              <CardDescription>
+                <span>By category</span>
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className='h-[250px] px-2 pt-4 sm:px-6 sm:pt-6'>
+            <ResponsiveContainer width='100%' height='100%'>
+              <PieChart>
+                <Pie
+                  data={expenseDistribution}
+                  dataKey='value'
+                  nameKey='name'
+                  outerRadius={80}
+                  label
+                >
+                  {expenseDistribution.map((entry, index) => (
+                    <Cell
+                      key={`cell-${index}`}
+                      fill={COLORS[index % COLORS.length]}
+                    />
+                  ))}
+                </Pie>
+                <Legend />
+              </PieChart>
+            </ResponsiveContainer>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Lower Section */}
+      <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
+        {/* Recent Transactions */}
+        <Card className='@container/card col-span-2'>
+          <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+            <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+              <CardTitle>Recent Transactions</CardTitle>
+              <CardDescription>
+                <span>Latest financial activities</span>
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className='space-y-3 px-6 pt-4'>
+            {[
+              { name: 'Office Supplies', amount: '$1,250', status: 'Expense' },
+              {
+                name: 'Client Payment',
+                amount: '$5,400',
+                status: 'Income'
+              },
+              {
+                name: 'Software License',
+                amount: '$899',
+                status: 'Expense'
+              },
+              {
+                name: 'Consulting Fee',
+                amount: '$3,200',
+                status: 'Income'
+              }
+            ].map((transaction, idx) => (
+              <div key={idx} className='flex items-center justify-between'>
+                <div className='flex items-center gap-3'>
+                  <Avatar className='h-8 w-8'>
+                    <AvatarImage src='' />
+                    <AvatarFallback>
+                      {transaction.name.charAt(0)}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className='flex flex-col text-sm'>
+                    <span className='font-medium'>{transaction.name}</span>
+                    <span className='text-muted-foreground text-xs'>
+                      {transaction.amount}
+                    </span>
+                  </div>
+                </div>
+                <Badge
+                  variant={
+                    transaction.status === 'Income' ? 'default' : 'outline'
+                  }
+                >
+                  {transaction.status}
+                </Badge>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Upcoming Payments */}
+        <Card className='@container/card col-span-2'>
+          <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+            <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+              <CardTitle>Upcoming Payments</CardTitle>
+              <CardDescription>
+                <span>Due this week</span>
+              </CardDescription>
+            </div>
+            <div className='flex items-center px-6 py-4'>
+              <Button size='sm'>+ Add</Button>
+            </div>
+          </CardHeader>
+          <CardContent className='space-y-3 px-6 pt-4'>
+            {[
+              {
+                title: 'Vendor Payment',
+                amount: '$2,450',
+                dueDate: 'Tomorrow'
+              },
+              {
+                title: 'Utility Bills',
+                amount: '$850',
+                dueDate: 'In 2 days'
+              },
+              {
+                title: 'Insurance Premium',
+                amount: '$1,200',
+                dueDate: 'In 5 days'
+              }
+            ].map((payment, idx) => (
+              <div key={idx} className='flex flex-col space-y-1'>
+                <div className='font-medium'>
+                  {payment.title} – {payment.amount}
+                </div>
+                <div className='text-muted-foreground text-xs'>
+                  Due: {payment.dueDate}
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+
+        {/* Financial Insights */}
+        <Card className='@container/card col-span-3'>
+          <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+            <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+              <CardTitle>Financial Insights</CardTitle>
+              <CardDescription>
+                <span>Key performance indicators</span>
+              </CardDescription>
+            </div>
+          </CardHeader>
+          <CardContent className='space-y-3 px-6 pt-4'>
+            {[
+              {
+                name: 'Profit Margin',
+                value: '24.5%',
+                trend: 'Up 2.3% from last month'
+              },
+              {
+                name: 'Operating Expenses',
+                value: '$45,200',
+                trend: 'Down 5% from last month'
+              },
+              {
+                name: 'Accounts Receivable',
+                value: '$78,500',
+                trend: 'Up 12% from last month'
+              }
+            ].map((insight, idx) => (
+              <div key={idx} className='flex items-center gap-3'>
+                <Avatar className='h-10 w-10'>
+                  <AvatarImage src='' />
+                  <AvatarFallback>{insight.name.charAt(0)}</AvatarFallback>
+                </Avatar>
+                <div className='flex flex-col'>
+                  <span className='font-medium'>{insight.name}</span>
+                  <span className='text-muted-foreground text-xs'>
+                    {insight.value} – {insight.trend}
+                  </span>
+                </div>
+              </div>
+            ))}
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
+}
