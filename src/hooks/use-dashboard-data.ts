@@ -7,9 +7,9 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { auditApi, taxReturnApi, billableHourApi, revenueApi } from '@/features/business/services';
-import { salesAnalyticsApi, kpisApi } from '@/features/analytics/services';
-import { employeeApi } from '@/features/hrms/services';
+import { auditsApi, taxReturnsApi, billableHoursApi, revenueApi } from '@/features/business/services';
+import { salesAnalyticsApi } from '@/features/analytics/services';
+import { employeesApi } from '@/features/hrms/services';
 import { useApp } from '@/contexts/app-context';
 
 export interface DashboardStats {
@@ -66,12 +66,12 @@ export function useDashboardData(): DashboardData {
         salesResponse,
         employeesResponse,
       ] = await Promise.all([
-        auditApi.list({ ordering: '-created_at', page_size: 10 }).catch(() => null),
-        taxReturnApi.list({ ordering: '-deadline', page_size: 10 }).catch(() => null),
+        auditsApi.list({ ordering: '-created_at', page_size: 10 }).catch(() => null),
+        taxReturnsApi.list({ ordering: '-deadline', page_size: 10 }).catch(() => null),
         revenueApi.summary().catch(() => null),
-        billableHourApi.summaryByRole().catch(() => null),
+        billableHoursApi.summary().catch(() => null),
         salesAnalyticsApi.list({ ordering: '-year,-month', page_size: 12 }).catch(() => null),
-        employeeApi.list({ is_active: true }).catch(() => null),
+        employeesApi.list({ is_active: true }).catch(() => null),
       ]);
 
       // Check if we got any data from API
@@ -81,8 +81,8 @@ export function useDashboardData(): DashboardData {
         // Calculate stats from API data
         const audits = auditsResponse?.results || [];
         const taxReturns = taxReturnsResponse?.results || [];
-        const revenue = revenueResponse || {};
-        const billableHours = billableHoursResponse || {};
+        const revenue = (revenueResponse || {}) as Record<string, any>;
+        const billableHours = (billableHoursResponse || {}) as Record<string, any>;
         const salesData = salesResponse?.results || [];
         const employees = employeesResponse?.results || [];
 
@@ -99,9 +99,9 @@ export function useDashboardData(): DashboardData {
 
         // Build stats object
         const apiStats: DashboardStats = {
-          outstandingInvoices: `HK$${((revenue.pending || 0) / 1000).toFixed(0)}K`,
+          outstandingInvoices: `HK$${((revenue['pending'] || 0) / 1000).toFixed(0)}K`,
           activeEngagements: activeAudits + pendingTaxReturns,
-          complianceScore: `${revenue.collection_rate || 95}%`,
+          complianceScore: `${revenue['collection_rate'] || 95}%`,
           revenueYTD: `HK$${(ytdRevenue / 1000000).toFixed(1)}M`,
           pendingTasks: pendingTaxReturns,
           clientCount: employees.length || currentCompany.stats.clientCount,
@@ -122,8 +122,8 @@ export function useDashboardData(): DashboardData {
           },
           quaternaryMetric: {
             label: 'Total Revenue',
-            value: `HK$${((revenue.total_received || 0) / 1000).toFixed(0)}K`,
-            trend: `${((revenue.pending || 0) / 1000).toFixed(0)}K pending`
+            value: `HK$${((revenue['total_received'] || 0) / 1000).toFixed(0)}K`,
+            trend: `${((revenue['pending'] || 0) / 1000).toFixed(0)}K pending`
           }
         };
 
