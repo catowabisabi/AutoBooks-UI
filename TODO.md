@@ -31,19 +31,18 @@ RAG 知識庫:
 
 ### 前端 AI 功能修復清單
 
-- [ ] **AI Butler (智能管家)** - `src/components/ai-butler.tsx`
-  - 使用 `/api/v1/ai-service/chat-with-history/` (需要確認後端是否有此端點)
-  - 或改用 `/api/v1/rag/chat/` 端點
-  - 移除前端 API route，直接調用後端
+- [x] **AI Butler (智能管家)** - `src/components/ai-butler.tsx`
+  - ✅ 已修改使用 `/api/v1/rag/chat/` 端點
+  - ✅ 已移除前端 API route，直接調用後端
 
-- [ ] **Overview 分析功能** - `src/features/overview/components/analysis-dialog.tsx`
-  - 移除 `/api/analysis` 前端路由
-  - 改用 `/api/v1/rag/chat/` 或專用分析端點
-  - 後端需要新增分析端點或使用現有 RAG
+- [x] **Overview 分析功能** - `src/features/overview/components/analysis-dialog.tsx`
+  - ✅ 已移除 `/api/analysis` 前端路由
+  - ✅ 已改用 `/api/v1/rag/chat/` 端點
+  - ✅ 失敗時使用本地 mock 報告作為 fallback
 
-- [ ] **Analyst Assistant** - `src/app/dashboard/analyst-assistant/`
-  - 修改 `services.ts` 使用正確的後端端點
-  - 使用 `/api/v1/analyst-assistant/query/` (需確認)
+- [x] **Analyst Assistant** - `src/app/dashboard/analyst-assistant/`
+  - ✅ 已修改 `services.ts` 使用 `/api/v1/analyst-assistant/query/`
+  - ✅ 已修改 `page.tsx` 使用 `/api/v1/analyst-assistant/start/`
 
 - [ ] **Planner Assistant** - `src/app/dashboard/planner-assistant/`
   - 使用 `/api/v1/planner-assistant/query/` (需確認)
