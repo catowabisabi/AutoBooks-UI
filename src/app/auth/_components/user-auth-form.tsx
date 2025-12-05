@@ -172,7 +172,19 @@ export function UserAuthForm() {
       if (!loginRes.ok) throw new Error('Invalid credentials');
 
       const loginData = await loginRes.json();
+      console.log('[Login] API Response:', loginData); // 調試日誌
+      
       const accessToken = loginData.access;
+      const refreshToken = loginData.refresh;
+      
+      console.log('[Login] Access Token:', accessToken ? 'received' : 'missing');
+      console.log('[Login] Refresh Token:', refreshToken ? 'received' : 'missing');
+      
+      // 直接存儲 refresh token 到 localStorage（確保存儲）
+      if (refreshToken) {
+        localStorage.setItem('refresh_token', refreshToken);
+        console.log('[Login] Refresh token saved to localStorage');
+      }
 
       // Fetch user info using the access token
       const userInfoRes = await fetch(
@@ -191,8 +203,8 @@ export function UserAuthForm() {
       const json = await userInfoRes.json();
       const user = json?.data ?? json;
 
-      // Set auth context and redirect
-      setToken(accessToken);
+      // Set auth context and redirect (包含 refresh token)
+      setToken(accessToken, refreshToken);
       localStorage.setItem('user', JSON.stringify(user));
       toast.success('Login successful', {
         description: `Welcome ${user.full_name}`

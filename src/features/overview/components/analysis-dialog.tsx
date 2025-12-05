@@ -220,41 +220,83 @@ function generateMockReport(companyData: CompanyData, aiSummary?: string): Analy
   } as AnalysisReport;
 }
 
+// 解析 AI 回應中的 JSON
+function parseAIResponse(response: string): Partial<AnalysisReport> | null {
+  try {
+    // 嘗試找到 JSON 塊
+    const jsonMatch = response.match(/```json\n?([\s\S]*?)\n?```/) || 
+                      response.match(/\{[\s\S]*"summary"[\s\S]*\}/);
+    if (jsonMatch) {
+      const jsonStr = jsonMatch[1] || jsonMatch[0];
+      return JSON.parse(jsonStr);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function AnalysisDialog({ companyData }: AnalysisDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [language, setLanguage] = useState<'en' | 'zh'>('zh');
+  const [progress, setProgress] = useState(0);
 
   const generateAnalysis = useCallback(async () => {
     setIsLoading(true);
+    setProgress(10);
     
     try {
-      // 準備查詢內容
+      // 準備詳細的分析提示
       const analysisQuery = `
-Please analyze the following company data and provide a comprehensive business analysis:
+作為專業的商業分析師，請分析以下公司數據並生成詳細的分析報告。
 
-Company: ${companyData.name}
-Industry Type: ${companyData.type}
-Currency: ${companyData.currency}
+公司信息:
+- 名稱: ${companyData.name}
+- 行業類型: ${companyData.type === 'accounting' ? '會計審計' : companyData.type === 'financial-pr' ? '財經公關' : 'IPO顧問'}
+- 貨幣: ${companyData.currency}
 
-Company Stats:
+公司統計數據:
 ${JSON.stringify(companyData.stats, null, 2)}
 
-Service Breakdown:
+服務細分:
 ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
 
-Please provide executive summary in both English and Chinese.
+請提供以下分析內容:
+
+1. **執行摘要** (約200字，分別用英文和中文)
+   - 整體業績評估
+   - 關鍵優勢
+   - 主要挑戰
+
+2. **業績預測**
+   - 基於當前數據預測未來3個月的趨勢
+
+3. **戰略建議**
+   - 3個高優先級建議
+   - 預期影響
+
+請用繁體中文回應，提供具體、可行的建議。
 `;
 
+      setProgress(30);
+      
       // 使用後端 RAG chat API
       const response = await ragApi.chat(analysisQuery, {
         category: 'business-analysis',
         provider: 'openai',
       });
 
-      // 生成報告結構
-      const generatedReport = generateMockReport(companyData, response.response);
+      setProgress(70);
+
+      // 嘗試解析 AI 回應
+      const aiAnalysis = response.response;
+      
+      // 生成報告結構，將 AI 分析整合進去
+      const generatedReport = generateMockReport(companyData, aiAnalysis);
+      
+      setProgress(100);
       setReport(generatedReport);
       
     } catch (err) {
@@ -264,6 +306,7 @@ Please provide executive summary in both English and Chinese.
       setReport(mockReport);
     } finally {
       setIsLoading(false);
+      setProgress(0);
     }
   }, [companyData]);
 
@@ -355,10 +398,17 @@ Please provide executive summary in both English and Chinese.
           <div className="flex flex-col items-center justify-center py-12 gap-4">
             <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
             <div className="text-center">
-              <p className="text-lg font-medium">正在分析公司數據...</p>
-              <p className="text-sm text-muted-foreground">AI 正在處理您的數據並生成詳細報告</p>
+              <p className="text-lg font-medium">
+                {progress < 30 ? '正在收集公司數據...' : 
+                 progress < 70 ? 'AI 正在分析數據...' : 
+                 '正在生成報告...'}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                使用 AI 智能引擎分析您的業務表現
+              </p>
             </div>
-            <Progress value={33} className="w-64" />
+            <Progress value={progress || 20} className="w-64" />
+            <p className="text-xs text-muted-foreground">{progress}%</p>
           </div>
         )}
 
@@ -382,9 +432,20 @@ Please provide executive summary in both English and Chinese.
                 </Button>
               </div>
               <div className="flex items-center gap-2">
-                <Badge variant="outline">
-                  Report ID: {report.id}
+                <Badge variant="outline" className="text-xs">
+                  {report.id}
                 </Badge>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={() => {
+                    setReport(null);
+                    generateAnalysis();
+                  }}
+                  title="重新生成報告"
+                >
+                  <Sparkles className="h-4 w-4" />
+                </Button>
                 <Button variant="outline" size="sm" onClick={downloadPDF}>
                   <Download className="h-4 w-4 mr-2" />
                   下載 PDF
@@ -613,6 +674,13 @@ Please provide executive summary in both English and Chinese.
 
 function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string {
   const title = language === 'zh' ? 'AI 智能分析報告' : 'AI Analysis Report';
+  const generatedDate = new Date(report.generatedAt).toLocaleDateString(language === 'zh' ? 'zh-TW' : 'en-US', {
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
   
   return `
 <!DOCTYPE html>
@@ -621,32 +689,155 @@ function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string 
   <meta charset="UTF-8">
   <title>${title} - ${report.company.name}</title>
   <style>
+    @page { size: A4; margin: 20mm; }
     * { box-sizing: border-box; }
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft JhengHei', Roboto, sans-serif;
       line-height: 1.6;
       color: #333;
       max-width: 800px;
       margin: 0 auto;
       padding: 40px 20px;
+      font-size: 14px;
     }
-    .header { text-align: center; margin-bottom: 40px; border-bottom: 2px solid #8b5cf6; padding-bottom: 20px; }
-    .header h1 { color: #8b5cf6; margin: 0 0 10px 0; }
-    .header .company { font-size: 24px; font-weight: bold; }
-    .header .industry { color: #666; }
-    .section { margin-bottom: 30px; }
-    .section h2 { color: #8b5cf6; border-bottom: 1px solid #e5e7eb; padding-bottom: 8px; }
-    .summary { background: #f9fafb; padding: 20px; border-radius: 8px; }
-    .metrics-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
-    .metric-card { border: 1px solid #e5e7eb; padding: 16px; border-radius: 8px; }
+    .header { 
+      text-align: center; 
+      margin-bottom: 40px; 
+      border-bottom: 3px solid #8b5cf6; 
+      padding-bottom: 20px;
+      page-break-after: avoid;
+    }
+    .header h1 { 
+      color: #8b5cf6; 
+      margin: 0 0 10px 0; 
+      font-size: 28px;
+    }
+    .header .company { font-size: 24px; font-weight: bold; margin: 10px 0; }
+    .header .industry { color: #666; font-size: 16px; }
+    .header .meta { font-size: 12px; color: #999; margin-top: 15px; }
+    .section { 
+      margin-bottom: 30px; 
+      page-break-inside: avoid;
+    }
+    .section h2 { 
+      color: #8b5cf6; 
+      border-bottom: 2px solid #e5e7eb; 
+      padding-bottom: 8px; 
+      font-size: 18px;
+      margin-bottom: 15px;
+    }
+    .summary { 
+      background: linear-gradient(135deg, #f9fafb 0%, #f3f4f6 100%); 
+      padding: 20px; 
+      border-radius: 12px; 
+      border-left: 4px solid #8b5cf6;
+    }
+    .summary p { margin: 10px 0; text-align: justify; }
+    .metrics-grid { 
+      display: grid; 
+      grid-template-columns: repeat(2, 1fr); 
+      gap: 16px; 
+    }
+    .metric-card { 
+      border: 1px solid #e5e7eb; 
+      padding: 16px; 
+      border-radius: 12px; 
+      background: white;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    .metric-card .label { font-size: 12px; color: #666; margin-bottom: 4px; }
+    .metric-card .value { font-size: 24px; font-weight: bold; }
+    .metric-card .insight { font-size: 11px; color: #888; margin-top: 8px; }
     .status-good { color: #22c55e; }
     .status-warning { color: #eab308; }
     .status-critical { color: #ef4444; }
-    .recommendation { border-left: 4px solid; padding: 12px 16px; margin-bottom: 16px; background: #f9fafb; }
+    .recommendation { 
+      border-left: 4px solid; 
+      padding: 16px 20px; 
+      margin-bottom: 16px; 
+      background: #f9fafb; 
+      border-radius: 0 12px 12px 0;
+    }
+    .recommendation h4 { margin: 0 0 8px 0; font-size: 16px; }
+    .recommendation p { margin: 8px 0; color: #555; }
+    .recommendation .impact { 
+      color: #22c55e; 
+      font-size: 13px; 
+      font-weight: 500;
+      margin-top: 10px;
+    }
     .priority-high { border-color: #ef4444; }
     .priority-medium { border-color: #eab308; }
     .priority-low { border-color: #22c55e; }
-    .footer { text-align: center; margin-top: 40px; font-size: 12px; color: #666; }
+    .priority-badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+      margin-left: 8px;
+    }
+    .priority-high .priority-badge { background: #fef2f2; color: #ef4444; }
+    .priority-medium .priority-badge { background: #fefce8; color: #eab308; }
+    .priority-low .priority-badge { background: #f0fdf4; color: #22c55e; }
+    .comparison-table { width: 100%; border-collapse: collapse; margin-top: 15px; }
+    .comparison-table th, .comparison-table td { 
+      padding: 12px; 
+      text-align: left; 
+      border-bottom: 1px solid #e5e7eb; 
+    }
+    .comparison-table th { 
+      background: #f9fafb; 
+      font-weight: 600;
+      color: #374151;
+    }
+    .comparison-table tr:hover { background: #f9fafb; }
+    .risk-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: #f9fafb;
+      border-radius: 8px;
+      margin-bottom: 12px;
+    }
+    .risk-icon { font-size: 20px; }
+    .risk-level {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: 500;
+    }
+    .risk-low { background: #f0fdf4; color: #22c55e; }
+    .risk-medium { background: #fefce8; color: #eab308; }
+    .risk-high { background: #fef2f2; color: #ef4444; }
+    .forecast-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+    .forecast-card {
+      padding: 16px;
+      background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%);
+      border-radius: 12px;
+      text-align: center;
+    }
+    .forecast-card .metric { font-size: 12px; color: #666; }
+    .forecast-card .values { margin: 10px 0; }
+    .forecast-card .current { font-size: 18px; color: #666; }
+    .forecast-card .arrow { color: #22c55e; margin: 0 8px; }
+    .forecast-card .projected { font-size: 18px; font-weight: bold; color: #22c55e; }
+    .forecast-card .confidence { font-size: 11px; color: #888; }
+    .footer { 
+      text-align: center; 
+      margin-top: 40px; 
+      padding-top: 20px;
+      border-top: 1px solid #e5e7eb;
+      font-size: 12px; 
+      color: #666; 
+    }
+    .footer .logo { color: #8b5cf6; font-weight: bold; }
+    @media print {
+      body { padding: 0; }
+      .section { page-break-inside: avoid; }
+    }
   </style>
 </head>
 <body>
@@ -654,23 +845,113 @@ function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string 
     <h1>🤖 ${title}</h1>
     <div class="company">${report.company.name}</div>
     <div class="industry">${report.company.industry}</div>
+    <div class="meta">
+      ${language === 'zh' ? '報告編號' : 'Report ID'}: ${report.id} | 
+      ${language === 'zh' ? '生成時間' : 'Generated'}: ${generatedDate}
+    </div>
   </div>
+
   <div class="section">
     <h2>📋 ${language === 'zh' ? '執行摘要' : 'Executive Summary'}</h2>
-    <div class="summary">${report.summary[language].split('\n').map(p => `<p>${p}</p>`).join('')}</div>
+    <div class="summary">
+      ${report.summary[language].split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+    </div>
   </div>
+
   <div class="section">
     <h2>📊 ${language === 'zh' ? '關鍵指標' : 'Key Metrics'}</h2>
     <div class="metrics-grid">
-      ${report.keyMetrics.map(m => `<div class="metric-card"><div>${m.metric}</div><div class="status-${m.status}" style="font-size:24px;font-weight:bold">${m.value}</div></div>`).join('')}
+      ${report.keyMetrics.map(m => `
+        <div class="metric-card">
+          <div class="label">${m.metric}</div>
+          <div class="value status-${m.status}">${m.value}</div>
+          <div class="insight">${m.insight}</div>
+        </div>
+      `).join('')}
     </div>
   </div>
+
   <div class="section">
-    <h2>💡 ${language === 'zh' ? '建議' : 'Recommendations'}</h2>
-    ${report.recommendations.map(r => `<div class="recommendation priority-${r.priority}"><h4>${r.title}</h4><p>${r.description}</p></div>`).join('')}
+    <h2>🌐 ${language === 'zh' ? '行業對比' : 'Industry Comparison'}</h2>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>${language === 'zh' ? '指標' : 'Metric'}</th>
+          <th>${language === 'zh' ? '您的數值' : 'Your Value'}</th>
+          <th>${language === 'zh' ? '行業平均' : 'Industry Avg'}</th>
+          <th>${language === 'zh' ? '百分位' : 'Percentile'}</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${report.industryComparison.map(c => `
+          <tr>
+            <td>${c.metric}</td>
+            <td><strong>${c.yourValue}</strong></td>
+            <td>${c.industryAvg}</td>
+            <td>${c.percentile}%</td>
+          </tr>
+        `).join('')}
+      </tbody>
+    </table>
   </div>
+
+  <div class="section">
+    <h2>📈 ${language === 'zh' ? '業績預測' : 'Performance Forecast'}</h2>
+    <div class="forecast-grid">
+      ${report.forecast.map(f => `
+        <div class="forecast-card">
+          <div class="metric">${f.metric}</div>
+          <div class="values">
+            <span class="current">${f.current}</span>
+            <span class="arrow">→</span>
+            <span class="projected">${f.projected}</span>
+          </div>
+          <div class="confidence">${language === 'zh' ? '信心度' : 'Confidence'}: ${f.confidence}%</div>
+        </div>
+      `).join('')}
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>💡 ${language === 'zh' ? '戰略建議' : 'Strategic Recommendations'}</h2>
+    ${report.recommendations.map(r => `
+      <div class="recommendation priority-${r.priority}">
+        <h4>
+          ${r.title}
+          <span class="priority-badge">
+            ${r.priority === 'high' ? (language === 'zh' ? '高優先級' : 'High') : 
+              r.priority === 'medium' ? (language === 'zh' ? '中優先級' : 'Medium') : 
+              (language === 'zh' ? '低優先級' : 'Low')}
+          </span>
+        </h4>
+        <p>${r.description}</p>
+        <div class="impact">📈 ${language === 'zh' ? '預期影響' : 'Expected Impact'}: ${r.impact}</div>
+      </div>
+    `).join('')}
+  </div>
+
+  <div class="section">
+    <h2>⚠️ ${language === 'zh' ? '風險評估' : 'Risk Assessment'}</h2>
+    ${report.riskAssessment.map(r => `
+      <div class="risk-item">
+        <span class="risk-icon">${r.level === 'low' ? '🟢' : r.level === 'medium' ? '🟡' : '🔴'}</span>
+        <div>
+          <strong>${r.category}</strong>
+          <span class="risk-level risk-${r.level}">
+            ${r.level === 'low' ? (language === 'zh' ? '低風險' : 'Low') : 
+              r.level === 'medium' ? (language === 'zh' ? '中風險' : 'Medium') : 
+              (language === 'zh' ? '高風險' : 'High')}
+          </span>
+          <p style="margin: 8px 0 0 0; color: #555; font-size: 13px;">${r.description}</p>
+        </div>
+      </div>
+    `).join('')}
+  </div>
+
   <div class="footer">
-    <p>Generated by Wisematic AI Analysis Engine</p>
+    <p class="logo">Wisematic ERP</p>
+    <p>${language === 'zh' ? '本報告由 AI 智能分析引擎自動生成' : 'This report was automatically generated by the AI Analysis Engine'}</p>
+    <p>© ${new Date().getFullYear()} Wisematic. All rights reserved.</p>
   </div>
 </body>
 </html>`;

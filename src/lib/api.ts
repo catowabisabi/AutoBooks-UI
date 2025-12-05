@@ -56,9 +56,13 @@ class ApiService {
 
   // 刷新 access token
   async refreshAccessToken(): Promise<boolean> {
-    if (!this.refreshToken) return false;
+    if (!this.refreshToken) {
+      console.warn('[API] No refresh token available');
+      return false;
+    }
 
     try {
+      console.log('[API] Attempting to refresh token...');
       const response = await fetch(`${this.baseUrl}/api/v1/auth/token/refresh/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -69,12 +73,20 @@ class ApiService {
         const data = await response.json();
         this.accessToken = data.access;
         if (typeof window !== 'undefined') {
+          // 同步更新所有 token key
+          localStorage.setItem('token', data.access);
           localStorage.setItem('access_token', data.access);
         }
+        console.log('[API] Token refreshed successfully');
         return true;
       }
+      
+      // Refresh token 也過期了，清除所有 token
+      console.warn('[API] Refresh token expired or invalid');
+      this.clearTokens();
       return false;
-    } catch {
+    } catch (error) {
+      console.error('[API] Token refresh error:', error);
       return false;
     }
   }
@@ -107,14 +119,22 @@ class ApiService {
     });
 
     // 如果 401，嘗試刷新 token
-    if (response.status === 401 && !skipAuth && this.refreshToken) {
-      const refreshed = await this.refreshAccessToken();
-      if (refreshed) {
-        headers['Authorization'] = `Bearer ${this.accessToken}`;
-        response = await fetch(url, {
-          ...fetchOptions,
-          headers,
-        });
+    if (response.status === 401 && !skipAuth) {
+      if (this.refreshToken) {
+        const refreshed = await this.refreshAccessToken();
+        if (refreshed) {
+          headers['Authorization'] = `Bearer ${this.accessToken}`;
+          response = await fetch(url, {
+            ...fetchOptions,
+            headers,
+          });
+        } else {
+          // Refresh 失敗，拋出認證錯誤
+          throw new Error('Authentication expired. Please log in again.');
+        }
+      } else {
+        // 沒有 refresh token
+        throw new Error('Authentication required. Please log in.');
       }
     }
 
@@ -246,7 +266,7 @@ export const authApi = {
 // AI 服務 API
 // =================================================================
 export const aiApi = {
-  // 聊天 (使用 RAG chat 端點)
+  // 聊天 (使用 RAG chat 端點) - 需要認證
   chat: async (message: string, provider: string = 'openai', options?: {
     model?: string;
     systemPrompt?: string;
@@ -270,7 +290,7 @@ export const aiApi = {
     }));
   },
 
-  // 帶歷史的聊天 (使用 RAG chat 端點)
+  // 帶歷史的聊天 (使用 RAG chat 端點) - 需要認證
   chatWithHistory: async (
     messages: Array<{ role: 'user' | 'assistant'; content: string }>,
     provider: string = 'openai',
@@ -457,7 +477,7 @@ export const ragApi = {
       include_context: options?.includeContext ?? true,
     }, { skipAuth: true }),
 
-  // RAG 增強聊天
+  // RAG 增強聊天 - 需要認證
   chat: (query: string, options?: { category?: string; provider?: string }) =>
     api.post<{
       response: string;

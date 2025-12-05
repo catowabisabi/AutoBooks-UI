@@ -37,13 +37,13 @@ export default function OverViewPage() {
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
-        <div className='flex items-center justify-between space-y-2'>
+        <div className='flex items-center justify-between'>
           <h2 className='text-2xl font-bold tracking-tight'>
             Hi, Welcome back 👋
           </h2>
-          <div className='hidden items-center space-x-2 md:flex'>
+          <div className='flex items-center space-x-2'>
             <AnalysisDialog companyData={companyDataForAnalysis} />
-            <Button>Download</Button>
+            <Button className='hidden md:inline-flex'>Download</Button>
           </div>
         </div>
         <Tabs defaultValue='overview' className='space-y-4'>

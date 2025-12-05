@@ -5,7 +5,7 @@ import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { IconKey, IconPalette, IconBell, IconShield } from '@tabler/icons-react';
+import { IconKey, IconPalette, IconBell, IconShield, IconDatabase } from '@tabler/icons-react';
 import Link from 'next/link';
 
 const settingsCategories = [
@@ -14,6 +14,12 @@ const settingsCategories = [
     description: 'Manage your AI service API keys',
     icon: IconKey,
     href: '/dashboard/settings/api-keys',
+  },
+  {
+    title: 'Knowledge Base',
+    description: 'Manage documents for AI-powered search and assistance',
+    icon: IconDatabase,
+    href: '/dashboard/settings/knowledge-base',
   },
   {
     title: 'Appearance',

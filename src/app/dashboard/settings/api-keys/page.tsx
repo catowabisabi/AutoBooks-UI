@@ -101,7 +101,7 @@ export default function ApiSettingsPage() {
     }));
 
     try {
-      await settingsApi.saveApiKey(provider, keyState.value);
+      await settingsApi.updateApiKey(provider, keyState.value);
       setApiKeys((prev) => ({
         ...prev,
         [provider]: {

@@ -20,7 +20,7 @@ interface User {
 interface AuthContextType {
   token: string | null;
   user: User | null;
-  setToken: (token: string) => Promise<void>;
+  setToken: (accessToken: string, refreshToken?: string) => Promise<void>;
   logout: () => void;
 }
 
@@ -33,7 +33,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Load from localStorage
   useEffect(() => {
-    const storedToken = localStorage.getItem('token');
+    // 支援兩種 key 名稱
+    const storedToken = localStorage.getItem('token') || localStorage.getItem('access_token');
     const storedUser = localStorage.getItem('user');
     if (storedToken) setTokenState(storedToken);
     if (storedUser) {
@@ -49,15 +50,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   // Save to localStorage
   useEffect(() => {
-    if (token) localStorage.setItem('token', token);
-    else localStorage.removeItem('token');
+    if (token) {
+      localStorage.setItem('token', token);
+      localStorage.setItem('access_token', token); // 同時存儲到兩個 key
+    } else {
+      localStorage.removeItem('token');
+      localStorage.removeItem('access_token');
+    }
 
     if (user) localStorage.setItem('user', JSON.stringify(user));
     else localStorage.removeItem('user');
   }, [token, user]);
 
-  const setToken = async (accessToken: string) => {
+  const setToken = async (accessToken: string, refreshToken?: string) => {
     setTokenState(accessToken);
+    
+    // 存儲 refresh token
+    if (refreshToken) {
+      localStorage.setItem('refresh_token', refreshToken);
+    }
+    
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/users/me/`,

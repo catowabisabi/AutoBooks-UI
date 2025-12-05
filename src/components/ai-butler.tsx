@@ -186,8 +186,10 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
       const errorMsg = error instanceof Error ? error.message : 'Unknown error';
       let userFriendlyMessage = '抱歉，我暫時無法處理您的請求。請稍後再試。';
       
-      if (errorMsg.includes('Authentication') || errorMsg.includes('credentials')) {
-        userFriendlyMessage = '請先登入以使用 AI 助手功能。您可以點擊右上角登入。';
+      if (errorMsg.includes('Authentication') || errorMsg.includes('expired') || errorMsg.includes('log in')) {
+        userFriendlyMessage = '您的登入已過期，請重新登入以使用 AI 助手功能。';
+      } else if (errorMsg.includes('token') || errorMsg.includes('credentials')) {
+        userFriendlyMessage = '認證失敗，請重新登入。';
       } else if (errorMsg.includes('API') || errorMsg.includes('key')) {
         userFriendlyMessage = '抱歉，AI 服務暫時無法使用。請確認後端 API 金鑰已正確設定。';
       }

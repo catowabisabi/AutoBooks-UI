@@ -81,10 +81,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
     }
   }, []);
 
-  const loginWithGoogle = useCallback(async (credential: string) => {
+  const loginWithGoogle = useCallback(async (code: string) => {
     setIsLoading(true);
     try {
-      const response = await authApi.googleLogin(credential);
+      // Use googleCallback endpoint to exchange code for tokens
+      const response = await authApi.googleCallback(code);
       
       // Store tokens
       localStorage.setItem('access_token', response.access);

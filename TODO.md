@@ -44,10 +44,11 @@ RAG 知識庫:
   - ✅ 已修改 `services.ts` 使用 `/api/v1/analyst-assistant/query/`
   - ✅ 已修改 `page.tsx` 使用 `/api/v1/analyst-assistant/start/`
 
-- [ ] **Planner Assistant** - `src/app/dashboard/planner-assistant/`
-  - 使用 `/api/v1/planner-assistant/query/` (需確認)
+- [x] **Planner Assistant** - `src/app/dashboard/planner-assistant/`
+  - ✅ 已使用 `aiApi.chatWithHistory()` 連接 `/api/v1/rag/chat/`
 
-- [ ] **Document Assistant** - `src/app/dashboard/document-assistant/`
+- [x] **Document Assistant** - `src/app/dashboard/document-assistant/`
+  - ✅ 已使用 `aiApi.chatWithHistory()` 連接 `/api/v1/rag/chat/`
   - 使用 `/api/v1/document-assistant/query/`
   - 使用 `/api/v1/document-assistant/process/`
 
@@ -93,10 +94,10 @@ RAG 知識庫:
 - [ ] 確保 `.gitignore` 包含所有敏感檔案
 
 ### 認證系統
-- [ ] 整合 Google OAuth 2.0 登入按鈕
-- [ ] 實現 OAuth callback 處理
-- [ ] 更新 Auth Context 支援 Google 登入
-- [ ] 實現 token 自動刷新
+- [x] 整合 Google OAuth 2.0 登入按鈕
+- [x] 實現 OAuth callback 處理
+- [x] 更新 Auth Context 支援 Google 登入
+- [x] 實現 token 自動刷新
 - [ ] 添加登出功能
 
 ---
@@ -110,16 +111,16 @@ RAG 知識庫:
 - [x] `/api/v1/users/me/` - 當前用戶資訊
 
 ### RAG 知識庫 (新增)
-- [ ] 前端整合 `/api/v1/rag/query/` - 知識庫查詢
-- [ ] 前端整合 `/api/v1/rag/chat/` - RAG 增強聊天
-- [ ] 前端整合 `/api/v1/rag/knowledge/` - 知識庫列表
-- [ ] 建立知識庫管理頁面
+- [x] 前端整合 `/api/v1/rag/query/` - 知識庫查詢
+- [x] 前端整合 `/api/v1/rag/chat/` - RAG 增強聊天
+- [x] 前端整合 `/api/v1/rag/knowledge/` - 知識庫列表
+- [x] 建立知識庫管理頁面 (`/dashboard/settings/knowledge-base`)
 
 ### 設定頁面
-- [ ] API Key 管理頁面 (已有後端支援)
-  - [ ] 顯示 API Key 狀態
-  - [ ] 新增/更新 API Key
-  - [ ] 測試 API Key
+- [x] API Key 管理頁面 (已有後端支援)
+  - [x] 顯示 API Key 狀態
+  - [x] 新增/更新 API Key
+  - [x] 測試 API Key
 
 ### Users 模組
 - [ ] `/api/v1/users/` - 用戶列表
