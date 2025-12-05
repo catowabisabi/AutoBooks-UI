@@ -11,17 +11,22 @@ interface ApiOptions extends RequestInit {
 }
 
 class ApiService {
-  private baseUrl: string;
+  private _baseUrl: string;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
 
   constructor(baseUrl: string) {
-    this.baseUrl = baseUrl;
+    this._baseUrl = baseUrl;
     // 從 localStorage 恢復 tokens (支援兩種 key 名稱)
     if (typeof window !== 'undefined') {
       this.accessToken = localStorage.getItem('token') || localStorage.getItem('access_token');
       this.refreshToken = localStorage.getItem('refresh_token');
     }
+  }
+
+  // 獲取 base URL
+  get baseUrl(): string {
+    return this._baseUrl;
   }
 
   // 設置認證 tokens

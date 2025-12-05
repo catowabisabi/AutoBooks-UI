@@ -144,8 +144,9 @@ export default function AiAssistantPanel() {
   useEffect(() => {
     const startAssistant = async () => {
       try {
+        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
         const res = await fetch(
-          'http://127.0.0.1:8000/api/v1/analyst-assistant/start/'
+          `${apiBaseUrl}/api/v1/analyst-assistant/start/`
         );
         const data = await res.json();
         console.log('Assistant started:', data);
