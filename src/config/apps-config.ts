@@ -178,6 +178,88 @@ export const APPS_CONFIG: AppConfig[] = [
         icon: '🔄'
       }
     ]
+  },
+  {
+    id: 'business',
+    name: 'Business',
+    icon: '💼',
+    color: 'bg-indigo-500',
+    menuItems: [
+      {
+        id: 'business-overview',
+        label: 'Business Overview / 業務總覽',
+        href: '/dashboard/business',
+        icon: '🏠'
+      },
+      {
+        id: 'audits',
+        label: 'Audits / 審計專案',
+        href: '/dashboard/business/audits',
+        icon: '📋'
+      },
+      {
+        id: 'tax-returns',
+        label: 'Tax Returns / 稅務申報',
+        href: '/dashboard/business/tax-returns',
+        icon: '🧾'
+      },
+      {
+        id: 'billable-hours',
+        label: 'Billable Hours / 工時記錄',
+        href: '/dashboard/business/billable-hours',
+        icon: '⏱️'
+      },
+      {
+        id: 'revenue',
+        label: 'Revenue / 收入管理',
+        href: '/dashboard/business/revenue',
+        icon: '💰'
+      }
+    ]
+  },
+  {
+    id: 'ai-assistants',
+    name: 'AI Assistants',
+    icon: '🤖',
+    color: 'bg-pink-500',
+    menuItems: [
+      {
+        id: 'accounting-assistant',
+        label: 'Accounting Assistant / 會計助手',
+        href: '/dashboard/accounting-assistant',
+        icon: '🧮'
+      },
+      {
+        id: 'email-assistant',
+        label: 'Email Assistant / 郵件助手',
+        href: '/dashboard/emails',
+        icon: '📧'
+      },
+      {
+        id: 'document-assistant',
+        label: 'Document Assistant / 文件助手',
+        href: '/dashboard/document-assistant',
+        icon: '📄'
+      },
+      {
+        id: 'planner-assistant',
+        label: 'Planner Assistant / 規劃助手',
+        href: '/dashboard/planner-assistant',
+        icon: '📅'
+      },
+      {
+        id: 'brainstorming-assistant',
+        label: 'Brainstorming / 腦力激盪',
+        href: '/dashboard/brainstorming-assistant',
+        icon: '💡'
+      },
+      {
+        id: 'analyst-assistant',
+        label: 'Analyst Assistant / 分析助手',
+        href: '/dashboard/analyst-assistant',
+        icon: '📊'
+      }
+    ]
   }
 ];
 
