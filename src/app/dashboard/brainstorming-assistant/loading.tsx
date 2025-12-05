@@ -22,7 +22,7 @@ export default function Loading() {
         {Array(6)
           .fill(0)
           .map((_, i) => (
-            <Card key={i} className='border border-gray-200 bg-white'>
+            <Card key={i} className='border border-border bg-card'>
               <CardContent className='p-6'>
                 <div className='mb-4 flex items-start justify-between'>
                   <Skeleton className='h-12 w-12 rounded-xl' />

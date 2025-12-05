@@ -190,10 +190,12 @@
   "assistant": {
     "greeting": "Hello! I'm your ERP assistant. How can I help you today?",
     "suggestions": [
-      "How do I create an invoice?",
-      "Show me the chart of accounts",
-      "What's my current cash balance?",
-      "How to record a journal entry?"
+      "Prepare audit checklist for annual report",
+      "Check outstanding invoices status",
+      "Generate tax filing reminder",
+      "Review compliance deadlines this month",
+      "Summarize IPO due diligence items",
+      "Calculate accounts receivable aging"
     ]
   }
 }

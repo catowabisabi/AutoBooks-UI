@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const userData: User = json?.data ?? json;
       setUser(userData);
 
-      router.push('/dashboard/overview');
+      router.replace('/dashboard/overview');
     } catch (error) {
       console.error(error);
       logout();

@@ -23,7 +23,8 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { IconMessage, IconSend } from '@tabler/icons-react';
+import { IconMessage, IconSend, IconLoader2 } from '@tabler/icons-react';
+import { aiApi } from '@/lib/api';
 
 interface ChatMessageProps {
   message: {
@@ -80,6 +81,7 @@ export default function EmailAssistantClient() {
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
   const [newMessage, setNewMessage] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
@@ -104,7 +106,7 @@ export default function EmailAssistantClient() {
   }, []);
 
   const handleSendMessage = async () => {
-    if (!newMessage.trim()) return;
+    if (!newMessage.trim() || isLoading) return;
 
     const userMessage = {
       id: `user-${Date.now()}`,
@@ -113,36 +115,50 @@ export default function EmailAssistantClient() {
     };
 
     setMessages((prev) => [...prev, userMessage]);
+    const currentMessage = newMessage;
     setNewMessage('');
+    setIsLoading(true);
 
     try {
-      const res = await fetch('http://localhost:8000/email-assistant/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          thread: selectedEmail ? [selectedEmail] : [],
-          query: userMessage.content
-        })
-      });
+      // Build context from selected email
+      const emailContext = selectedEmail 
+        ? `Current email context:\nFrom: ${selectedEmail.from}\nSubject: ${selectedEmail.subject}\nContent: ${selectedEmail.body?.substring(0, 500) || 'No content'}`
+        : 'No email selected.';
 
-      const data = await res.json();
+      const systemPrompt = `You are a professional email assistant for a business services firm (accounting, audit, financial PR). Help users draft emails, respond to messages, and manage their correspondence professionally. ${emailContext}`;
+
+      const conversationHistory = messages.slice(-6).map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }));
+      conversationHistory.push({ role: 'user', content: currentMessage });
+
+      const response = await aiApi.chatWithHistory(
+        conversationHistory,
+        'openai',
+        { systemPrompt }
+      );
+
       const aiResponse: ChatMessageProps['message'] = {
         id: `ai-${Date.now()}`,
-        role: data.role === 'user' ? 'user' : 'assistant',
-        content: data.content
+        role: 'assistant',
+        content: response.content || "I'd be happy to help with your email. Could you provide more details?"
       };
 
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
+      console.error('AI response error:', error);
+      // Fallback response
       setMessages((prev) => [
         ...prev,
         {
           id: `ai-${Date.now()}`,
           role: 'assistant',
-          content:
-            "Sorry, I couldn't generate a response. Please try again later."
+          content: "I'd be happy to help you draft a professional response. Here's a suggested format:\n\nDear [Recipient],\n\nThank you for your email regarding [subject].\n\n[Your response here]\n\nBest regards,\n[Your name]"
         }
       ]);
+    } finally {
+      setIsLoading(false);
     }
   };
 

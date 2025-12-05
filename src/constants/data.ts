@@ -39,7 +39,7 @@ export const navItems: NavItem[] = [
   },
   {
     title: 'Email Assistant',
-    url: '/dashboard/email-assistant',
+    url: '/dashboard/emails',
     icon: 'post',
     shortcut: ['e', 'e'],
     isActive: false,

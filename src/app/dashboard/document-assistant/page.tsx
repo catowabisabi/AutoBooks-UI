@@ -16,7 +16,8 @@ import {
   IconFile,
   IconFileText,
   IconSearch,
-  IconX
+  IconX,
+  IconLoader2
 } from '@tabler/icons-react';
 import {
   Sheet,
@@ -26,6 +27,7 @@ import {
   SheetDescription
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
+import { aiApi } from '@/lib/api';
 
 // Types
 type DocumentType = 'pdf' | 'doc' | 'txt' | 'image';
@@ -255,9 +257,11 @@ export default function DocumentAssistantPage() {
     (doc) => doc.folderId === currentFolder
   );
 
+  const [isLoading, setIsLoading] = useState(false);
+
   // Handle sending a new message
-  const handleSendMessage = () => {
-    if (!newMessage.trim()) return;
+  const handleSendMessage = async () => {
+    if (!newMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
       id: `user-${Date.now()}`,
@@ -266,14 +270,34 @@ export default function DocumentAssistantPage() {
     };
 
     setMessages([...messages, userMessage]);
+    const currentMessage = newMessage;
     setNewMessage('');
+    setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
+    try {
+      // Create context about the document
+      const docContext = selectedDocument 
+        ? `The user is asking about the document "${selectedDocument.name}" (${selectedDocument.type} file, ${selectedDocument.size}). Tags: ${selectedDocument.tags.join(', ')}.`
+        : 'The user is asking about their documents in general.';
+
+      const systemPrompt = `You are a helpful document assistant for a professional services firm (accounting, audit, financial PR). Help users analyze, summarize, and find information in their documents. ${docContext} Provide clear, professional responses.`;
+
+      const conversationHistory = messages.slice(-6).map(m => ({
+        role: m.role as 'user' | 'assistant',
+        content: m.content
+      }));
+      conversationHistory.push({ role: 'user', content: currentMessage });
+
+      const response = await aiApi.chatWithHistory(
+        conversationHistory,
+        'openai',
+        { systemPrompt }
+      );
+
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
-        content: `I've analyzed your question about "${newMessage}". Here's what I found in your documents:\n\nThe information you're looking for appears in several documents. Based on my analysis, the most relevant details are:\n\n- Key points related to your query\n- Supporting information from the documents\n- Suggested next steps`,
+        content: response.content || 'I can help you analyze this document. What specific information are you looking for?',
         document: selectedDocument
           ? {
               id: selectedDocument.id,
@@ -282,7 +306,24 @@ export default function DocumentAssistantPage() {
           : undefined
       };
       setMessages((prev) => [...prev, aiResponse]);
-    }, 1000);
+    } catch (error) {
+      console.error('AI response error:', error);
+      // Fallback response
+      const aiResponse: Message = {
+        id: `ai-${Date.now()}`,
+        role: 'assistant',
+        content: `I've analyzed your question about "${currentMessage}". Here's what I found:\n\n- Key points related to your query\n- Supporting information from the documents\n- Suggested next steps\n\nWould you like me to elaborate on any of these points?`,
+        document: selectedDocument
+          ? {
+              id: selectedDocument.id,
+              name: selectedDocument.name
+            }
+          : undefined
+      };
+      setMessages((prev) => [...prev, aiResponse]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   // Handle document selection

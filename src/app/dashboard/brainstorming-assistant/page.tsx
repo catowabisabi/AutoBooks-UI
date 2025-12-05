@@ -343,7 +343,7 @@ export default function BrowseFolders() {
           </div>
 
           <div className='flex items-center gap-4'>
-            <div className='flex rounded-lg border bg-white p-1'>
+            <div className='flex rounded-lg border bg-background p-1'>
               <button
                 onClick={() => setActiveTab('private')}
                 className={`rounded-md px-4 py-2 text-sm font-medium transition-colors ${

@@ -9,18 +9,42 @@ import {
 } from 'react';
 import { usePathname } from 'next/navigation';
 import { APPS_CONFIG } from '@/config/apps-config';
+import { accountingFirm, getDemoCompany, type DemoCompany, type CompanyType } from '@/constants/demo-companies';
 
 interface AppContextType {
   currentApp: string | null;
   setCurrentApp: (appId: string | null) => void;
   getCurrentAppConfig: () => (typeof APPS_CONFIG)[0] | null;
+  currentCompany: DemoCompany;
+  setCurrentCompany: (company: DemoCompany) => void;
+  setCompanyByType: (type: CompanyType) => void;
 }
 
 const AppContext = createContext<AppContextType | undefined>(undefined);
 
 export function AppProvider({ children }: { children: ReactNode }) {
   const [currentApp, setCurrentApp] = useState<string | null>(null);
+  const [currentCompany, setCurrentCompany] = useState<DemoCompany>(accountingFirm);
   const pathname = usePathname();
+
+  // Load saved company preference
+  useEffect(() => {
+    const savedCompanyType = localStorage.getItem('demo_company_type') as CompanyType | null;
+    if (savedCompanyType) {
+      setCurrentCompany(getDemoCompany(savedCompanyType));
+    }
+  }, []);
+
+  // Save company preference
+  const handleSetCompany = (company: DemoCompany) => {
+    setCurrentCompany(company);
+    localStorage.setItem('demo_company_type', company.type);
+  };
+
+  const setCompanyByType = (type: CompanyType) => {
+    const company = getDemoCompany(type);
+    handleSetCompany(company);
+  };
 
   // Update current app based on URL
   useEffect(() => {
@@ -41,7 +65,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider
-      value={{ currentApp, setCurrentApp, getCurrentAppConfig }}
+      value={{ 
+        currentApp, 
+        setCurrentApp, 
+        getCurrentAppConfig,
+        currentCompany,
+        setCurrentCompany: handleSetCompany,
+        setCompanyByType
+      }}
     >
       {children}
     </AppContext.Provider>

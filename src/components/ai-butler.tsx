@@ -76,7 +76,7 @@ const SYSTEM_PROMPTS = {
 };
 
 export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIButlerProps) {
-  const { t } = useTranslation();
+  const { t, messages: i18nMessages } = useTranslation();
   const [isOpen, setIsOpen] = useState(defaultOpen);
   const [isMinimized, setIsMinimized] = useState(false);
   const [messages, setMessages] = useState<Message[]>([]);
@@ -85,6 +85,17 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
   const [context, setContext] = useState<keyof typeof SYSTEM_PROMPTS>('general');
   const scrollAreaRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+
+  // Default suggestions as fallback
+  const defaultSuggestions = [
+    "How do I create an invoice?",
+    "Show me the chart of accounts",
+    "What's my current cash balance?",
+    "How to record a journal entry?"
+  ];
+  
+  // Get suggestions from i18n messages or use defaults
+  const suggestions = (i18nMessages?.assistant as any)?.suggestions || defaultSuggestions;
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -145,33 +156,46 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
     setIsLoading(true);
 
     try {
-      // Prepare chat history for API
-      const history = messages.map((m) => ({
-        role: m.role,
-        content: m.content,
-      }));
+      // Prepare chat history for API (including the new user message)
+      const history = [
+        ...messages.map((m) => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content,
+        })),
+        { role: 'user' as const, content: input.trim() }
+      ];
 
       const response = await aiApi.chatWithHistory(
-        input.trim(),
         history,
-        SYSTEM_PROMPTS[context],
-        'openai' // Default provider, can be made configurable
+        'openai', // Default provider, can be made configurable
+        {
+          systemPrompt: SYSTEM_PROMPTS[context],
+        }
       );
 
       const assistantMessage: Message = {
         id: `assistant-${Date.now()}`,
         role: 'assistant',
-        content: response.response || 'Sorry, I could not process your request.',
+        content: response.content || 'Sorry, I could not process your request.',
         timestamp: new Date(),
       };
 
       setMessages((prev) => [...prev, assistantMessage]);
     } catch (error) {
       console.error('AI Butler error:', error);
+      const errorMsg = error instanceof Error ? error.message : 'Unknown error';
+      let userFriendlyMessage = '抱歉，我暫時無法處理您的請求。請稍後再試。';
+      
+      if (errorMsg.includes('Authentication') || errorMsg.includes('credentials')) {
+        userFriendlyMessage = '請先登入以使用 AI 助手功能。您可以點擊右上角登入。';
+      } else if (errorMsg.includes('API') || errorMsg.includes('key')) {
+        userFriendlyMessage = '抱歉，AI 服務暫時無法使用。請確認後端 API 金鑰已正確設定。';
+      }
+      
       const errorMessage: Message = {
         id: `error-${Date.now()}`,
         role: 'assistant',
-        content: '抱歉，我暫時無法處理您的請求。請稍後再試，或確認 AI 服務的 API 金鑰已正確設定。',
+        content: userFriendlyMessage,
         timestamp: new Date(),
       };
       setMessages((prev) => [...prev, errorMessage]);
@@ -287,7 +311,7 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
       </div>
 
       {/* Messages */}
-      <ScrollArea className="flex-1 p-3" ref={scrollAreaRef}>
+      <div className="flex-1 overflow-y-auto p-3" ref={scrollAreaRef}>
         <div className="space-y-4">
           {messages.map((message) => (
             <div
@@ -335,14 +359,14 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
             </div>
           )}
         </div>
-      </ScrollArea>
+      </div>
 
       {/* Suggestions (show when no messages or few messages) */}
       {messages.length <= 1 && (
         <div className="px-3 pb-2">
           <p className="text-xs text-muted-foreground mb-2">建議問題：</p>
           <div className="flex flex-wrap gap-1">
-            {(t('assistant.suggestions') as unknown as string[]).slice(0, 3).map((suggestion, idx) => (
+            {suggestions.slice(0, 3).map((suggestion: string, idx: number) => (
               <button
                 key={idx}
                 onClick={() => handleSuggestionClick(suggestion)}

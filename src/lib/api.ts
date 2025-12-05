@@ -16,9 +16,9 @@ class ApiService {
 
   constructor(baseUrl: string) {
     this.baseUrl = baseUrl;
-    // 從 localStorage 恢復 tokens
+    // 從 localStorage 恢復 tokens (支援兩種 key 名稱)
     if (typeof window !== 'undefined') {
-      this.accessToken = localStorage.getItem('access_token');
+      this.accessToken = localStorage.getItem('token') || localStorage.getItem('access_token');
       this.refreshToken = localStorage.getItem('refresh_token');
     }
   }
@@ -28,6 +28,7 @@ class ApiService {
     this.accessToken = access;
     this.refreshToken = refresh;
     if (typeof window !== 'undefined') {
+      localStorage.setItem('token', access);
       localStorage.setItem('access_token', access);
       localStorage.setItem('refresh_token', refresh);
     }
@@ -81,6 +82,12 @@ class ApiService {
   // 通用請求方法
   async request<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
     const { skipAuth = false, ...fetchOptions } = options;
+    
+    // 每次請求時重新讀取 token (確保獲取最新的)
+    if (typeof window !== 'undefined') {
+      this.accessToken = localStorage.getItem('token') || localStorage.getItem('access_token');
+      this.refreshToken = localStorage.getItem('refresh_token');
+    }
     
     const headers: Record<string, string> = {
       'Content-Type': 'application/json',

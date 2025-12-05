@@ -18,55 +18,52 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
-
-const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--primary)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--primary-light)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--primary-lighter)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--primary-dark)' },
-  { browser: 'other', visitors: 190, fill: 'var(--primary-darker)' }
-];
-
-const chartConfig = {
-  visitors: {
-    label: 'Visitors'
-  },
-  chrome: {
-    label: 'Chrome',
-    color: 'var(--primary)'
-  },
-  safari: {
-    label: 'Safari',
-    color: 'var(--primary)'
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'var(--primary)'
-  },
-  edge: {
-    label: 'Edge',
-    color: 'var(--primary)'
-  },
-  other: {
-    label: 'Other',
-    color: 'var(--primary)'
-  }
-} satisfies ChartConfig;
+import { useApp } from '@/contexts/app-context';
 
 export function PieGraph() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
+  const { currentCompany } = useApp();
+  
+  // Transform service breakdown to chart data
+  const chartData = React.useMemo(() => {
+    return currentCompany.serviceBreakdown.map((item, index) => ({
+      service: item.service,
+      revenue: item.revenue,
+      fill: `var(--primary)`,
+      label: item.label
+    }));
+  }, [currentCompany]);
+
+  // Dynamic chart config based on current company
+  const chartConfig = React.useMemo(() => {
+    const config: ChartConfig = {
+      revenue: {
+        label: `Revenue (${currentCompany.currency})`
+      }
+    };
+    currentCompany.serviceBreakdown.forEach(item => {
+      config[item.service] = {
+        label: item.label,
+        color: 'var(--primary)'
+      };
+    });
+    return config;
+  }, [currentCompany]);
+
+  const totalRevenue = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.revenue, 0);
+  }, [chartData]);
+
+  const serviceKeys = currentCompany.serviceBreakdown.map(s => s.service);
 
   return (
     <Card className='@container/card'>
       <CardHeader>
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
+        <CardTitle>Revenue by Service</CardTitle>
         <CardDescription>
           <span className='hidden @[540px]/card:block'>
-            Total visitors by browser for the last 6 months
+            Service revenue distribution for the last 6 months
           </span>
-          <span className='@[540px]/card:hidden'>Browser distribution</span>
+          <span className='@[540px]/card:hidden'>Service distribution</span>
         </CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
@@ -76,11 +73,11 @@ export function PieGraph() {
         >
           <PieChart>
             <defs>
-              {['chrome', 'safari', 'firefox', 'edge', 'other'].map(
-                (browser, index) => (
+              {serviceKeys.map(
+                (service, index) => (
                   <linearGradient
-                    key={browser}
-                    id={`fill${browser}`}
+                    key={service}
+                    id={`fill${service}`}
                     x1='0'
                     y1='0'
                     x2='0'
@@ -102,15 +99,15 @@ export function PieGraph() {
             </defs>
             <ChartTooltip
               cursor={false}
-              content={<ChartTooltipContent hideLabel />}
+              content={<ChartTooltipContent hideLabel formatter={(value) => `${currentCompany.currency}$${value}k`} />}
             />
             <Pie
               data={chartData.map((item) => ({
                 ...item,
-                fill: `url(#fill${item.browser})`
+                fill: `url(#fill${item.service})`
               }))}
-              dataKey='visitors'
-              nameKey='browser'
+              dataKey='revenue'
+              nameKey='service'
               innerRadius={60}
               strokeWidth={2}
               stroke='var(--background)'
@@ -130,14 +127,14 @@ export function PieGraph() {
                           y={viewBox.cy}
                           className='fill-foreground text-3xl font-bold'
                         >
-                          {totalVisitors.toLocaleString()}
+                          ${(totalRevenue / 1000).toFixed(1)}M
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
                           className='fill-muted-foreground text-sm'
                         >
-                          Total Visitors
+                          Total Revenue
                         </tspan>
                       </text>
                     );
@@ -150,8 +147,8 @@ export function PieGraph() {
       </CardContent>
       <CardFooter className='flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
-          Chrome leads with{' '}
-          {((chartData[0].visitors / totalVisitors) * 100).toFixed(1)}%{' '}
+          Audit services lead with{' '}
+          {((chartData[0].revenue / totalRevenue) * 100).toFixed(1)}%{' '}
           <IconTrendingUp className='h-4 w-4' />
         </div>
         <div className='text-muted-foreground leading-none'>

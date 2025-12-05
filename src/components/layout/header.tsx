@@ -8,6 +8,8 @@ import SearchInput from '../search-input';
 import { ThemeSelector } from '../theme-selector';
 import { ModeToggle } from './ThemeToggle/theme-toggle';
 import { AppSwitcher } from './app-switcher';
+import { LanguageSwitcher } from '../language-switcher';
+import { CompanySwitcher } from '../company-switcher';
 
 export default function Header() {
   return (
@@ -18,6 +20,8 @@ export default function Header() {
         <Breadcrumbs />
       </div>
       <div className='flex items-center gap-2 px-4'>
+        <CompanySwitcher />
+        <LanguageSwitcher />
         <ModeToggle />
         <ThemeSelector />
         <div className='hidden md:flex'>

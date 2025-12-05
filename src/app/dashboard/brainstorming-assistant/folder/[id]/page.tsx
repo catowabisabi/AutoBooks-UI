@@ -28,6 +28,7 @@ import {
   Trash2,
   Link,
   ImageIcon,
+  Loader2,
   Globe,
   Lock,
   Users,
@@ -183,8 +184,8 @@ export default function FolderDetail() {
   const privateChats = conversations.filter((conv) => conv.type === 'private');
   const sharedChats = conversations.filter((conv) => conv.type === 'shared');
 
-  const handleSendMessage = () => {
-    if (newMessage.trim() && currentConversation) {
+  const handleSendMessage = async () => {
+    if (newMessage.trim() && currentConversation && !isLoading) {
       const userMessage: ChatMessage = {
         id: Date.now().toString(),
         type: 'user',
@@ -208,15 +209,35 @@ export default function FolderDetail() {
         )
       );
 
+      const messageToSend = newMessage;
       setNewMessage('');
+      setIsLoading(true);
 
-      // Simulate AI response
-      setTimeout(() => {
+      try {
+        // Build conversation history for AI context
+        const conversationHistory = currentConversation.messages.map((msg) => ({
+          role: msg.type === 'user' ? 'user' as const : 'assistant' as const,
+          content: msg.content
+        }));
+        conversationHistory.push({ role: 'user', content: messageToSend });
+
+        // Add knowledge base context to the system
+        const knowledgeContext = knowledgeBase.length > 0 
+          ? `Knowledge base items: ${knowledgeBase.map(item => item.name).join(', ')}. ` 
+          : '';
+        
+        const systemPrompt = `You are a brainstorming assistant helping with creative thinking and problem-solving. ${knowledgeContext}Provide insightful, actionable suggestions and help explore ideas thoroughly.`;
+
+        const response = await aiApi.chatWithHistory(
+          conversationHistory,
+          'openai',
+          { systemPrompt }
+        );
+
         const aiResponse: ChatMessage = {
           id: (Date.now() + 1).toString(),
           type: 'assistant',
-          content:
-            'Based on your cybersecurity knowledge base, I can see connections between your security framework and current threats. Would you like me to analyze potential vulnerabilities or suggest improvements?',
+          content: response.content || 'I apologize, I could not generate a response.',
           timestamp: new Date().toLocaleTimeString([], {
             hour: '2-digit',
             minute: '2-digit'
@@ -233,7 +254,32 @@ export default function FolderDetail() {
               : conv
           )
         );
-      }, 1000);
+      } catch (error) {
+        console.error('AI response error:', error);
+        // Fallback response on error
+        const fallbackResponse: ChatMessage = {
+          id: (Date.now() + 1).toString(),
+          type: 'assistant',
+          content: 'I apologize, I encountered an issue. Let me try to help with your brainstorming. Could you provide more context about what you\'re trying to explore?',
+          timestamp: new Date().toLocaleTimeString([], {
+            hour: '2-digit',
+            minute: '2-digit'
+          })
+        };
+
+        setConversations((prev) =>
+          prev.map((conv) =>
+            conv.id === activeConversation
+              ? {
+                  ...conv,
+                  messages: [...conv.messages, fallbackResponse]
+                }
+              : conv
+          )
+        );
+      } finally {
+        setIsLoading(false);
+      }
     }
   };
 
@@ -576,7 +622,7 @@ export default function FolderDetail() {
                     </ScrollArea>
 
                     {/* Message Input */}
-                    <div className='flex-shrink-0 border-t bg-white p-4'>
+                    <div className='flex-shrink-0 border-t bg-background p-4'>
                       <div className='flex gap-3'>
                         <Input
                           placeholder='Ask about your knowledge base...'
@@ -585,7 +631,7 @@ export default function FolderDetail() {
                           onKeyPress={(e) =>
                             e.key === 'Enter' && handleSendMessage()
                           }
-                          className='flex-1'
+                          className='flex-1 text-foreground'
                         />
                         <Button
                           onClick={handleSendMessage}
