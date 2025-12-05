@@ -12,7 +12,9 @@ import {
   useGenerateReply,
   useSendEmail,
   type Email,
+  type EmailListItem,
   type EmailAccount,
+  type EmailCategory,
 } from '@/features/ai-assistants';
 import {
   ResizablePanelGroup,
@@ -62,7 +64,7 @@ import {
   Building,
   RefreshCw,
 } from 'lucide-react';
-import { cn, formatDate } from '@/lib/utils';
+import { cn } from '@/lib/utils';
 import { aiApi } from '@/lib/api';
 
 // Email Category Configuration with Icons
@@ -90,11 +92,11 @@ interface ChatMessage {
 }
 
 // Helper to get initials from email/name
-function getInitials(sender: string, senderEmail: string): string {
-  if (sender) {
-    return sender.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
+function getInitials(name: string, email: string): string {
+  if (name) {
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0, 2);
   }
-  return senderEmail?.slice(0, 2).toUpperCase() || 'UN';
+  return email?.slice(0, 2).toUpperCase() || 'UN';
 }
 
 // Helper to format time ago
@@ -219,7 +221,7 @@ function EmailListItem({
   onSelect,
   onStar,
 }: {
-  email: Email;
+  email: EmailListItem;
   isSelected: boolean;
   onSelect: () => void;
   onStar: () => void;
@@ -238,17 +240,17 @@ function EmailListItem({
     >
       <Avatar className="h-10 w-10 shrink-0">
         <AvatarFallback className={cn(!email.is_read && "bg-primary text-primary-foreground")}>
-          {getInitials(email.sender_name || '', email.sender_email)}
+          {getInitials(email.from_name || '', email.from_address)}
         </AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
           <span className={cn("font-medium text-sm truncate", !email.is_read && "font-semibold")}>
-            {email.sender_name || email.sender_email}
+            {email.from_name || email.from_address}
           </span>
           <span className="text-xs text-muted-foreground shrink-0">
-            {timeAgo(email.received_at || email.created_at)}
+            {timeAgo(email.received_at || email.sent_at || '')}
           </span>
         </div>
         
@@ -295,7 +297,7 @@ function EmailList({
   isLoading: boolean;
   selectedEmail: Email | null;
   onSelectEmail: (email: Email) => void;
-  onStarEmail: (id: number) => void;
+  onStarEmail: (id: string) => void;
   onRefresh: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -303,11 +305,11 @@ function EmailList({
   const filteredEmails = useMemo(() => {
     if (!searchQuery.trim()) return emails;
     const query = searchQuery.toLowerCase();
-    return emails.filter(email =>
+    return emails.filter((email: Email) =>
       email.subject.toLowerCase().includes(query) ||
-      email.sender_name?.toLowerCase().includes(query) ||
-      email.sender_email.toLowerCase().includes(query) ||
-      email.body_text?.toLowerCase().includes(query)
+      email.from_name?.toLowerCase().includes(query) ||
+      email.from_address.toLowerCase().includes(query) ||
+      email.ai_summary?.toLowerCase().includes(query)
     );
   }, [emails, searchQuery]);
 
@@ -431,21 +433,21 @@ function EmailDetail({
         <div className="flex items-start gap-3 mb-6">
           <Avatar className="h-12 w-12">
             <AvatarFallback>
-              {getInitials(email.sender_name || '', email.sender_email)}
+              {getInitials(email.from_name || '', email.from_address)}
             </AvatarFallback>
           </Avatar>
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">{email.sender_name || 'Unknown'}</p>
-                <p className="text-sm text-muted-foreground">{email.sender_email}</p>
+                <p className="font-medium">{email.from_name || 'Unknown'}</p>
+                <p className="text-sm text-muted-foreground">{email.from_address}</p>
               </div>
               <p className="text-sm text-muted-foreground">
-                {new Date(email.received_at || email.created_at).toLocaleString()}
+                {new Date(email.received_at || email.sent_at || email.created_at).toLocaleString()}
               </p>
             </div>
             <p className="text-sm text-muted-foreground mt-1">
-              To: {email.recipient_emails?.join(', ')}
+              To: {email.to_addresses?.join(', ')}
             </p>
           </div>
         </div>
@@ -474,24 +476,12 @@ function EmailDetail({
           )}
         </div>
 
-        {email.attachments && email.attachments.length > 0 && (
+        {email.has_attachments && (
           <>
             <Separator className="my-4" />
             <div>
-              <h3 className="text-sm font-medium mb-2">Attachments ({email.attachments.length})</h3>
-              <div className="flex flex-wrap gap-2">
-                {email.attachments.map((attachment, idx) => (
-                  <Button key={idx} variant="outline" size="sm" className="h-auto py-2">
-                    <FileText className="h-4 w-4 mr-2" />
-                    <div className="text-left">
-                      <p className="text-xs font-medium">{attachment.filename}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {Math.round(attachment.file_size / 1024)}KB
-                      </p>
-                    </div>
-                  </Button>
-                ))}
-              </div>
+              <h3 className="text-sm font-medium mb-2">Attachments</h3>
+              <p className="text-sm text-muted-foreground">This email has attachments. View full details to download.</p>
             </div>
           </>
         )}
@@ -539,7 +529,7 @@ function AIChatPanel({
 
     try {
       const emailContext = email
-        ? `Current email:\nFrom: ${email.sender_name} <${email.sender_email}>\nSubject: ${email.subject}\nCategory: ${email.category}\nContent: ${email.body_text?.substring(0, 500)}`
+        ? `Current email:\nFrom: ${email.from_name} <${email.from_address}>\nSubject: ${email.subject}\nCategory: ${email.category}\nContent: ${email.body_text?.substring(0, 500)}`
         : 'No email selected.';
 
       const systemPrompt = `You are a professional email assistant for WiseMatic ERP, a business services platform for accounting firms. Help users draft emails, respond to messages, summarize correspondence, and manage their inbox professionally. ${emailContext}`;
@@ -653,7 +643,7 @@ export default function EmailAssistantClientV2() {
 
   // API Hooks
   const { data: emails = [], isLoading: emailsLoading, refetch: refetchEmails } = useEmails({
-    category: Object.keys(EMAIL_CATEGORIES).includes(selectedFolder) ? selectedFolder : undefined,
+    category: Object.keys(EMAIL_CATEGORIES).includes(selectedFolder) ? selectedFolder as EmailCategory : undefined,
     is_starred: selectedFolder === 'starred' ? true : undefined,
     is_read: selectedFolder === 'unread' ? false : undefined,
     status: selectedFolder === 'sent' ? 'SENT' : selectedFolder === 'archived' ? 'ARCHIVED' : selectedFolder === 'trash' ? 'DELETED' : undefined,
@@ -668,20 +658,20 @@ export default function EmailAssistantClientV2() {
   // Filter emails based on folder
   const filteredEmails = useMemo(() => {
     if (selectedFolder === 'all') return emails;
-    if (selectedFolder === 'unread') return emails.filter(e => !e.is_read);
-    if (selectedFolder === 'starred') return emails.filter(e => e.is_starred);
+    if (selectedFolder === 'unread') return emails.filter((e: EmailListItem) => !e.is_read);
+    if (selectedFolder === 'starred') return emails.filter((e: EmailListItem) => e.is_starred);
     // Account filter
     if (!isNaN(Number(selectedFolder))) {
-      return emails.filter(e => e.account?.toString() === selectedFolder);
+      return emails.filter((e: EmailListItem) => (e as Email).account?.toString() === selectedFolder);
     }
     // Category filter
     if (Object.keys(EMAIL_CATEGORIES).includes(selectedFolder)) {
-      return emails.filter(e => e.category === selectedFolder);
+      return emails.filter((e: EmailListItem) => e.category === selectedFolder);
     }
     return emails;
   }, [emails, selectedFolder]);
 
-  const unreadCount = useMemo(() => emails.filter(e => !e.is_read).length, [emails]);
+  const unreadCount = useMemo(() => emails.filter((e: EmailListItem) => !e.is_read).length, [emails]);
 
   // Handle email selection
   const handleSelectEmail = (email: Email) => {
@@ -692,7 +682,7 @@ export default function EmailAssistantClientV2() {
   };
 
   // Handle star toggle
-  const handleStarEmail = (id: number) => {
+  const handleStarEmail = (id: string) => {
     starMutation.mutate(id);
   };
 
@@ -714,19 +704,21 @@ export default function EmailAssistantClientV2() {
   };
 
   // Handle generate reply
-  const handleGenerateReply = () => {
+  const handleGenerateReply = async () => {
     if (selectedEmail) {
-      generateReplyMutation.mutate(selectedEmail.id, {
-        onSuccess: (data) => {
-          setChatMessages(prev => [...prev, {
-            id: Date.now().toString(),
-            role: 'assistant',
-            content: `Here's a suggested reply:\n\n${data.suggested_reply || 'Draft your reply here...'}`,
-            timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-          }]);
-          setChatOpen(true);
-        }
-      });
+      try {
+        const result = await generateReplyMutation.mutateAsync(selectedEmail.id);
+        const data = result as { suggested_reply?: string };
+        setChatMessages(prev => [...prev, {
+          id: Date.now().toString(),
+          role: 'assistant',
+          content: `Here's a suggested reply:\n\n${data.suggested_reply || 'Draft your reply here...'}`,
+          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        }]);
+        setChatOpen(true);
+      } catch (error) {
+        toast({ title: 'Failed to generate reply', variant: 'destructive' });
+      }
     }
   };
 

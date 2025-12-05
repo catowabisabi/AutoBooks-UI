@@ -61,6 +61,9 @@ import {
   useCompleteTask,
   type PlannerTask,
   type ScheduleEvent,
+  type TaskStatus,
+  type TaskPriority,
+  type CreateTaskData,
 } from '@/features/ai-assistants';
 import { useToast } from '@/hooks/use-toast';
 
@@ -73,10 +76,10 @@ interface ChatMessage {
 
 // Task status configuration
 const TASK_STATUS_CONFIG = {
-  PENDING: { label: 'Pending', icon: Circle, color: 'text-gray-400', bg: 'bg-gray-100' },
+  TODO: { label: 'To Do', icon: Circle, color: 'text-gray-400', bg: 'bg-gray-100' },
   IN_PROGRESS: { label: 'In Progress', icon: Play, color: 'text-blue-500', bg: 'bg-blue-100 text-blue-800' },
-  COMPLETED: { label: 'Completed', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-100 text-green-800' },
-  PAUSED: { label: 'Paused', icon: Pause, color: 'text-yellow-500', bg: 'bg-yellow-100 text-yellow-800' },
+  BLOCKED: { label: 'Blocked', icon: Pause, color: 'text-yellow-500', bg: 'bg-yellow-100 text-yellow-800' },
+  DONE: { label: 'Done', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-100 text-green-800' },
   CANCELLED: { label: 'Cancelled', icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-100 text-red-800' },
 };
 
@@ -84,7 +87,7 @@ const TASK_PRIORITY_CONFIG = {
   LOW: { label: 'Low', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
   MEDIUM: { label: 'Medium', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
   HIGH: { label: 'High', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
-  URGENT: { label: 'Urgent', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+  CRITICAL: { label: 'Critical', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
 };
 
 const TASK_CATEGORIES = [
@@ -103,16 +106,16 @@ function TaskListItem({
   onDelete: () => void;
   onEdit: () => void;
 }) {
-  const statusConfig = TASK_STATUS_CONFIG[task.status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.PENDING;
+  const statusConfig = TASK_STATUS_CONFIG[task.status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.TODO;
   const priorityConfig = TASK_PRIORITY_CONFIG[task.priority as keyof typeof TASK_PRIORITY_CONFIG] || TASK_PRIORITY_CONFIG.MEDIUM;
   const StatusIcon = statusConfig.icon;
 
-  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'COMPLETED';
+  const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'DONE';
 
   return (
     <div className={cn(
       "p-4 border rounded-lg hover:bg-muted/50 transition-colors",
-      task.status === 'COMPLETED' && "opacity-60",
+      task.status === 'DONE' && "opacity-60",
       isOverdue && "border-red-300 bg-red-50/50 dark:bg-red-950/20"
     )}>
       <div className="flex items-start gap-3">
@@ -124,21 +127,21 @@ function TaskListItem({
           <div className="flex items-center gap-2 flex-wrap">
             <span className={cn(
               "font-medium",
-              task.status === 'COMPLETED' && "line-through text-muted-foreground"
+              task.status === 'DONE' && "line-through text-muted-foreground"
             )}>
               {task.title}
             </span>
             <Badge className={priorityConfig.color} variant="secondary">
               {priorityConfig.label}
             </Badge>
-            {task.category && (
-              <Badge variant="outline" className="text-xs">{task.category}</Badge>
-            )}
             {task.ai_generated && (
               <Badge variant="secondary" className="text-xs gap-1">
                 <Sparkles className="h-3 w-3" />
                 AI
               </Badge>
+            )}
+            {task.tags && task.tags.length > 0 && (
+              <Badge variant="outline" className="text-xs">{task.tags[0]}</Badge>
             )}
           </div>
           
@@ -155,26 +158,13 @@ function TaskListItem({
                 Due: {new Date(task.due_date).toLocaleDateString()}
               </div>
             )}
-            {task.estimated_hours && (
-              <div className="flex items-center gap-1">
-                <Clock className="h-3 w-3" />
-                {task.estimated_hours}h estimated
-              </div>
-            )}
-            {task.ai_priority_score && (
+            {task.ai_priority_score !== undefined && task.ai_priority_score > 0 && (
               <div className="flex items-center gap-1">
                 <Brain className="h-3 w-3 text-purple-500" />
                 Score: {task.ai_priority_score}
               </div>
             )}
           </div>
-          
-          {task.progress !== undefined && task.progress > 0 && task.status !== 'COMPLETED' && (
-            <div className="mt-2 flex items-center gap-2">
-              <Progress value={task.progress} className="h-1.5 flex-1" />
-              <span className="text-xs text-muted-foreground">{task.progress}%</span>
-            </div>
-          )}
         </div>
         
         <div className="flex items-center gap-1">
@@ -199,15 +189,13 @@ function CreateTaskDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (task: Partial<PlannerTask>) => void;
+  onSubmit: (task: CreateTaskData) => void;
   isSubmitting: boolean;
 }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
-  const [priority, setPriority] = useState<string>('MEDIUM');
-  const [category, setCategory] = useState<string>('OTHER');
+  const [priority, setPriority] = useState<TaskPriority>('MEDIUM');
   const [dueDate, setDueDate] = useState('');
-  const [estimatedHours, setEstimatedHours] = useState('');
 
   const handleSubmit = () => {
     if (!title.trim()) return;
@@ -215,18 +203,14 @@ function CreateTaskDialog({
       title,
       description,
       priority,
-      category,
       due_date: dueDate || undefined,
-      estimated_hours: estimatedHours ? parseFloat(estimatedHours) : undefined,
-      status: 'PENDING',
+      status: 'TODO' as TaskStatus,
     });
     // Reset form
     setTitle('');
     setDescription('');
     setPriority('MEDIUM');
-    setCategory('OTHER');
     setDueDate('');
-    setEstimatedHours('');
   };
 
   return (
@@ -261,10 +245,10 @@ function CreateTaskDialog({
             />
           </div>
           
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid gap-4">
             <div className="grid gap-2">
               <Label htmlFor="priority">Priority</Label>
-              <Select value={priority} onValueChange={setPriority}>
+              <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -277,41 +261,12 @@ function CreateTaskDialog({
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="category">Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {TASK_CATEGORIES.map(cat => (
-                    <SelectItem key={cat} value={cat}>
-                      {cat.replace('_', ' ')}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-4">
-            <div className="grid gap-2">
               <Label htmlFor="due_date">Due Date</Label>
               <Input
                 id="due_date"
                 type="date"
                 value={dueDate}
                 onChange={(e) => setDueDate(e.target.value)}
-              />
-            </div>
-            
-            <div className="grid gap-2">
-              <Label htmlFor="estimated">Estimated Hours</Label>
-              <Input
-                id="estimated"
-                type="number"
-                placeholder="Hours"
-                value={estimatedHours}
-                onChange={(e) => setEstimatedHours(e.target.value)}
               />
             </div>
           </div>
@@ -362,8 +317,7 @@ function EventsSidebar({ events, isLoading }: { events: ScheduleEvent[]; isLoadi
           <div key={event.id} className="p-3 border rounded-lg">
             <div className="flex items-start gap-2">
               <div 
-                className="w-1 h-full rounded-full"
-                style={{ backgroundColor: event.color || '#6366f1' }}
+                className="w-1 h-full rounded-full bg-primary"
               />
               <div className="flex-1 min-w-0">
                 <p className="font-medium text-sm truncate">{event.title}</p>
@@ -458,15 +412,15 @@ export default function PlannerAssistantPageV2() {
   // Stats
   const stats = useMemo(() => ({
     total: tasks.length,
-    completed: tasks.filter(t => t.status === 'COMPLETED').length,
-    inProgress: tasks.filter(t => t.status === 'IN_PROGRESS').length,
-    urgent: tasks.filter(t => t.priority === 'URGENT' && t.status !== 'COMPLETED').length,
-    overdue: tasks.filter(t => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'COMPLETED').length,
+    completed: tasks.filter((t: PlannerTask) => t.status === 'DONE').length,
+    inProgress: tasks.filter((t: PlannerTask) => t.status === 'IN_PROGRESS').length,
+    urgent: tasks.filter((t: PlannerTask) => t.priority === 'CRITICAL' && t.status !== 'DONE').length,
+    overdue: tasks.filter((t: PlannerTask) => t.due_date && new Date(t.due_date) < new Date() && t.status !== 'DONE').length,
   }), [tasks]);
 
   // Handlers
-  const handleCreateTask = (taskData: Partial<PlannerTask>) => {
-    createTaskMutation.mutate(taskData as Omit<PlannerTask, 'id'>, {
+  const handleCreateTask = (taskData: CreateTaskData) => {
+    createTaskMutation.mutate(taskData, {
       onSuccess: () => {
         setCreateDialogOpen(false);
         toast({ title: 'Task created successfully' });
@@ -475,35 +429,37 @@ export default function PlannerAssistantPageV2() {
   };
 
   const handleToggleStatus = (task: PlannerTask) => {
-    const statusOrder = ['PENDING', 'IN_PROGRESS', 'COMPLETED'];
+    const statusOrder: TaskStatus[] = ['TODO', 'IN_PROGRESS', 'DONE'];
     const currentIndex = statusOrder.indexOf(task.status);
     const nextStatus = statusOrder[(currentIndex + 1) % statusOrder.length];
     
-    if (nextStatus === 'COMPLETED') {
+    if (nextStatus === 'DONE') {
       completeTaskMutation.mutate(task.id);
     } else {
       updateTaskMutation.mutate({ id: task.id, data: { status: nextStatus } });
     }
   };
 
-  const handleDeleteTask = (taskId: number) => {
+  const handleDeleteTask = (taskId: string) => {
     deleteTaskMutation.mutate(taskId, {
       onSuccess: () => toast({ title: 'Task deleted' }),
     });
   };
 
-  const handleAIPrioritize = () => {
-    aiPrioritizeMutation.mutate(undefined, {
-      onSuccess: (data) => {
-        toast({ title: 'AI prioritization complete', description: data.message });
-        setMessages(prev => [...prev, {
-          id: Date.now().toString(),
-          type: 'assistant',
-          content: `I've analyzed your tasks and updated their AI priority scores. ${data.message || 'Tasks are now sorted by optimal priority.'}`,
-          timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        }]);
-      },
-    });
+  const handleAIPrioritize = async () => {
+    try {
+      const result = await aiPrioritizeMutation.mutateAsync(undefined);
+      const data = result as { message?: string; tasks_updated?: number };
+      toast({ title: 'AI prioritization complete', description: data.message });
+      setMessages(prev => [...prev, {
+        id: Date.now().toString(),
+        type: 'assistant',
+        content: `I've analyzed your tasks and updated their AI priority scores. ${data.message || 'Tasks are now sorted by optimal priority.'}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+      }]);
+    } catch (error) {
+      toast({ title: 'Failed to prioritize tasks', variant: 'destructive' });
+    }
   };
 
   const handleSendMessage = async () => {
@@ -522,7 +478,7 @@ export default function PlannerAssistantPageV2() {
     setChatLoading(true);
 
     try {
-      const taskContext = tasks.slice(0, 10).map(t =>
+      const taskContext = tasks.slice(0, 10).map((t: PlannerTask) =>
         `- ${t.title} (${t.priority}, ${t.status}, due: ${t.due_date || 'no date'})`
       ).join('\n');
 

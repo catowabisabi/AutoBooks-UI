@@ -72,7 +72,9 @@ import {
   useGenerateIdeas,
   useRateIdea,
   type BrainstormSession,
+  type BrainstormSessionListItem,
   type BrainstormIdea,
+  type SessionType,
 } from '@/features/ai-assistants';
 import { useToast } from '@/hooks/use-toast';
 
@@ -94,7 +96,7 @@ function SessionCard({
   isSelected,
   onClick,
 }: {
-  session: BrainstormSession;
+  session: BrainstormSessionListItem;
   isSelected: boolean;
   onClick: () => void;
 }) {
@@ -117,7 +119,7 @@ function SessionCard({
           <div className="flex-1 min-w-0">
             <CardTitle className="text-base truncate">{session.title}</CardTitle>
             <CardDescription className="text-xs mt-1">
-              {session.context?.substring(0, 80)}...
+              {session.prompt?.substring(0, 80)}...
             </CardDescription>
           </div>
         </div>
@@ -150,26 +152,15 @@ function IdeaCard({
   onRate: (rating: 'up' | 'down') => void;
 }) {
   return (
-    <Card className={cn(
-      "transition-all",
-      idea.is_ai_generated && "border-purple-200 dark:border-purple-800"
-    )}>
+    <Card className="transition-all">
       <CardContent className="pt-4">
         <div className="flex items-start gap-3">
-          <div className={cn(
-            "p-1.5 rounded-full shrink-0",
-            idea.is_ai_generated ? "bg-purple-100 dark:bg-purple-900" : "bg-muted"
-          )}>
-            {idea.is_ai_generated ? (
-              <Sparkles className="h-4 w-4 text-purple-500" />
-            ) : (
-              <Lightbulb className="h-4 w-4 text-muted-foreground" />
-            )}
+          <div className="p-1.5 rounded-full shrink-0 bg-muted">
+            <Lightbulb className="h-4 w-4 text-muted-foreground" />
           </div>
           
           <div className="flex-1 min-w-0">
-            <h4 className="font-medium text-sm">{idea.title}</h4>
-            <p className="text-sm text-muted-foreground mt-1">{idea.content}</p>
+            <p className="text-sm">{idea.content}</p>
             
             <div className="flex items-center gap-3 mt-3">
               <div className="flex items-center gap-1">
@@ -197,13 +188,6 @@ function IdeaCard({
                 </Button>
               </div>
               
-              {idea.is_ai_generated && (
-                <Badge variant="secondary" className="text-xs gap-1">
-                  <Sparkles className="h-3 w-3" />
-                  AI Generated
-                </Badge>
-              )}
-              
               {idea.category && (
                 <Badge variant="outline" className="text-xs">
                   {idea.category}
@@ -217,6 +201,15 @@ function IdeaCard({
   );
 }
 
+// Data type for creating session
+interface CreateSessionData {
+  title: string;
+  session_type?: SessionType;
+  prompt?: string;
+  context?: string;
+  target_outcome?: string;
+}
+
 // Create Session Dialog
 function CreateSessionDialog({
   open,
@@ -226,25 +219,25 @@ function CreateSessionDialog({
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSubmit: (data: Partial<BrainstormSession>) => void;
+  onSubmit: (data: CreateSessionData) => void;
   isSubmitting: boolean;
 }) {
   const [title, setTitle] = useState('');
-  const [context, setContext] = useState('');
-  const [sessionType, setSessionType] = useState<string>('STRATEGY');
+  const [prompt, setPrompt] = useState('');
+  const [sessionType, setSessionType] = useState<SessionType>('STRATEGY');
   const [targetOutcome, setTargetOutcome] = useState('');
 
   const handleSubmit = () => {
-    if (!title.trim() || !context.trim()) return;
+    if (!title.trim() || !prompt.trim()) return;
     onSubmit({
       title,
-      context,
+      prompt,
       session_type: sessionType,
       target_outcome: targetOutcome,
     });
     // Reset
     setTitle('');
-    setContext('');
+    setPrompt('');
     setSessionType('STRATEGY');
     setTargetOutcome('');
   };
@@ -258,7 +251,7 @@ function CreateSessionDialog({
             New Brainstorm Session
           </DialogTitle>
           <DialogDescription>
-            Start a new brainstorming session. AI will help generate ideas based on your context.
+            Start a new brainstorming session. AI will help generate ideas based on your prompt.
           </DialogDescription>
         </DialogHeader>
 
@@ -275,7 +268,7 @@ function CreateSessionDialog({
 
           <div className="grid gap-2">
             <Label htmlFor="type">Session Type</Label>
-            <Select value={sessionType} onValueChange={setSessionType}>
+            <Select value={sessionType} onValueChange={(v) => setSessionType(v as SessionType)}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
@@ -296,12 +289,12 @@ function CreateSessionDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="context">Context & Background</Label>
+            <Label htmlFor="prompt">Prompt & Background</Label>
             <Textarea
-              id="context"
+              id="prompt"
               placeholder="Describe the problem, situation, or topic you want to brainstorm about..."
-              value={context}
-              onChange={(e) => setContext(e.target.value)}
+              value={prompt}
+              onChange={(e) => setPrompt(e.target.value)}
               rows={4}
             />
           </div>
@@ -321,7 +314,7 @@ function CreateSessionDialog({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit} disabled={isSubmitting || !title.trim() || !context.trim()}>
+          <Button onClick={handleSubmit} disabled={isSubmitting || !title.trim() || !prompt.trim()}>
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
             Create Session
           </Button>
@@ -344,7 +337,7 @@ function SessionDetailPanel({
   ideas: BrainstormIdea[];
   isLoadingIdeas: boolean;
   onGenerateIdeas: () => void;
-  onRateIdea: (ideaId: number, rating: 'up' | 'down') => void;
+  onRateIdea: (ideaId: string, rating: 'up' | 'down') => void;
   isGenerating: boolean;
 }) {
   const typeConfig = SESSION_TYPES[session.session_type as keyof typeof SESSION_TYPES] || SESSION_TYPES.STRATEGY;
@@ -369,8 +362,8 @@ function SessionDetailPanel({
     setChatLoading(true);
 
     try {
-      const existingIdeas = ideas.map(i => `- ${i.title}: ${i.content}`).join('\n');
-      const systemPrompt = `You are a creative brainstorming assistant for WiseMatic ERP. The current session is: "${session.title}" with context: "${session.context}". Existing ideas:\n${existingIdeas}\n\nHelp the user expand on these ideas, suggest new ones, or provide feedback.`;
+      const existingIdeas = ideas.map((i: BrainstormIdea) => `- ${i.content}`).join('\n');
+      const systemPrompt = `You are a creative brainstorming assistant for WiseMatic ERP. The current session is: "${session.title}" with prompt: "${session.prompt}". Existing ideas:\n${existingIdeas}\n\nHelp the user expand on these ideas, suggest new ones, or provide feedback.`;
 
       const response = await aiApi.chatWithHistory(
         [...chatMessages.slice(-5), { role: 'user', content: userMsg }],
@@ -402,7 +395,7 @@ function SessionDetailPanel({
           </div>
           <div className="flex-1">
             <h2 className="text-lg font-semibold">{session.title}</h2>
-            <p className="text-sm text-muted-foreground mt-1">{session.context}</p>
+            <p className="text-sm text-muted-foreground mt-1">{session.prompt}</p>
             <div className="flex items-center gap-3 mt-2">
               <Badge variant="outline">{typeConfig.label}</Badge>
               <span className="text-xs text-muted-foreground">
@@ -521,7 +514,7 @@ function SessionDetailPanel({
 
 // Main Brainstorming Page
 export default function BrainstormingAssistantPageV2() {
-  const [selectedSessionId, setSelectedSessionId] = useState<number | null>(null);
+  const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
@@ -529,9 +522,9 @@ export default function BrainstormingAssistantPageV2() {
 
   // API Hooks
   const { data: sessions = [], isLoading: sessionsLoading, refetch: refetchSessions } = useBrainstormSessions();
-  const { data: selectedSession } = useBrainstormSession(selectedSessionId || 0, { enabled: !!selectedSessionId });
+  const { data: selectedSession } = useBrainstormSession(selectedSessionId || '', { enabled: !!selectedSessionId });
   const { data: ideas = [], isLoading: ideasLoading, refetch: refetchIdeas } = useBrainstormIdeas(
-    selectedSessionId || 0,
+    selectedSessionId || '',
     { enabled: !!selectedSessionId }
   );
   const createSessionMutation = useCreateBrainstormSession();
@@ -542,28 +535,30 @@ export default function BrainstormingAssistantPageV2() {
   const filteredSessions = useMemo(() => {
     if (!searchQuery.trim()) return sessions;
     const query = searchQuery.toLowerCase();
-    return sessions.filter(s =>
+    return sessions.filter((s: BrainstormSessionListItem) =>
       s.title.toLowerCase().includes(query) ||
-      s.context?.toLowerCase().includes(query)
+      s.prompt?.toLowerCase().includes(query)
     );
   }, [sessions, searchQuery]);
 
   // Stats
   const stats = useMemo(() => ({
     totalSessions: sessions.length,
-    totalIdeas: sessions.reduce((acc, s) => acc + (s.ideas_count || 0), 0),
-    aiIdeas: ideas.filter(i => i.is_ai_generated).length,
+    totalIdeas: sessions.reduce((acc: number, s: BrainstormSessionListItem) => acc + (s.ideas_count || 0), 0),
+    selectedIdeas: ideas.length,
   }), [sessions, ideas]);
 
   // Handlers
-  const handleCreateSession = (data: Partial<BrainstormSession>) => {
-    createSessionMutation.mutate(data as Omit<BrainstormSession, 'id'>, {
-      onSuccess: (newSession) => {
-        setCreateDialogOpen(false);
-        setSelectedSessionId(newSession.id);
-        toast({ title: 'Session created!' });
-      },
-    });
+  const handleCreateSession = async (data: CreateSessionData) => {
+    try {
+      const result = await createSessionMutation.mutateAsync(data);
+      const newSession = result as BrainstormSession;
+      setCreateDialogOpen(false);
+      setSelectedSessionId(newSession.id);
+      toast({ title: 'Session created!' });
+    } catch (error) {
+      toast({ title: 'Failed to create session', variant: 'destructive' });
+    }
   };
 
   const handleGenerateIdeas = () => {
@@ -576,7 +571,7 @@ export default function BrainstormingAssistantPageV2() {
     });
   };
 
-  const handleRateIdea = (ideaId: number, rating: 'up' | 'down') => {
+  const handleRateIdea = (ideaId: string, rating: 'up' | 'down') => {
     rateIdeaMutation.mutate(
       { ideaId, rating: rating === 'up' ? 1 : -1 },
       { onSuccess: () => refetchIdeas() }
@@ -655,7 +650,7 @@ export default function BrainstormingAssistantPageV2() {
                   </Button>
                 </div>
               ) : (
-                filteredSessions.map(session => (
+                filteredSessions.map((session: BrainstormSessionListItem) => (
                   <SessionCard
                     key={session.id}
                     session={session}

@@ -15,7 +15,40 @@ import {
   CampaignBreakdownRequest,
   PitchWriterRequest,
   MarketAnalysisRequest,
+  // Re-export types for consumers
+  Email,
+  EmailListItem,
+  EmailAccount,
+  EmailTemplate,
+  PlannerTask,
+  PlannerTaskListItem,
+  ScheduleEvent,
+  BrainstormSession,
+  BrainstormSessionListItem,
+  BrainstormIdea,
 } from './services';
+
+// Re-export all types for convenience
+export type { 
+  Email,
+  EmailListItem,
+  EmailAccount,
+  EmailTemplate,
+  EmailStatus,
+  EmailCategory,
+  PlannerTask,
+  PlannerTaskListItem,
+  ScheduleEvent,
+  TaskStatus,
+  TaskPriority,
+  BrainstormSession,
+  BrainstormSessionListItem,
+  BrainstormIdea,
+  SessionType,
+  CreateTaskData,
+  ComposeEmailData,
+  GenerateRequest,
+};
 
 // =================================================================
 // Email Assistant Hooks
@@ -32,7 +65,11 @@ export function useEmails(params?: {
 }) {
   return useQuery({
     queryKey: ['emails', params],
-    queryFn: () => emailApi.getEmails(params),
+    queryFn: async () => {
+      const response = await emailApi.getEmails(params);
+      // Handle both paginated and array responses
+      return Array.isArray(response) ? response : response.results || [];
+    },
   });
 }
 
@@ -41,6 +78,16 @@ export function useEmail(id: string) {
     queryKey: ['email', id],
     queryFn: () => emailApi.getEmail(id),
     enabled: !!id,
+  });
+}
+
+export function useEmailAccounts() {
+  return useQuery({
+    queryKey: ['email-accounts'],
+    queryFn: async () => {
+      const response = await emailApi.getAccounts();
+      return Array.isArray(response) ? response : response.results || [];
+    },
   });
 }
 
@@ -68,17 +115,46 @@ export function useEmailTemplates(category?: EmailCategory) {
 export function useMarkEmailRead() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => emailApi.markRead(id),
+    mutationFn: (id: number | string) => emailApi.markRead(String(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
     },
   });
 }
 
+// Alias for backwards compatibility
+export const useStarEmail = useToggleEmailStar;
+
 export function useToggleEmailStar() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => emailApi.toggleStar(id),
+    mutationFn: (id: number | string) => emailApi.toggleStar(String(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+    },
+  });
+}
+
+export function useDeleteEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number | string) => emailApi.archive(String(id)),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+    },
+  });
+}
+
+export function useGenerateReply() {
+  return useMutation({
+    mutationFn: (id: number | string) => emailApi.generateReply(String(id)),
+  });
+}
+
+export function useSendEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: ComposeEmailData) => emailApi.compose(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
     },
@@ -132,7 +208,10 @@ export function usePlannerTasks(params?: {
 }) {
   return useQuery({
     queryKey: ['planner-tasks', params],
-    queryFn: () => plannerApi.getTasks(params),
+    queryFn: async () => {
+      const response = await plannerApi.getTasks(params);
+      return Array.isArray(response) ? response : response.results || [];
+    },
   });
 }
 
@@ -141,6 +220,21 @@ export function usePlannerTask(id: string) {
     queryKey: ['planner-task', id],
     queryFn: () => plannerApi.getTask(id),
     enabled: !!id,
+  });
+}
+
+export function useScheduleEvents(params?: {
+  start_date?: string;
+  end_date?: string;
+  page?: number;
+  page_size?: number;
+}) {
+  return useQuery({
+    queryKey: ['schedule-events', params],
+    queryFn: async () => {
+      const response = await plannerApi.getEvents(params);
+      return Array.isArray(response) ? response : response.results || [];
+    },
   });
 }
 
@@ -168,7 +262,7 @@ export function usePlannerStats() {
 export function useCreateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: CreateTaskData) => plannerApi.createTask(data),
+    mutationFn: (data: Partial<CreateTaskData>) => plannerApi.createTask(data as CreateTaskData),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
     },
@@ -178,8 +272,18 @@ export function useCreateTask() {
 export function useUpdateTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<CreateTaskData> }) =>
-      plannerApi.updateTask(id, data),
+    mutationFn: ({ id, data }: { id: number | string; data: Partial<CreateTaskData> }) =>
+      plannerApi.updateTask(String(id), data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
+    },
+  });
+}
+
+export function useDeleteTask() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: number | string) => plannerApi.deleteTask(String(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
     },
@@ -189,7 +293,7 @@ export function useUpdateTask() {
 export function useCompleteTask() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: string) => plannerApi.completeTask(id),
+    mutationFn: (id: number | string) => plannerApi.completeTask(String(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
     },
@@ -200,6 +304,16 @@ export function useStartTask() {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (id: string) => plannerApi.startTask(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
+    },
+  });
+}
+
+export function useAIPrioritize() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (options?: { consider_deadlines?: boolean }) => plannerApi.aiReprioritize(options),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
     },
@@ -234,33 +348,6 @@ export function useAIReprioritize() {
   });
 }
 
-// Schedule Events
-export function useScheduleEvents(params?: {
-  start_date?: string;
-  end_date?: string;
-  page?: number;
-  page_size?: number;
-}) {
-  return useQuery({
-    queryKey: ['schedule-events', params],
-    queryFn: () => plannerApi.getEvents(params),
-  });
-}
-
-export function useTodayEvents() {
-  return useQuery({
-    queryKey: ['schedule-events', 'today'],
-    queryFn: () => plannerApi.getTodayEvents(),
-  });
-}
-
-export function useUpcomingEvents() {
-  return useQuery({
-    queryKey: ['schedule-events', 'upcoming'],
-    queryFn: () => plannerApi.getUpcomingEvents(),
-  });
-}
-
 // =================================================================
 // Brainstorming Assistant Hooks
 // =================================================================
@@ -275,15 +362,29 @@ export function useBrainstormSessions(params?: {
 }) {
   return useQuery({
     queryKey: ['brainstorm-sessions', params],
-    queryFn: () => brainstormApi.getSessions(params),
+    queryFn: async () => {
+      const response = await brainstormApi.getSessions(params);
+      return Array.isArray(response) ? response : response.results || [];
+    },
   });
 }
 
-export function useBrainstormSession(id: string) {
+export function useBrainstormSession(id: number | string, options?: { enabled?: boolean }) {
   return useQuery({
     queryKey: ['brainstorm-session', id],
-    queryFn: () => brainstormApi.getSession(id),
-    enabled: !!id,
+    queryFn: () => brainstormApi.getSession(String(id)),
+    enabled: options?.enabled !== false && !!id,
+  });
+}
+
+export function useBrainstormIdeas(sessionId: number | string, options?: { enabled?: boolean }) {
+  return useQuery({
+    queryKey: ['brainstorm-ideas', sessionId],
+    queryFn: async () => {
+      const response = await brainstormApi.getIdeas({ session_id: String(sessionId) });
+      return Array.isArray(response) ? response : response.results || [];
+    },
+    enabled: options?.enabled !== false && !!sessionId,
   });
 }
 
@@ -291,6 +392,55 @@ export function useBrainstormStats() {
   return useQuery({
     queryKey: ['brainstorm-sessions', 'stats'],
     queryFn: () => brainstormApi.getStats(),
+  });
+}
+
+export function useCreateBrainstormSession() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: {
+      title: string;
+      session_type?: SessionType;
+      prompt?: string;
+      context?: string;
+      target_outcome?: string;
+      related_campaign?: string;
+      related_client?: string;
+    }) => brainstormApi.createSession({
+      title: data.title,
+      session_type: data.session_type || 'STRATEGY',
+      prompt: data.prompt || data.context || '',
+      context: data.context ? { background: data.context, target: data.target_outcome } : undefined,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brainstorm-sessions'] });
+    },
+  });
+}
+
+export function useGenerateIdeas() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (sessionId: number | string) => brainstormApi.generate({
+      session_type: 'IDEA_GENERATOR',
+      prompt: `Generate ideas for session ${sessionId}`,
+      num_ideas: 5,
+    }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brainstorm-ideas'] });
+      queryClient.invalidateQueries({ queryKey: ['brainstorm-sessions'] });
+    },
+  });
+}
+
+export function useRateIdea() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ ideaId, rating }: { ideaId: number | string; rating: number }) =>
+      brainstormApi.rateIdea(String(ideaId), rating),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['brainstorm-ideas'] });
+    },
   });
 }
 
