@@ -1,0 +1,76 @@
+'use client';
+
+import { useEffect, useState } from 'react';
+import { useRouter, useSearchParams } from 'next/navigation';
+import { useAuth } from '@/lib/auth/provider';
+import { Loader2 } from 'lucide-react';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Button } from '@/components/ui/button';
+
+export default function GoogleCallbackPage() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const { loginWithGoogle } = useAuth();
+  const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(true);
+
+  useEffect(() => {
+    const handleCallback = async () => {
+      const code = searchParams.get('code');
+      const errorParam = searchParams.get('error');
+
+      if (errorParam) {
+        setError(`Google authentication failed: ${errorParam}`);
+        setIsProcessing(false);
+        return;
+      }
+
+      if (!code) {
+        setError('No authorization code received from Google');
+        setIsProcessing(false);
+        return;
+      }
+
+      try {
+        // Exchange code for tokens via our backend
+        await loginWithGoogle(code);
+        router.push('/dashboard');
+      } catch (err: any) {
+        console.error('Google callback error:', err);
+        setError(err.message || 'Failed to complete Google authentication');
+        setIsProcessing(false);
+      }
+    };
+
+    handleCallback();
+  }, [searchParams, loginWithGoogle, router]);
+
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-4">
+        <div className="w-full max-w-md space-y-4">
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
+          <Button 
+            onClick={() => router.push('/sign-in')} 
+            className="w-full"
+          >
+            Back to Sign In
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-h-screen flex flex-col items-center justify-center p-4">
+      <div className="flex flex-col items-center space-y-4">
+        <Loader2 className="h-12 w-12 animate-spin text-primary" />
+        <p className="text-lg text-muted-foreground">
+          Completing Google sign in...
+        </p>
+      </div>
+    </div>
+  );
+}

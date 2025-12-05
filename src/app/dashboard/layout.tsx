@@ -6,6 +6,7 @@ import { cookies } from 'next/headers';
 import React from 'react';
 import { AppProvider } from '@/contexts/app-context';
 import Header from '@/components/layout/header';
+import { AIButlerWrapper } from '@/components/ai-butler-wrapper';
 
 export default async function DashboardLayout({
   children
@@ -26,6 +27,8 @@ export default async function DashboardLayout({
             {children}
             {/* page main content ends */}
           </SidebarInset>
+          {/* AI Butler - floating assistant */}
+          <AIButlerWrapper />
         </AppProvider>
       </SidebarProvider>
     </KBar>
