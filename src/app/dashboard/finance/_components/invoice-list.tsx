@@ -9,12 +9,17 @@ import {
   IconDotsVertical,
   IconEdit,
   IconEye,
-  IconTrash
+  IconTrash,
+  IconFileTypePdf,
+  IconFileSpreadsheet,
+  IconDownload,
+  IconPrinter,
 } from '@tabler/icons-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuSeparator,
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { Badge } from '@/components/ui/badge';
@@ -25,6 +30,12 @@ import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { IconPlus } from '@tabler/icons-react';
+import { toast } from 'sonner';
+import {
+  downloadInvoicePDF,
+  exportInvoicesToExcel,
+  InvoiceData,
+} from '@/lib/export-utils';
 
 // Define the invoice type
 type Invoice = {
@@ -117,6 +128,44 @@ export default function InvoiceList() {
   const router = useRouter();
   const [data] = useState<Invoice[]>(invoices);
 
+  // 轉換為匯出格式
+  const convertToExportFormat = (invoice: Invoice): InvoiceData => ({
+    id: invoice.id,
+    invoiceNumber: invoice.invoiceNumber,
+    client: invoice.client,
+    amount: invoice.amount,
+    issueDate: invoice.issueDate,
+    dueDate: invoice.dueDate,
+    status: invoice.status,
+    currency: 'TWD',
+  });
+
+  // 下載單一發票 PDF
+  const handleDownloadPDF = (invoice: Invoice) => {
+    const exportData = convertToExportFormat(invoice);
+    downloadInvoicePDF(exportData);
+    toast.success(`正在生成 ${invoice.invoiceNumber} 的 PDF...`);
+  };
+
+  // 匯出所有發票為 Excel
+  const handleExportAllToExcel = () => {
+    const exportData = data.map(convertToExportFormat);
+    exportInvoicesToExcel(exportData, `invoices_${new Date().toISOString().split('T')[0]}`);
+    toast.success('發票已匯出為 Excel 檔案');
+  };
+
+  // 匯出選取的發票為 Excel
+  const handleExportSelectedToExcel = () => {
+    const selectedRows = table.getFilteredSelectedRowModel().rows;
+    if (selectedRows.length === 0) {
+      toast.error('請先選取要匯出的發票');
+      return;
+    }
+    const exportData = selectedRows.map(row => convertToExportFormat(row.original));
+    exportInvoicesToExcel(exportData, `invoices_selected_${new Date().toISOString().split('T')[0]}`);
+    toast.success(`已匯出 ${selectedRows.length} 筆發票`);
+  };
+
   const columns: ColumnDef<Invoice>[] = [
     {
       accessorKey: 'invoiceNumber',
@@ -193,7 +242,7 @@ export default function InvoiceList() {
                 }
               >
                 <IconEye className='mr-2 h-4 w-4' />
-                View Details
+                View Details / 檢視詳情
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
@@ -201,11 +250,25 @@ export default function InvoiceList() {
                 }
               >
                 <IconEdit className='mr-2 h-4 w-4' />
-                Edit
+                Edit / 編輯
               </DropdownMenuItem>
-              <DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem onClick={() => handleDownloadPDF(invoice)}>
+                <IconFileTypePdf className='mr-2 h-4 w-4 text-red-500' />
+                Download PDF / 下載 PDF
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => {
+                const exportData = convertToExportFormat(invoice);
+                exportInvoicesToExcel([exportData], `invoice_${invoice.invoiceNumber}`);
+                toast.success('發票已匯出為 Excel');
+              }}>
+                <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
+                Export Excel / 匯出 Excel
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem className='text-destructive'>
                 <IconTrash className='mr-2 h-4 w-4' />
-                Delete
+                Delete / 刪除
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -226,15 +289,37 @@ export default function InvoiceList() {
     <div className='space-y-4'>
       <div className='flex items-start justify-between'>
         <Heading
-          title='Invoice Management'
-          description='Create and manage invoices, track payments, and monitor outstanding balances.'
+          title='Invoice Management / 發票管理'
+          description='Create and manage invoices, track payments, and export to PDF/Excel. / 建立和管理發票、追蹤付款、匯出 PDF/Excel。'
         />
-        <Link
-          href='/dashboard/finance/invoices/new'
-          className={cn(buttonVariants(), 'text-xs md:text-sm')}
-        >
-          <IconPlus className='mr-2 h-4 w-4' /> Create Invoice
-        </Link>
+        <div className='flex items-center gap-2'>
+          {/* 匯出按鈕 */}
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant='outline'>
+                <IconDownload className='mr-2 h-4 w-4' />
+                Export / 匯出
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align='end'>
+              <DropdownMenuItem onClick={handleExportAllToExcel}>
+                <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
+                Export All to Excel / 全部匯出 Excel
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={handleExportSelectedToExcel}>
+                <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
+                Export Selected to Excel / 匯出選取項目
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+          
+          <Link
+            href='/dashboard/finance/invoices/new'
+            className={cn(buttonVariants(), 'text-xs md:text-sm')}
+          >
+            <IconPlus className='mr-2 h-4 w-4' /> Create Invoice / 新增發票
+          </Link>
+        </div>
       </div>
       <Separator />
       <DataTable table={table} />

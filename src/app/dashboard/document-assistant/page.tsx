@@ -1,11 +1,14 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
+import { Textarea } from '@/components/ui/textarea';
 import {
   IconPlus,
   IconSend,
@@ -17,7 +20,13 @@ import {
   IconFileText,
   IconSearch,
   IconX,
-  IconLoader2
+  IconLoader2,
+  IconTrash,
+  IconRefresh,
+  IconFileSpreadsheet,
+  IconPhoto,
+  IconEye,
+  IconRobot,
 } from '@tabler/icons-react';
 import {
   Sheet,
@@ -27,10 +36,12 @@ import {
   SheetDescription
 } from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
-import { aiApi } from '@/lib/api';
+import { aiApi, assistantsApi } from '@/lib/api';
+import { MultiFileUploader, FileWithStatus, DOCUMENT_ACCEPT_TYPES } from '@/components/multi-file-uploader';
+import { toast } from 'sonner';
 
 // Types
-type DocumentType = 'pdf' | 'doc' | 'txt' | 'image';
+type DocumentType = 'pdf' | 'doc' | 'txt' | 'image' | 'excel' | 'csv';
 type MessageRole = 'user' | 'assistant';
 
 interface Message {
@@ -43,15 +54,15 @@ interface Message {
   };
 }
 
-interface Document {
+interface ProcessedDocument {
   id: string;
   name: string;
   type: DocumentType;
   size: string;
-  lastModified: string;
-  tags: string[];
-  content?: string;
-  folderId: string;
+  uploadedAt: string;
+  documentId?: string;
+  status: 'processing' | 'ready' | 'error';
+  error?: string;
 }
 
 interface Folder {
@@ -60,125 +71,122 @@ interface Folder {
   documents: number;
 }
 
-// Mock data for folders
-const initialFolders: Folder[] = [
-  { id: 'important', name: 'Important Documents', documents: 5 },
-  { id: 'contracts', name: 'Contracts', documents: 3 },
-  { id: 'reports', name: 'Reports', documents: 7 }
-];
-
-// Mock data for documents
-const initialDocuments: Document[] = [
-  {
-    id: 'doc-1',
-    name: 'Annual Report 2023.pdf',
-    type: 'pdf',
-    size: '2.4 MB',
-    lastModified: '2023-12-15',
-    tags: ['report', 'finance'],
-    folderId: 'reports'
-  },
-  {
-    id: 'doc-2',
-    name: 'Client Contract.doc',
-    type: 'doc',
-    size: '1.2 MB',
-    lastModified: '2023-11-20',
-    tags: ['legal', 'contract'],
-    folderId: 'contracts'
-  },
-  {
-    id: 'doc-3',
-    name: 'Meeting Notes.txt',
-    type: 'txt',
-    size: '45 KB',
-    lastModified: '2023-12-10',
-    tags: ['notes', 'meeting'],
-    folderId: 'important'
-  }
-];
-
-// Mock chat messages
-const initialMessages: Message[] = [
-  {
-    id: '1',
-    role: 'user',
-    content: 'Can you summarize the annual report?'
-  },
-  {
-    id: '2',
-    role: 'assistant',
-    content:
-      "I've analyzed the annual report and here are the key points:\n\n- Revenue increased by 15% compared to last year\n- New market expansion in Asia Pacific region\n- R&D investments grew by 20%\n- Customer satisfaction score improved to 92%",
-    document: {
-      id: 'doc-1',
-      name: 'Annual Report 2023.pdf'
-    }
-  },
-  {
-    id: '3',
-    role: 'user',
-    content: 'What are the main terms in the client contract?'
-  },
-  {
-    id: '4',
-    role: 'assistant',
-    content:
-      'The client contract contains these key terms:\n\n- 12-month service period with automatic renewal\n- Payment terms: Net 30 days\n- Confidentiality clause covering all shared materials\n- Termination requires 60-day written notice',
-    document: {
-      id: 'doc-2',
-      name: 'Client Contract.doc'
-    }
-  }
-];
-
-// Document component
-interface DocumentItemProps {
-  document: Document;
-  onSelect: (document: Document) => void;
+// Helper to get document type from file
+function getDocumentType(file: File): DocumentType {
+  if (file.type.startsWith('image/')) return 'image';
+  if (file.type === 'application/pdf') return 'pdf';
+  if (file.type.includes('spreadsheet') || file.type.includes('excel') || file.name.endsWith('.xlsx') || file.name.endsWith('.xls')) return 'excel';
+  if (file.type === 'text/csv' || file.name.endsWith('.csv')) return 'csv';
+  if (file.type.includes('word') || file.name.endsWith('.doc') || file.name.endsWith('.docx')) return 'doc';
+  return 'txt';
 }
 
-function DocumentItem({ document, onSelect }: DocumentItemProps) {
-  const getIconByType = (type: DocumentType) => {
-    switch (type) {
-      case 'pdf':
-        return <IconFileText className='text-red-500' />;
-      case 'doc':
-        return <IconFileText className='text-blue-500' />;
-      case 'txt':
-        return <IconFile className='text-gray-500' />;
-      case 'image':
-        return <IconFile className='text-green-500' />;
-      default:
-        return <IconFile />;
-    }
-  };
+// Helper to format file size
+function formatFileSize(bytes: number): string {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
+
+// Document type icons
+const documentTypeIcons: Record<DocumentType, { icon: typeof IconFile; color: string }> = {
+  pdf: { icon: IconFileText, color: 'text-red-500' },
+  doc: { icon: IconFileText, color: 'text-blue-500' },
+  txt: { icon: IconFileText, color: 'text-gray-500' },
+  image: { icon: IconPhoto, color: 'text-green-500' },
+  excel: { icon: IconFileSpreadsheet, color: 'text-emerald-600' },
+  csv: { icon: IconFileSpreadsheet, color: 'text-emerald-600' },
+};
+
+// Initial folders
+const initialFolders: Folder[] = [
+  { id: 'all', name: 'All Documents / 所有文件', documents: 0 },
+  { id: 'receipts', name: 'Receipts / 收據', documents: 0 },
+  { id: 'invoices', name: 'Invoices / 發票', documents: 0 },
+  { id: 'contracts', name: 'Contracts / 合約', documents: 0 },
+  { id: 'reports', name: 'Reports / 報表', documents: 0 },
+];
+
+// Document Item Component
+interface DocumentItemProps {
+  document: ProcessedDocument;
+  onSelect: (document: ProcessedDocument) => void;
+  onDelete: (document: ProcessedDocument) => void;
+}
+
+function DocumentItem({ document, onSelect, onDelete }: DocumentItemProps) {
+  const typeConfig = documentTypeIcons[document.type];
+  const Icon = typeConfig.icon;
 
   return (
     <Card
-      className='hover:bg-muted/50 cursor-pointer'
-      onClick={() => onSelect(document)}
+      className={cn(
+        'hover:bg-muted/50 cursor-pointer transition-colors',
+        document.status === 'error' && 'border-red-200',
+        document.status === 'processing' && 'border-blue-200'
+      )}
+      onClick={() => document.status === 'ready' && onSelect(document)}
     >
       <CardContent className='p-4'>
         <div className='flex items-start gap-3'>
-          <div className='mt-1 text-2xl'>{getIconByType(document.type)}</div>
-          <div className='flex-1'>
-            <h3 className='font-medium'>{document.name}</h3>
-            <div className='text-muted-foreground mt-1 flex text-xs'>
+          <div className={cn('mt-1 text-2xl', typeConfig.color)}>
+            <Icon className='h-6 w-6' />
+          </div>
+          <div className='flex-1 min-w-0'>
+            <div className='flex items-center gap-2'>
+              <h3 className='font-medium truncate'>{document.name}</h3>
+              {document.status === 'processing' && (
+                <IconLoader2 className='h-4 w-4 animate-spin text-blue-500' />
+              )}
+              {document.status === 'error' && (
+                <Badge variant='destructive' className='text-xs'>Error</Badge>
+              )}
+              {document.status === 'ready' && document.documentId && (
+                <Badge variant='outline' className='text-xs'>Ready</Badge>
+              )}
+            </div>
+            <div className='text-muted-foreground mt-1 flex text-xs gap-2'>
               <span>{document.size}</span>
-              <span className='mx-2'>•</span>
-              <span>Modified {document.lastModified}</span>
+              <span>•</span>
+              <span>{document.uploadedAt}</span>
+              {document.documentId && (
+                <>
+                  <span>•</span>
+                  <span className='text-green-600'>ID: {document.documentId.slice(0, 8)}...</span>
+                </>
+              )}
             </div>
-            <div className='mt-2 flex flex-wrap gap-1'>
-              {document.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className='bg-primary/10 text-primary rounded-full px-2 py-0.5 text-xs'
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {document.error && (
+              <p className='text-xs text-red-500 mt-1'>{document.error}</p>
+            )}
+          </div>
+          <div className='flex gap-1'>
+            {document.status === 'ready' && (
+              <Button
+                variant='ghost'
+                size='icon'
+                className='h-8 w-8'
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onSelect(document);
+                }}
+              >
+                <IconEye className='h-4 w-4' />
+              </Button>
+            )}
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 text-destructive'
+              onClick={(e) => {
+                e.stopPropagation();
+                onDelete(document);
+              }}
+            >
+              <IconTrash className='h-4 w-4' />
+            </Button>
           </div>
         </div>
       </CardContent>
@@ -232,20 +240,24 @@ function ChatMessage({ message }: ChatMessageProps) {
 
 export default function DocumentAssistantPage() {
   const [folders, setFolders] = useState(initialFolders);
-  const [documents, setDocuments] = useState(initialDocuments);
-  const [messages, setMessages] = useState(initialMessages);
-  const [currentFolder, setCurrentFolder] = useState('important');
+  const [documents, setDocuments] = useState<ProcessedDocument[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const [currentFolder, setCurrentFolder] = useState('all');
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
-  // New state variables
+  // UI states
   const [isChatOpen, setIsChatOpen] = useState(false);
-  const [selectedDocument, setSelectedDocument] = useState<Document | null>(
-    null
-  );
+  const [selectedDocument, setSelectedDocument] = useState<ProcessedDocument | null>(null);
   const [editingFolder, setEditingFolder] = useState<string | null>(null);
   const [folderName, setFolderName] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState<'documents' | 'upload'>('documents');
+
+  // Upload states
+  const [uploadFiles, setUploadFiles] = useState<FileWithStatus[]>([]);
+  const [defaultQuery, setDefaultQuery] = useState('');
 
   // Scroll to bottom of chat when messages change
   useEffect(() => {
@@ -253,11 +265,77 @@ export default function DocumentAssistantPage() {
   }, [messages]);
 
   // Filter documents for current folder
-  const currentDocuments = documents.filter(
-    (doc) => doc.folderId === currentFolder
-  );
+  const filteredDocuments = documents.filter(doc => {
+    if (currentFolder === 'all') return true;
+    const folderName = folders.find(f => f.id === currentFolder)?.name.toLowerCase() || '';
+    return doc.name.toLowerCase().includes(currentFolder) || 
+           (currentFolder === 'receipts' && doc.type === 'image') ||
+           (currentFolder === 'invoices' && doc.type === 'pdf') ||
+           (currentFolder === 'reports' && (doc.type === 'excel' || doc.type === 'csv'));
+  }).filter(doc => {
+    if (!searchQuery) return true;
+    return doc.name.toLowerCase().includes(searchQuery.toLowerCase());
+  });
 
-  const [isLoading, setIsLoading] = useState(false);
+  // Update folder counts
+  useEffect(() => {
+    setFolders(prev => prev.map(folder => ({
+      ...folder,
+      documents: folder.id === 'all' 
+        ? documents.length 
+        : documents.filter(doc => {
+            if (folder.id === 'receipts') return doc.type === 'image';
+            if (folder.id === 'invoices') return doc.type === 'pdf';
+            if (folder.id === 'reports') return doc.type === 'excel' || doc.type === 'csv';
+            return doc.name.toLowerCase().includes(folder.id);
+          }).length
+    })));
+  }, [documents]);
+
+  // Handle single file upload
+  const handleUploadSingle = useCallback(async (file: FileWithStatus, index: number): Promise<{ document_id?: string; query_result?: string }> => {
+    const formData = new FormData();
+    formData.append('file', file);
+    
+    if (defaultQuery) {
+      formData.append('query', defaultQuery);
+    } else {
+      // Default query based on file type
+      const docType = getDocumentType(file);
+      let autoQuery = 'Summarize the key information in this document.';
+      if (docType === 'image') {
+        autoQuery = 'Analyze this image and extract any text, numbers, or key information.';
+      } else if (docType === 'excel' || docType === 'csv') {
+        autoQuery = 'Analyze this spreadsheet and summarize the key data and patterns.';
+      }
+      formData.append('query', autoQuery);
+    }
+
+    try {
+      const response = await assistantsApi.documentProcess(formData);
+      
+      // Add to documents list
+      const newDoc: ProcessedDocument = {
+        id: `doc-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
+        name: file.name,
+        type: getDocumentType(file),
+        size: formatFileSize(file.size),
+        uploadedAt: new Date().toLocaleDateString(),
+        documentId: response.document_id,
+        status: 'ready',
+      };
+      
+      setDocuments(prev => [...prev, newDoc]);
+
+      return {
+        document_id: response.document_id,
+        query_result: response.query_result,
+      };
+    } catch (error) {
+      console.error('Upload error:', error);
+      throw error;
+    }
+  }, [defaultQuery]);
 
   // Handle sending a new message
   const handleSendMessage = async () => {
@@ -275,82 +353,92 @@ export default function DocumentAssistantPage() {
     setIsLoading(true);
 
     try {
-      // Create context about the document
-      const docContext = selectedDocument 
-        ? `The user is asking about the document "${selectedDocument.name}" (${selectedDocument.type} file, ${selectedDocument.size}). Tags: ${selectedDocument.tags.join(', ')}.`
-        : 'The user is asking about their documents in general.';
+      // If a document is selected, query about that specific document
+      if (selectedDocument?.documentId) {
+        const response = await assistantsApi.documentQuery(selectedDocument.documentId, currentMessage);
+        
+        const aiResponse: Message = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: response.query_result || response.response || 'Analysis complete.',
+          document: {
+            id: selectedDocument.id,
+            name: selectedDocument.name
+          }
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      } else {
+        // General document assistant chat
+        const docContext = selectedDocument 
+          ? `The user is asking about the document "${selectedDocument.name}".`
+          : 'The user is asking about their documents in general.';
 
-      const systemPrompt = `You are a helpful document assistant for a professional services firm (accounting, audit, financial PR). Help users analyze, summarize, and find information in their documents. ${docContext} Provide clear, professional responses.`;
+        const systemPrompt = `You are a helpful document assistant. ${docContext} Help users analyze, summarize, and find information in their documents.`;
 
-      const conversationHistory = messages.slice(-6).map(m => ({
-        role: m.role as 'user' | 'assistant',
-        content: m.content
-      }));
-      conversationHistory.push({ role: 'user', content: currentMessage });
+        const conversationHistory = messages.slice(-6).map(m => ({
+          role: m.role as 'user' | 'assistant',
+          content: m.content
+        }));
+        conversationHistory.push({ role: 'user', content: currentMessage });
 
-      const response = await aiApi.chatWithHistory(
-        conversationHistory,
-        'openai',
-        { systemPrompt }
-      );
+        const response = await aiApi.chatWithHistory(
+          conversationHistory,
+          'openai',
+          { systemPrompt }
+        );
 
-      const aiResponse: Message = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: response.content || 'I can help you analyze this document. What specific information are you looking for?',
-        document: selectedDocument
-          ? {
-              id: selectedDocument.id,
-              name: selectedDocument.name
-            }
-          : undefined
-      };
-      setMessages((prev) => [...prev, aiResponse]);
+        const aiResponse: Message = {
+          id: `ai-${Date.now()}`,
+          role: 'assistant',
+          content: response.content || 'I can help you analyze documents. Please upload some documents first.',
+        };
+        setMessages(prev => [...prev, aiResponse]);
+      }
     } catch (error) {
       console.error('AI response error:', error);
-      // Fallback response
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
-        content: `I've analyzed your question about "${currentMessage}". Here's what I found:\n\n- Key points related to your query\n- Supporting information from the documents\n- Suggested next steps\n\nWould you like me to elaborate on any of these points?`,
-        document: selectedDocument
-          ? {
-              id: selectedDocument.id,
-              name: selectedDocument.name
-            }
-          : undefined
+        content: 'Sorry, I encountered an error processing your request. Please try again.',
       };
-      setMessages((prev) => [...prev, aiResponse]);
+      setMessages(prev => [...prev, aiResponse]);
     } finally {
       setIsLoading(false);
     }
   };
 
   // Handle document selection
-  const handleSelectDocument = (document: Document) => {
+  const handleSelectDocument = (document: ProcessedDocument) => {
     setSelectedDocument(document);
     setIsChatOpen(true);
 
-    // Add a message about the selected document if chat is empty
-    if (messages.length === 0) {
-      const aiMessage: Message = {
-        id: `ai-${Date.now()}`,
-        role: 'assistant',
-        content: `I've opened "${document.name}". How can I help you with this document?`,
-        document: {
-          id: document.id,
-          name: document.name
-        }
-      };
-      setMessages([aiMessage]);
+    // Add initial message
+    const aiMessage: Message = {
+      id: `ai-${Date.now()}`,
+      role: 'assistant',
+      content: `I've loaded "${document.name}". You can now ask me questions about this document.\n\nDocument ID: ${document.documentId}\nType: ${document.type.toUpperCase()}\nSize: ${document.size}`,
+      document: {
+        id: document.id,
+        name: document.name
+      }
+    };
+    setMessages([aiMessage]);
+  };
+
+  // Handle document deletion
+  const handleDeleteDocument = (document: ProcessedDocument) => {
+    setDocuments(prev => prev.filter(d => d.id !== document.id));
+    if (selectedDocument?.id === document.id) {
+      setSelectedDocument(null);
     }
+    toast.success(`${document.name} deleted / 已刪除`);
   };
 
   // Handle creating a new folder
   const handleCreateFolder = () => {
     const newFolder = {
       id: `folder-${Date.now()}`,
-      name: `New Folder ${folders.length + 1}`,
+      name: `New Folder ${folders.length}`,
       documents: 0
     };
 
@@ -382,7 +470,7 @@ export default function DocumentAssistantPage() {
         {/* Folders Sidebar */}
         <div className='border-border mr-4 w-[250px] overflow-y-auto border-r pr-2'>
           <div className='mb-4 flex items-center justify-between'>
-            <h3 className='font-medium'>Folders</h3>
+            <h3 className='font-medium'>Folders / 資料夾</h3>
             <Button onClick={handleCreateFolder} size='sm' variant='ghost'>
               <IconPlus className='h-4 w-4' />
             </Button>
@@ -426,14 +514,16 @@ export default function DocumentAssistantPage() {
                         ({folder.documents})
                       </span>
                     </button>
-                    <Button
-                      size='icon'
-                      variant='ghost'
-                      className='h-7 w-7 opacity-0 group-hover:opacity-100'
-                      onClick={() => handleStartRename(folder)}
-                    >
-                      <IconEdit className='h-3.5 w-3.5' />
-                    </Button>
+                    {folder.id !== 'all' && (
+                      <Button
+                        size='icon'
+                        variant='ghost'
+                        className='h-7 w-7 opacity-0 group-hover:opacity-100'
+                        onClick={() => handleStartRename(folder)}
+                      >
+                        <IconEdit className='h-3.5 w-3.5' />
+                      </Button>
+                    )}
                   </>
                 )}
               </div>
@@ -441,62 +531,126 @@ export default function DocumentAssistantPage() {
           </div>
         </div>
 
-        {/* Main Document Area */}
+        {/* Main Content Area */}
         <div className='flex flex-1 flex-col overflow-hidden'>
-          <div className='mb-4 flex items-center justify-between'>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              {folders.find((f) => f.id === currentFolder)?.name || 'Documents'}
-            </h2>
-            <div className='flex items-center space-x-2'>
-              <div className='relative w-64'>
-                <IconSearch className='text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4' />
-                <Input
-                  placeholder='Search documents...'
-                  className='pl-8'
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                />
-              </div>
-              <Button>
-                <IconUpload className='mr-2 h-4 w-4' />
-                Upload
-              </Button>
-            </div>
-          </div>
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as 'documents' | 'upload')} className='flex-1 flex flex-col'>
+            <div className='mb-4 flex items-center justify-between'>
+              <TabsList>
+                <TabsTrigger value='documents'>
+                  <IconFile className='h-4 w-4 mr-2' />
+                  Documents / 文件
+                </TabsTrigger>
+                <TabsTrigger value='upload'>
+                  <IconUpload className='h-4 w-4 mr-2' />
+                  Upload / 上傳
+                </TabsTrigger>
+              </TabsList>
 
-          {/* Document List */}
-          <ScrollArea className='flex-1'>
-            <div className='grid grid-cols-1 gap-4 p-4'>
-              {currentDocuments.length > 0 ? (
-                currentDocuments.map((document) => (
-                  <DocumentItem
-                    key={document.id}
-                    document={document}
-                    onSelect={handleSelectDocument}
-                  />
-                ))
-              ) : (
-                <div className='bg-muted/20 border-muted col-span-1 flex h-64 flex-col items-center justify-center rounded-lg border border-dashed'>
-                  <p className='text-muted-foreground mb-4'>
-                    This folder is empty
-                  </p>
-                  <Button>
-                    <IconUpload className='mr-2 h-4 w-4' />
-                    Upload Documents
-                  </Button>
-                </div>
-              )}
+              <div className='flex items-center space-x-2'>
+                {activeTab === 'documents' && (
+                  <div className='relative w-64'>
+                    <IconSearch className='text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4' />
+                    <Input
+                      placeholder='Search documents... / 搜尋文件...'
+                      className='pl-8'
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                    />
+                  </div>
+                )}
+                <Button onClick={() => setActiveTab('upload')}>
+                  <IconUpload className='mr-2 h-4 w-4' />
+                  Upload / 上傳
+                </Button>
+              </div>
             </div>
-          </ScrollArea>
+
+            {/* Documents Tab */}
+            <TabsContent value='documents' className='flex-1 overflow-hidden mt-0'>
+              <ScrollArea className='h-full'>
+                <div className='grid grid-cols-1 gap-4 p-1'>
+                  {filteredDocuments.length > 0 ? (
+                    filteredDocuments.map((document) => (
+                      <DocumentItem
+                        key={document.id}
+                        document={document}
+                        onSelect={handleSelectDocument}
+                        onDelete={handleDeleteDocument}
+                      />
+                    ))
+                  ) : (
+                    <div className='bg-muted/20 border-muted col-span-1 flex h-64 flex-col items-center justify-center rounded-lg border border-dashed'>
+                      <IconFile className='h-12 w-12 text-muted-foreground mb-4' />
+                      <p className='text-muted-foreground mb-4'>
+                        {searchQuery 
+                          ? 'No documents found / 找不到文件'
+                          : 'No documents uploaded yet / 尚未上傳文件'}
+                      </p>
+                      <Button onClick={() => setActiveTab('upload')}>
+                        <IconUpload className='mr-2 h-4 w-4' />
+                        Upload Documents / 上傳文件
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
+            </TabsContent>
+
+            {/* Upload Tab */}
+            <TabsContent value='upload' className='flex-1 overflow-hidden mt-0'>
+              <Card className='h-full'>
+                <CardHeader>
+                  <CardTitle className='flex items-center gap-2'>
+                    <IconUpload className='h-5 w-5' />
+                    Bulk Document Upload / 批量上傳文件
+                  </CardTitle>
+                  <CardDescription>
+                    Upload multiple files at once. Supported formats: PDF, Excel, Word, Images, CSV, TXT
+                    <br />
+                    支援批量上傳：PDF、Excel、Word、圖片、CSV、TXT
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className='space-y-4'>
+                  {/* Default Query */}
+                  <div className='space-y-2'>
+                    <label className='text-sm font-medium'>
+                      Default Query (Optional) / 預設查詢（選填）
+                    </label>
+                    <Textarea
+                      placeholder='Enter a query to run on all uploaded documents, e.g., "Extract all amounts and dates" / 輸入要對所有文件執行的查詢，例如「提取所有金額和日期」'
+                      value={defaultQuery}
+                      onChange={(e) => setDefaultQuery(e.target.value)}
+                      className='min-h-[80px]'
+                    />
+                    <p className='text-xs text-muted-foreground'>
+                      If empty, an automatic query will be generated based on file type.
+                      <br />
+                      若為空，將根據檔案類型自動生成查詢。
+                    </p>
+                  </div>
+
+                  {/* Multi-File Uploader */}
+                  <MultiFileUploader
+                    value={uploadFiles}
+                    onValueChange={setUploadFiles}
+                    onUploadSingle={handleUploadSingle}
+                    maxFiles={20}
+                    maxSize={50 * 1024 * 1024}
+                    showUploadButton={true}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
 
       {/* Chat Button */}
       <Button
-        className='fixed right-6 bottom-6 h-12 w-12 rounded-full shadow-lg'
+        className='fixed right-6 bottom-6 h-14 w-14 rounded-full shadow-lg'
         onClick={() => setIsChatOpen(true)}
       >
-        <IconMessage className='h-5 w-5' />
+        <IconRobot className='h-6 w-6' />
       </Button>
 
       {/* Chat Panel (Sheet) */}
@@ -506,17 +660,51 @@ export default function DocumentAssistantPage() {
           className='flex h-full w-[400px] flex-col p-0 sm:w-[540px]'
         >
           <SheetHeader className='border-border shrink-0 border-b p-4'>
-            <SheetTitle>Document Assistant</SheetTitle>
+            <SheetTitle className='flex items-center gap-2'>
+              <IconRobot className='h-5 w-5' />
+              Document Assistant / 文件助手
+            </SheetTitle>
             <SheetDescription>
-              Ask questions about your documents
+              {selectedDocument 
+                ? `Analyzing: ${selectedDocument.name}`
+                : 'Ask questions about your documents / 詢問有關文件的問題'}
             </SheetDescription>
+            {selectedDocument && (
+              <Button
+                variant='ghost'
+                size='sm'
+                onClick={() => setSelectedDocument(null)}
+                className='mt-2'
+              >
+                <IconX className='h-4 w-4 mr-1' />
+                Clear selection / 清除選擇
+              </Button>
+            )}
           </SheetHeader>
 
           <ScrollArea className='flex-1 overflow-auto p-4'>
             <div className='flex flex-col'>
-              {messages.map((message) => (
-                <ChatMessage key={message.id} message={message} />
-              ))}
+              {messages.length === 0 ? (
+                <div className='flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8'>
+                  <IconMessage className='h-12 w-12 mb-4' />
+                  <p>Start a conversation / 開始對話</p>
+                  <p className='text-sm mt-2'>
+                    Select a document from the list or ask a general question.
+                    <br />
+                    從列表中選擇文件或提出一般問題。
+                  </p>
+                </div>
+              ) : (
+                messages.map((message) => (
+                  <ChatMessage key={message.id} message={message} />
+                ))
+              )}
+              {isLoading && (
+                <div className='flex items-center gap-2 text-muted-foreground p-3'>
+                  <IconLoader2 className='h-4 w-4 animate-spin' />
+                  <span>Thinking... / 思考中...</span>
+                </div>
+              )}
               <div ref={messagesEndRef} />
             </div>
           </ScrollArea>
@@ -524,13 +712,18 @@ export default function DocumentAssistantPage() {
           <div className='border-border mt-auto shrink-0 border-t p-4'>
             <div className='flex gap-2'>
               <Input
-                placeholder='Ask about your documents...'
+                placeholder='Ask about your documents... / 詢問有關文件...'
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSendMessage()}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                disabled={isLoading}
               />
-              <Button onClick={handleSendMessage} size='icon'>
-                <IconSend className='h-4 w-4' />
+              <Button onClick={handleSendMessage} size='icon' disabled={isLoading || !newMessage.trim()}>
+                {isLoading ? (
+                  <IconLoader2 className='h-4 w-4 animate-spin' />
+                ) : (
+                  <IconSend className='h-4 w-4' />
+                )}
               </Button>
             </div>
           </div>

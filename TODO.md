@@ -5,6 +5,63 @@
 
 ---
 
+## 📊 API vs UI 功能狀態報告 (2024-12-05 更新)
+
+### ✅ 已完成實作的 UI 功能
+
+| 模組 | API 端點 | UI 頁面 | 狀態 |
+|------|----------|---------|------|
+| 認證 | `/auth/token/`, `/auth/google/` | `/auth/sign-in`, `/auth/google` | ✅ 完成 |
+| AI 助手 - 分析師 | `/analyst-assistant/*` | `/dashboard/analyst-assistant` | ✅ 完成 |
+| AI 助手 - 規劃師 | `/planner-assistant/*` | `/dashboard/planner-assistant` | ✅ 完成 |
+| AI 助手 - 文件 | `/document-assistant/*` | `/dashboard/document-assistant` | ✅ 完成 (含批量上傳) |
+| 財務 - 發票 | `/accounting/invoices/` | `/dashboard/finance/invoices` | ✅ 完成 |
+| 財務 - 費用 | `/accounting/expenses/` | `/dashboard/finance/expenses` | ✅ 完成 |
+| 財務 - 報表 | `/accounting/reports/*` | `/dashboard/finance/reports` | ✅ 完成 |
+| 文件管理 | `/documents/` | `/dashboard/documents` | ✅ 完成 |
+| API Key 管理 | `/settings/api-keys/*` | `/dashboard/settings/api-keys` | ✅ 完成 |
+| RAG 知識庫 | `/rag/knowledge/` | `/dashboard/settings/knowledge-base` | ✅ 完成 |
+| 會計科目 | `/accounting/accounts/` | `/dashboard/finance/accounts` | ✅ 完成 (樹狀結構) |
+| 日記帳 | `/accounting/journal-entries/` | `/dashboard/finance/journal` | ✅ 完成 (借貸驗證) |
+| 付款管理 | `/accounting/payments/` | `/dashboard/finance/payments` | ✅ 完成 |
+| 聯絡人/客戶 | `/accounting/contacts/` | `/dashboard/finance/contacts` | ✅ 完成 |
+| 貨幣管理 | `/accounting/currencies/` | `/dashboard/settings/currencies` | ✅ 完成 |
+| 稅率管理 | `/accounting/tax-rates/` | `/dashboard/settings/tax-rates` | ✅ 完成 |
+| 財年管理 | `/accounting/fiscal-years/` | `/dashboard/settings/fiscal-years` | ✅ 完成 |
+| 會計期間 | `/accounting/periods/` | `/dashboard/settings/periods` | ✅ 完成 |
+| 儀表板 | `/analytics/dashboards/` | `/dashboard/analytics` | ✅ 完成 |
+| 圖表管理 | `/analytics/charts/` | `/dashboard/analytics/[dashboardId]` | ✅ 完成 |
+
+### 🚧 待完善的功能
+
+| 模組 | API 端點 | 建議 UI | 優先級 |
+|------|----------|---------|--------|
+| 收據 AI 掃描 | `/finance-assistant/analyze/` | 在費用頁面增加 AI 掃描功能 | 中 |
+| HRMS 員工 | `/hrms/employees/` | `/dashboard/hrms/employees` | 高 |
+| HRMS 部門 | `/departments/` | `/dashboard/hrms/departments` | 高 |
+| HRMS 職稱 | `/designations/` | `/dashboard/hrms/designations` | 中 |
+| HRMS 請假 | `/leave_applications/` | `/dashboard/hrms/leaves` | 中 |
+| 專案管理 | `/projects/` | `/dashboard/projects` (需連接 API) | 中 |
+| 任務管理 | `/tasks/` | `/dashboard/projects/tasks` | 中 |
+| 看板 | `/boards/` | `/dashboard/kanban` (需連接 API) | 低 |
+| 評論 | `/comments/` | 任務詳情頁內 | 低 |
+
+### 📝 最近更新 (2024-12-05)
+- ✅ 新增 `MultiFileUploader` 組件支援批量上傳
+- ✅ 更新 Document Assistant 頁面支援多檔案上傳 (PDF, Excel, Word, Images, CSV, TXT)
+- ✅ 確認所有財務模組頁面已完整實作
+- ✅ 確認所有設定模組頁面已完整實作
+- ✅ 確認分析儀表板系統已完整實作
+- ✅ 新增 `export-utils.ts` 匯出工具庫 (PDF/Excel 生成)
+- ✅ 發票列表新增 PDF 下載、Excel 匯出功能
+- ✅ 財務報表頁面全面升級：
+  - 資產負債表 (Balance Sheet) - PDF/Excel 匯出
+  - 損益表 (Income Statement) - PDF/Excel 匯出
+  - 試算表 (Trial Balance) - PDF/Excel 匯出
+  - 應收帳款帳齡分析 (AR Aging Report) - PDF/Excel 匯出
+
+---
+
 ## 🚨 緊急修復：AI 功能
 
 ### 後端 API 端點 (已有)
@@ -163,40 +220,51 @@ RAG 知識庫:
 ## 💰 Phase 3: 會計系統 UI
 
 ### 會計儀表板
-- [ ] 會計首頁概覽
-- [ ] 關鍵財務指標卡片
-- [ ] 收入/支出趨勢圖
+- [x] 會計首頁概覽
+- [x] 關鍵財務指標卡片
+- [x] 收入/支出趨勢圖
 
 ### 會計科目管理
-- [ ] 會計科目表 (Chart of Accounts) 頁面
-- [ ] 科目新增/編輯表單
-- [ ] 科目層級樹狀顯示
+- [x] 會計科目表 (Chart of Accounts) 頁面
+- [x] 科目新增/編輯表單
+- [x] 科目層級樹狀顯示
 
 ### 日記帳
-- [ ] 日記帳分錄列表
-- [ ] 新增分錄表單 (借貸平衡驗證)
-- [ ] 分錄搜尋與篩選
+- [x] 日記帳分錄列表
+- [x] 新增分錄表單 (借貸平衡驗證)
+- [x] 分錄搜尋與篩選
 
 ### 發票管理
-- [ ] 發票列表頁面
-- [ ] 發票建立表單
+- [x] 發票列表頁面
+- [x] 發票建立表單
 - [ ] 發票預覽與列印
 - [ ] 發票 PDF 生成
 
 ### 付款與費用
-- [ ] 付款記錄頁面
-- [ ] 費用報銷頁面
+- [x] 付款記錄頁面
+- [x] 費用報銷頁面
 - [ ] 費用審批流程
 
+### 聯絡人/客戶管理
+- [x] 聯絡人列表頁面
+- [x] 客戶/供應商管理
+- [x] 信用額度管理
+
+### 設定管理
+- [x] 貨幣管理頁面
+- [x] 稅率管理頁面
+- [x] 財年管理頁面
+- [x] 會計期間管理頁面
+
 ### 報表中心
-- [ ] 資產負債表頁面
-- [ ] 損益表頁面
+- [x] 資產負債表頁面
+- [x] 損益表頁面
 - [ ] 現金流量表頁面
-- [ ] 試算表頁面
+- [x] 試算表頁面
 - [ ] 報表匯出 (PDF/Excel)
 
 ### AI 會計助理
-- [ ] 智能記帳建議
+- [x] 智能記帳建議 (Document Assistant)
 - [ ] 異常交易提醒
 - [ ] 財務分析對話
 

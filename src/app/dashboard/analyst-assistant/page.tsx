@@ -121,6 +121,7 @@ export default function AnalystAssistantPage() {
   const [activeWidget, setActiveWidget] = useState<WidgetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
+  const [isDemo, setIsDemo] = useState(false);
   const [dataInfo, setDataInfo] = useState<{ rows?: Record<string, number>; message?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
@@ -136,12 +137,20 @@ export default function AnalystAssistantPage() {
       setDataLoaded(true);
       setDataInfo(data);
       
+      // Check if using demo mode / 檢查是否使用演示模式
+      const demoMode = (data as any).isDemo || data.status === 'demo';
+      setIsDemo(demoMode);
+      
       // Add data loaded message
       const dataLoadedMsg: Message = {
         id: `system-${Date.now()}`,
         role: 'assistant',
-        content: `✅ Data loaded successfully! ${data.rows ? `(${Object.values(data.rows).reduce((a, b) => a + b, 0)} rows)` : ''}\n\nYou can now ask me questions about your data.`,
-        contentZh: `✅ 數據載入成功！${data.rows ? `(共 ${Object.values(data.rows).reduce((a, b) => a + b, 0)} 行)` : ''}\n\n現在你可以向我提問有關數據的問題。`
+        content: demoMode 
+          ? `⚠️ Running in Demo Mode (backend unavailable). ${data.rows ? `Using ${Object.values(data.rows).reduce((a, b) => a + b, 0)} sample data rows.` : ''}\n\nYou can still explore the AI analyst features with sample data!`
+          : `✅ Data loaded successfully! ${data.rows ? `(${Object.values(data.rows).reduce((a, b) => a + b, 0)} rows)` : ''}\n\nYou can now ask me questions about your data.`,
+        contentZh: demoMode
+          ? `⚠️ 正在演示模式下運行（後端不可用）。${data.rows ? `使用 ${Object.values(data.rows).reduce((a, b) => a + b, 0)} 行範例數據。` : ''}\n\n您仍可以使用範例數據探索 AI 分析功能！`
+          : `✅ 數據載入成功！${data.rows ? `(共 ${Object.values(data.rows).reduce((a, b) => a + b, 0)} 行)` : ''}\n\n現在你可以向我提問有關數據的問題。`
       };
       setMessages(prev => [...prev, dataLoadedMsg]);
     } catch (error) {
@@ -343,10 +352,17 @@ export default function AnalystAssistantPage() {
                   'Dashboard'}
               </h2>
               {dataLoaded ? (
-                <Badge variant='outline' className='text-green-600 border-green-600'>
-                  <IconDatabase className='mr-1 h-3 w-3' />
-                  Data Ready
-                </Badge>
+                isDemo ? (
+                  <Badge variant='outline' className='text-orange-600 border-orange-600'>
+                    <IconDatabase className='mr-1 h-3 w-3' />
+                    Demo Mode
+                  </Badge>
+                ) : (
+                  <Badge variant='outline' className='text-green-600 border-green-600'>
+                    <IconDatabase className='mr-1 h-3 w-3' />
+                    Data Ready
+                  </Badge>
+                )
               ) : (
                 <Badge variant='outline' className='text-yellow-600 border-yellow-600'>
                   <IconLoader2 className='mr-1 h-3 w-3 animate-spin' />
