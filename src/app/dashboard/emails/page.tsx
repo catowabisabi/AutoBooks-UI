@@ -1,5 +1,5 @@
-import EmailAssistantClient from '@/app/dashboard/emails/_components/email-assistant-client';
+import EmailAssistantClientV2 from '@/app/dashboard/emails/_components/email-assistant-client-v2';
 
 export default function EmailAssistantPage() {
-  return <EmailAssistantClient />;
+  return <EmailAssistantClientV2 />;
 }
