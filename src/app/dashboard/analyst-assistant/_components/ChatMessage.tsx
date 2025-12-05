@@ -11,14 +11,17 @@ import {
 } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
 import { ChartRenderer } from './chart-renderer';
+import { Loader2 } from 'lucide-react';
 
-export type WidgetType = 'text' | 'bar' | 'area' | 'pie';
+export type WidgetType = 'text' | 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
 
 export interface ChatMessageProps {
   message: {
     id: string;
     role: 'user' | 'assistant';
     content: string;
+    contentZh?: string;
+    isLoading?: boolean;
     chart?: {
       type: WidgetType;
       title: string;
@@ -52,11 +55,25 @@ export default function ChatMessage({
             : 'bg-muted'
         )}
       >
-        <p>{message.content}</p>
+        {message.isLoading ? (
+          <div className='flex items-center gap-2'>
+            <Loader2 className='h-4 w-4 animate-spin' />
+            <span>{message.content}</span>
+          </div>
+        ) : (
+          <>
+            <p className='whitespace-pre-line'>{message.content}</p>
+            {message.contentZh && (
+              <p className='whitespace-pre-line text-sm opacity-80 mt-2 border-t pt-2 border-current/20'>
+                {message.contentZh}
+              </p>
+            )}
+          </>
+        )}
 
-        {message.chart && (
+        {message.chart && !message.isLoading && (
           <div className='mt-3'>
-            <Card className='mt-2'>
+            <Card className='mt-2 bg-background'>
               <CardHeader className='py-2'>
                 <CardTitle className='text-sm'>{message.chart.title}</CardTitle>
                 <CardDescription className='text-xs'>
@@ -64,19 +81,10 @@ export default function ChatMessage({
                 </CardDescription>
               </CardHeader>
               <CardContent className='p-2'>
-                {message.chart.type !== 'text' &&
-                message.chart.data &&
-                message.chart.data.length > 0 ? (
-                  <div className='h-24'>
+                {message.chart.data && message.chart.data.length > 0 ? (
+                  <div className='h-48'>
                     <ChartRenderer
-                      type={
-                        message.chart.type as
-                          | 'bar'
-                          | 'scatter'
-                          | 'pie'
-                          | 'table'
-                          | 'area'
-                      }
+                      type={message.chart.type as 'bar' | 'scatter' | 'pie' | 'table' | 'area' | 'line'}
                       data={message.chart.data}
                       title={message.chart.title}
                       description={message.chart.description}
@@ -87,58 +95,9 @@ export default function ChatMessage({
                     />
                   </div>
                 ) : (
-                  <>
-                    {message.chart.type === 'area' && (
-                      <div className='bg-muted/30 flex h-24 w-full items-center justify-center rounded-md'>
-                        <svg viewBox='0 0 100 40' className='h-full w-full'>
-                          <path
-                            d='M0,40 L0,30 C10,25 20,35 30,20 C40,5 50,15 60,10 C70,5 80,15 90,20 L100,15 L100,40 Z'
-                            fill='rgba(var(--primary), 0.2)'
-                            stroke='hsl(var(--primary))'
-                            strokeWidth='1'
-                          />
-                        </svg>
-                      </div>
-                    )}
-                    {message.chart.type === 'bar' && (
-                      <div className='bg-muted/30 flex h-24 w-full items-center justify-center rounded-md'>
-                        <div className='flex h-20 gap-1'>
-                          {[40, 65, 30, 70, 50, 90].map((height, i) => (
-                            <div
-                              key={i}
-                              className='bg-primary w-4 self-end rounded-t-sm'
-                              style={{ height: `${height}%` }}
-                            />
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                    {message.chart.type === 'pie' && (
-                      <div className='bg-muted/30 flex h-24 w-full items-center justify-center rounded-md'>
-                        <svg viewBox='0 0 100 100' className='h-20 w-20'>
-                          <circle
-                            cx='50'
-                            cy='50'
-                            r='40'
-                            fill='transparent'
-                            stroke='hsl(var(--primary))'
-                            strokeWidth='20'
-                            strokeDasharray='75 25'
-                          />
-                          <circle
-                            cx='50'
-                            cy='50'
-                            r='40'
-                            fill='transparent'
-                            stroke='hsl(var(--muted))'
-                            strokeWidth='20'
-                            strokeDasharray='25 75'
-                            strokeDashoffset='-75'
-                          />
-                        </svg>
-                      </div>
-                    )}
-                  </>
+                  <div className='bg-muted/30 flex h-24 w-full items-center justify-center rounded-md'>
+                    <p className='text-sm text-muted-foreground'>No data available</p>
+                  </div>
                 )}
               </CardContent>
               <CardFooter className='py-2'>
@@ -147,7 +106,7 @@ export default function ChatMessage({
                   variant='outline'
                   onClick={() => onAddToDashboard(message.chart)}
                 >
-                  Add to Dashboard
+                  ➕ Add to Dashboard / 加入儀表板
                 </Button>
               </CardFooter>
             </Card>

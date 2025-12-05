@@ -60,6 +60,14 @@ export const navItems: NavItem[] = [
     shortcut: ['d', 'o'],
     isActive: false,
     items: [] // No child items
+  },
+  {
+    title: 'Accounting Assistant',
+    url: '/dashboard/accounting-assistant',
+    icon: 'billing',
+    shortcut: ['a', 'c'],
+    isActive: false,
+    items: [] // No child items
   }
 ];
 

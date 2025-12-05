@@ -110,28 +110,52 @@ export const APPS_CONFIG: AppConfig[] = [
     color: 'bg-orange-500',
     menuItems: [
       {
-        id: 'Finance Dashboard',
-        label: 'Finance Dashboard',
+        id: 'finance-dashboard',
+        label: 'Finance Dashboard / 財務儀表板',
         href: '/dashboard/finance',
         icon: '🧾'
       },
       {
+        id: 'accounts',
+        label: 'Chart of Accounts / 會計科目',
+        href: '/dashboard/finance/accounts',
+        icon: '📊'
+      },
+      {
+        id: 'journal',
+        label: 'Journal Entries / 日記帳',
+        href: '/dashboard/finance/journal',
+        icon: '📝'
+      },
+      {
+        id: 'invoices',
+        label: 'Invoices / 發票',
+        href: '/dashboard/finance/invoices',
+        icon: '🧾'
+      },
+      {
+        id: 'payments',
+        label: 'Payments / 付款管理',
+        href: '/dashboard/finance/payments',
+        icon: '💳'
+      },
+      {
+        id: 'contacts',
+        label: 'Contacts / 聯絡人',
+        href: '/dashboard/finance/contacts',
+        icon: '👥'
+      },
+      {
         id: 'expenses',
-        label: 'Expenses',
+        label: 'Expenses / 費用',
         href: '/dashboard/finance/expenses',
         icon: '💸'
       },
       {
-        id: 'approvals',
-        label: 'Approvals',
-        href: '/dashboard/finance/approvals',
-        icon: '🧾'
-      },
-      {
-        id: 'ledgers',
-        label: 'Ledgers',
-        href: '/dashboard/finance/ledgers',
-        icon: '💳'
+        id: 'reports',
+        label: 'Reports / 報表',
+        href: '/dashboard/finance/reports',
+        icon: '📈'
       }
     ]
   },
@@ -170,4 +194,50 @@ export const COMMON_MENU_ITEMS: MenuItem[] = [
 
 export const BOTTOM_MENU_ITEMS: MenuItem[] = [
   { id: 'settings', label: 'Settings', href: '/dashboard/settings', icon: '⚙️' }
+];
+
+// Settings sub-menu items
+export const SETTINGS_MENU_ITEMS: MenuItem[] = [
+  {
+    id: 'settings-general',
+    label: 'General / 一般設定',
+    href: '/dashboard/settings',
+    icon: '⚙️'
+  },
+  {
+    id: 'currencies',
+    label: 'Currencies / 貨幣',
+    href: '/dashboard/settings/currencies',
+    icon: '💱'
+  },
+  {
+    id: 'tax-rates',
+    label: 'Tax Rates / 稅率',
+    href: '/dashboard/settings/tax-rates',
+    icon: '💹'
+  },
+  {
+    id: 'fiscal-years',
+    label: 'Fiscal Years / 財年',
+    href: '/dashboard/settings/fiscal-years',
+    icon: '📅'
+  },
+  {
+    id: 'periods',
+    label: 'Accounting Periods / 會計期間',
+    href: '/dashboard/settings/periods',
+    icon: '📆'
+  },
+  {
+    id: 'api-keys',
+    label: 'API Keys',
+    href: '/dashboard/settings/api-keys',
+    icon: '🔑'
+  },
+  {
+    id: 'knowledge-base',
+    label: 'Knowledge Base',
+    href: '/dashboard/settings/knowledge-base',
+    icon: '📚'
+  }
 ];

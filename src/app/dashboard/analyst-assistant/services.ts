@@ -46,12 +46,12 @@ export async function sendAnalystQuery(
   }
 }
 
-export async function startAnalystAssistant(): Promise<{ status: string }> {
+export async function startAnalystAssistant(): Promise<{ status: string; message?: string; rows?: Record<string, number> }> {
   try {
     const response = await fetch(
       `${API_BASE_URL}/api/v1/analyst-assistant/start/`,
       {
-        method: 'POST',
+        method: 'GET',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`

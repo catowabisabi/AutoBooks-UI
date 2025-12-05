@@ -419,7 +419,7 @@
 'use client';
 
 import { DashboardCard } from './dashboard-card';
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
@@ -454,65 +454,14 @@ import {
   IconSortAscending,
   IconSortDescending,
   IconX,
-  IconPlus
+  IconPlus,
+  IconLoader2
 } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
+import { getDashboards, saveDashboard, DashboardData } from '../services';
 
 type DashboardCardProps = React.ComponentProps<typeof DashboardCard>;
-
-const DASHBOARDS_DATA: DashboardCardProps[] = [
-  {
-    id: 'd1f3a2e0-9b17-4f35-b5ab-2ef76a3d7c1f',
-    title: 'Marketing Overview',
-    createdBy: 'a74e4fc3-92f5-4213-a290-34c6cf34a6c1',
-    createdByName: 'Apoorv Srivastava',
-    createdByEmail: 'apoorv@example.com',
-    dataSources: 4,
-    createdOn: '2024-12-01',
-    lastRefreshed: '2025-06-20T09:15:00'
-  },
-  {
-    id: 'a80d90be-7274-4c6e-97b3-2698c1a8018f',
-    title: 'Sales Metrics',
-    createdBy: 'f281f37e-3dd7-4ef4-8540-c94be7a9ef12',
-    createdByName: 'Raj Sharma',
-    createdByEmail: 'raj.sharma@example.com',
-    dataSources: 6,
-    createdOn: '2025-01-15',
-    lastRefreshed: '2025-06-22T10:30:00'
-  },
-  {
-    id: 'b7a382e1-5054-4ef2-b0d7-5084d0ac2899',
-    title: 'Product Trends',
-    createdBy: '3fefc2b1-baf1-46bb-a6fa-02077a3dba52',
-    createdByName: 'Neha Verma',
-    createdByEmail: 'neha.verma@example.com',
-    dataSources: 3,
-    createdOn: '2025-03-12',
-    lastRefreshed: '2025-06-21T15:45:00'
-  },
-  {
-    id: 'c9e47f12-8a63-4d21-b8e5-1c3a9f5d7890',
-    title: 'Customer Insights',
-    createdBy: '5d8e2a1b-7c94-4f36-a8d2-9b3e7c1f6d45',
-    createdByName: 'Priya Patel',
-    createdByEmail: 'priya.patel@example.com',
-    dataSources: 5,
-    createdOn: '2025-02-18',
-    lastRefreshed: '2025-06-19T14:20:00'
-  },
-  {
-    id: 'd2e8f9a3-6b5c-4d7e-9f8a-1b2c3d4e5f6a',
-    title: 'Financial Performance',
-    createdBy: '7f8e9d6c-5b4a-3c2d-1e0f-9a8b7c6d5e4f',
-    createdByName: 'Vikram Singh',
-    createdByEmail: 'vikram.singh@example.com',
-    dataSources: 8,
-    createdOn: '2025-01-05',
-    lastRefreshed: '2025-06-23T08:45:00'
-  }
-];
 
 type SortField =
   | 'title'
@@ -525,6 +474,8 @@ type FilterOption = 'all' | 'recent' | 'dataSources';
 
 export default function DashboardList() {
   const router = useRouter();
+  const [dashboardsData, setDashboardsData] = useState<DashboardData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage] = useState(6);
@@ -538,18 +489,35 @@ export default function DashboardList() {
   const [newDashboardDescription, setNewDashboardDescription] = useState('');
   const [isCreating, setIsCreating] = useState(false);
 
+  // Load dashboards on mount
+  useEffect(() => {
+    loadDashboards();
+  }, []);
+
+  const loadDashboards = async () => {
+    setIsLoading(true);
+    try {
+      const data = await getDashboards();
+      setDashboardsData(data);
+    } catch (error) {
+      console.error('Failed to load dashboards:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   // Filter dashboards based on the search query and filter option
   const filteredDashboards = useMemo(() => {
-    let result = [...DASHBOARDS_DATA];
+    let result = [...dashboardsData];
 
     // Apply search filter
     if (searchQuery) {
       const query = searchQuery.toLowerCase();
       result = result.filter(
         (dashboard) =>
-          dashboard.title.toLowerCase().includes(query) ||
-          dashboard.createdByName.toLowerCase().includes(query) ||
-          dashboard.createdByEmail.toLowerCase().includes(query)
+          dashboard.title?.toLowerCase().includes(query) ||
+          dashboard.createdByName?.toLowerCase().includes(query) ||
+          dashboard.createdByEmail?.toLowerCase().includes(query)
       );
     }
 
@@ -570,13 +538,13 @@ export default function DashboardList() {
 
       switch (sortField) {
         case 'title':
-          comparison = a.title.localeCompare(b.title);
+          comparison = (a.title || '').localeCompare(b.title || '');
           break;
         case 'createdByName':
-          comparison = a.createdByName.localeCompare(b.createdByName);
+          comparison = (a.createdByName || '').localeCompare(b.createdByName || '');
           break;
         case 'dataSources':
-          comparison = a.dataSources - b.dataSources;
+          comparison = (a.dataSources || 0) - (b.dataSources || 0);
           break;
         case 'createdOn':
           comparison =
@@ -593,7 +561,7 @@ export default function DashboardList() {
     });
 
     return result;
-  }, [searchQuery, sortField, sortOrder, filterOption]);
+  }, [dashboardsData, searchQuery, sortField, sortOrder, filterOption]);
 
   // Calculate pagination
   const totalPages = Math.ceil(filteredDashboards.length / itemsPerPage);
@@ -629,17 +597,16 @@ export default function DashboardList() {
     setIsCreating(true);
 
     try {
-      // Generate a new dashboard ID
-      const newId = `dashboard-${Date.now()}`;
-
-      // In a real app, you would make an API call here
-      // await createDashboard({ title: newDashboardTitle, description: newDashboardDescription });
-
-      // For now, we'll simulate the creation and redirect
-      console.log('Creating dashboard:', {
-        id: newId,
+      // Create dashboard via API
+      const newDashboard = await saveDashboard({
         title: newDashboardTitle,
-        description: newDashboardDescription
+        description: newDashboardDescription,
+        createdBy: 'current-user',
+        createdByName: 'Current User',
+        createdByEmail: 'user@example.com',
+        dataSources: 0,
+        createdOn: new Date().toISOString().split('T')[0],
+        lastRefreshed: new Date().toISOString(),
       });
 
       // Close dialog and reset form
@@ -647,11 +614,19 @@ export default function DashboardList() {
       setNewDashboardTitle('');
       setNewDashboardDescription('');
 
+      // Reload dashboards list
+      await loadDashboards();
+
       // Navigate to the new dashboard
-      router.push(`/dashboard/analytics/${newId}`);
+      router.push(`/dashboard/analytics/${newDashboard.id}`);
     } catch (error) {
       console.error('Error creating dashboard:', error);
-      // Handle error - you could show a toast notification here
+      // On API error, generate local ID and navigate
+      const newId = `dashboard-${Date.now()}`;
+      setIsCreateDialogOpen(false);
+      setNewDashboardTitle('');
+      setNewDashboardDescription('');
+      router.push(`/dashboard/analytics/${newId}`);
     } finally {
       setIsCreating(false);
     }
@@ -663,9 +638,14 @@ export default function DashboardList() {
       <div className='mb-6 space-y-6'>
         <div>
           <div className='flex items-center justify-between'>
-            <h2 className='text-2xl font-bold tracking-tight'>
-              Analytics Dashboards
-            </h2>
+            <div>
+              <h2 className='text-2xl font-bold tracking-tight'>
+                Analytics Dashboards / 分析儀表板
+              </h2>
+              <p className='text-muted-foreground text-sm'>
+                Create and manage your custom analytics dashboards
+              </p>
+            </div>
 
             {/* Create New Dashboard Button */}
             <Dialog
@@ -857,11 +837,20 @@ export default function DashboardList() {
 
       {/* Middle Section: Dashboard Grid */}
       <div className='flex-grow'>
-        {filteredDashboards.length > 0 && (
+        {isLoading ? (
+          <div className='flex items-center justify-center py-12'>
+            <IconLoader2 className='h-8 w-8 animate-spin text-muted-foreground' />
+          </div>
+        ) : filteredDashboards.length > 0 ? (
           <div className='grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3'>
             {paginatedDashboards.map((dashboard) => (
               <DashboardCard key={dashboard.id} {...dashboard} />
             ))}
+          </div>
+        ) : (
+          <div className='py-12 text-center'>
+            <p className='text-muted-foreground'>No dashboards yet</p>
+            <p className='text-sm text-muted-foreground'>Create your first dashboard to get started</p>
           </div>
         )}
       </div>

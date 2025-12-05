@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { useAuth } from '@/lib/auth/provider';
+import { authApi } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
@@ -10,7 +10,6 @@ import { Button } from '@/components/ui/button';
 export default function GoogleCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { loginWithGoogle } = useAuth();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
 
@@ -33,8 +32,17 @@ export default function GoogleCallbackPage() {
 
       try {
         // Exchange code for tokens via our backend
-        await loginWithGoogle(code);
-        router.push('/dashboard');
+        const response = await authApi.googleCallback(code);
+        
+        // Store tokens
+        localStorage.setItem('access_token', response.access);
+        localStorage.setItem('refresh_token', response.refresh);
+        
+        // Fetch user info
+        const userInfo = await authApi.getCurrentUser();
+        localStorage.setItem('user', JSON.stringify(userInfo));
+        
+        router.push('/dashboard/overview');
       } catch (err: any) {
         console.error('Google callback error:', err);
         setError(err.message || 'Failed to complete Google authentication');
@@ -43,7 +51,7 @@ export default function GoogleCallbackPage() {
     };
 
     handleCallback();
-  }, [searchParams, loginWithGoogle, router]);
+  }, [searchParams, router]);
 
   if (error) {
     return (
