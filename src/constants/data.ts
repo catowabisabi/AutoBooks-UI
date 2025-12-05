@@ -19,55 +19,115 @@ export const navItems: NavItem[] = [
     icon: 'dashboard',
     isActive: false,
     shortcut: ['d', 'd'],
-    items: [] // Empty array as there are no child items for Dashboard
+    items: []
   },
   {
-    title: 'Analyst Assistant',
-    url: '/dashboard/analyst-assistant',
-    icon: 'dashboard',
-    shortcut: ['a', 'a'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Brainstorming Assistant',
-    url: '/dashboard/brainstorming-assistant',
-    icon: 'help',
-    shortcut: ['b', 'b'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Email Assistant',
-    url: '/dashboard/emails',
-    icon: 'post',
-    shortcut: ['e', 'e'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Planner Assistant',
-    url: '/dashboard/planner-assistant',
-    icon: 'settings',
-    shortcut: ['p', 'p'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Document Assistant',
-    url: '/dashboard/document-assistant',
-    icon: 'page',
-    shortcut: ['d', 'o'],
-    isActive: false,
-    items: [] // No child items
-  },
-  {
-    title: 'Accounting Assistant',
-    url: '/dashboard/accounting-assistant',
+    title: 'Business 業務管理',
+    url: '/dashboard/business',
     icon: 'billing',
-    shortcut: ['a', 'c'],
+    shortcut: ['b', 'u'],
     isActive: false,
-    items: [] // No child items
+    items: [
+      {
+        title: 'Overview / 總覽',
+        url: '/dashboard/business'
+      },
+      {
+        title: 'Audits / 審計專案',
+        url: '/dashboard/business/audits'
+      },
+      {
+        title: 'Tax Returns / 稅務申報',
+        url: '/dashboard/business/tax-returns'
+      },
+      {
+        title: 'Billable Hours / 工時記錄',
+        url: '/dashboard/business/billable-hours'
+      },
+      {
+        title: 'Revenue / 收入管理',
+        url: '/dashboard/business/revenue'
+      }
+    ]
+  },
+  {
+    title: 'AI Assistants AI 助理',
+    url: '/dashboard/accounting-assistant',
+    icon: 'bot',
+    shortcut: ['a', 'i'],
+    isActive: false,
+    items: [
+      {
+        title: 'Accounting / 會計助手',
+        url: '/dashboard/accounting-assistant'
+      },
+      {
+        title: 'Email / 郵件助手',
+        url: '/dashboard/emails'
+      },
+      {
+        title: 'Document / 文件助手',
+        url: '/dashboard/document-assistant'
+      },
+      {
+        title: 'Planner / 規劃助手',
+        url: '/dashboard/planner-assistant'
+      },
+      {
+        title: 'Brainstorming / 腦力激盪',
+        url: '/dashboard/brainstorming-assistant'
+      },
+      {
+        title: 'Analyst / 分析助手',
+        url: '/dashboard/analyst-assistant'
+      }
+    ]
+  },
+  {
+    title: 'Finance 財務管理',
+    url: '/dashboard/finance',
+    icon: 'kanban',
+    shortcut: ['f', 'i'],
+    isActive: false,
+    items: [
+      {
+        title: 'Dashboard / 儀表板',
+        url: '/dashboard/finance'
+      },
+      {
+        title: 'Invoices / 發票',
+        url: '/dashboard/finance/invoices'
+      },
+      {
+        title: 'Expenses / 費用',
+        url: '/dashboard/finance/expenses'
+      },
+      {
+        title: 'Accounts / 科目',
+        url: '/dashboard/finance/accounts'
+      }
+    ]
+  },
+  {
+    title: 'Settings 設定',
+    url: '/dashboard/settings',
+    icon: 'settings',
+    shortcut: ['s', 's'],
+    isActive: false,
+    items: [
+      {
+        title: 'General / 一般設定',
+        url: '/dashboard/settings'
+      },
+      {
+        title: 'Currencies / 貨幣',
+        url: '/dashboard/settings/currencies'
+      },
+      {
+        title: 'Tax Rates / 稅率',
+        url: '/dashboard/settings/tax-rates'
+      }
+    ]
   }
 ];
 
