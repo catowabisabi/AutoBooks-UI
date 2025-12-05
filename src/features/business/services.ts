@@ -6,7 +6,7 @@
 
 import { api } from '@/lib/api';
 
-const BASE_URL = '/business';
+const BASE_URL = '/api/v1/business';
 
 // Types
 export interface Company {

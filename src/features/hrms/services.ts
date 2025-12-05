@@ -6,7 +6,7 @@
 
 import { api } from '@/lib/api';
 
-const BASE_URL = '/hrms';
+const BASE_URL = '/api/v1/hrms';
 
 // Types
 export interface Department {

@@ -6,7 +6,7 @@
 
 import { api } from '@/lib/api';
 
-const BASE_URL = '/analytics';
+const BASE_URL = '/api/v1/analytics';
 
 // Types
 export interface Dashboard {

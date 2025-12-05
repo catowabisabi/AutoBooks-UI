@@ -7,6 +7,7 @@ const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8
 
 interface ApiOptions extends RequestInit {
   skipAuth?: boolean;
+  params?: Record<string, any>;
 }
 
 class ApiService {
@@ -93,7 +94,7 @@ class ApiService {
 
   // 通用請求方法
   async request<T>(endpoint: string, options: ApiOptions = {}): Promise<T> {
-    const { skipAuth = false, ...fetchOptions } = options;
+    const { skipAuth = false, params, ...fetchOptions } = options;
     
     // 每次請求時重新讀取 token (確保獲取最新的)
     if (typeof window !== 'undefined') {
@@ -111,7 +112,20 @@ class ApiService {
       headers['Authorization'] = `Bearer ${this.accessToken}`;
     }
 
-    const url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    // Build URL with query parameters
+    let url = endpoint.startsWith('http') ? endpoint : `${this.baseUrl}${endpoint}`;
+    if (params) {
+      const searchParams = new URLSearchParams();
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null) {
+          searchParams.append(key, String(value));
+        }
+      });
+      const queryString = searchParams.toString();
+      if (queryString) {
+        url += (url.includes('?') ? '&' : '?') + queryString;
+      }
+    }
     
     let response = await fetch(url, {
       ...fetchOptions,
@@ -436,7 +450,7 @@ export const hrmsApi = {
 // =================================================================
 export const documentsApi = {
   getDocuments: () => api.get('/api/v1/documents/'),
-  uploadDocument: (formData: FormData) => api.upload('/api/v1/documents/upload/', formData),
+  uploadDocument: (formData: FormData) => api.upload('/api/v1/documents/', formData),
   getDocument: (id: string) => api.get(`/api/v1/documents/${id}/`),
   deleteDocument: (id: string) => api.delete(`/api/v1/documents/${id}/`),
 };
