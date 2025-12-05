@@ -1,7 +1,8 @@
 'use client';
 
-import { IconTrendingUp } from '@tabler/icons-react';
-import { Area, AreaChart, CartesianGrid, XAxis } from 'recharts';
+import * as React from 'react';
+import { IconTrendingUp, IconChartAreaLine, IconRadar2, IconFilter } from '@tabler/icons-react';
+import { Area, AreaChart, CartesianGrid, XAxis, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ComposedChart, Bar, Line, YAxis, Legend } from 'recharts';
 
 import {
   Card,
@@ -15,122 +16,236 @@ import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
 } from '@/components/ui/chart';
+import { useApp } from '@/contexts/app-context';
 
-const chartData = [
-  { month: 'January', desktop: 186, mobile: 80 },
-  { month: 'February', desktop: 305, mobile: 200 },
-  { month: 'March', desktop: 237, mobile: 120 },
-  { month: 'April', desktop: 73, mobile: 190 },
-  { month: 'May', desktop: 209, mobile: 130 },
-  { month: 'June', desktop: 214, mobile: 140 }
+// Color schemes
+const COLORS = {
+  blue: 'hsl(217, 91%, 60%)',
+  green: 'hsl(142, 76%, 36%)',
+  orange: 'hsl(24, 95%, 53%)',
+  purple: 'hsl(262, 83%, 58%)',
+  pink: 'hsl(330, 81%, 60%)',
+  cyan: 'hsl(186, 94%, 41%)',
+  red: 'hsl(0, 84%, 60%)',
+  yellow: 'hsl(48, 96%, 53%)'
+};
+
+// Accounting firm - Revenue trends (Stacked Area Chart)
+const accountingRevenueData = [
+  { month: 'Jul', audit: 1250, tax: 450, advisory: 280 },
+  { month: 'Aug', audit: 1180, tax: 520, advisory: 310 },
+  { month: 'Sep', audit: 1420, tax: 480, advisory: 265 },
+  { month: 'Oct', audit: 1680, tax: 620, advisory: 420 },
+  { month: 'Nov', audit: 1520, tax: 750, advisory: 380 },
+  { month: 'Dec', audit: 1890, tax: 980, advisory: 520 }
 ];
 
-const chartConfig = {
-  visitors: {
-    label: 'Visitors'
-  },
-  desktop: {
-    label: 'Desktop',
-    color: 'var(--primary)'
-  },
-  mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)'
-  }
-} satisfies ChartConfig;
+// Financial PR - Client performance scores (Radar Chart)
+const prPerformanceData = [
+  { metric: 'Media Coverage', score: 85, benchmark: 70 },
+  { metric: 'Social Reach', score: 78, benchmark: 65 },
+  { metric: 'Investor Relations', score: 92, benchmark: 75 },
+  { metric: 'Crisis Management', score: 88, benchmark: 80 },
+  { metric: 'Brand Awareness', score: 75, benchmark: 60 },
+  { metric: 'Stakeholder Trust', score: 82, benchmark: 72 }
+];
 
-export function AreaGraph() {
+// IPO Advisory - Deal funnel (Composed Chart - Bar + Line)
+const ipoFunnelData = [
+  { stage: 'Leads', count: 45, conversion: 100 },
+  { stage: 'Qualified', count: 28, conversion: 62 },
+  { stage: 'Proposal', count: 18, conversion: 40 },
+  { stage: 'Due Diligence', count: 12, conversion: 27 },
+  { stage: 'Filing', count: 8, conversion: 18 },
+  { stage: 'Listed', count: 5, conversion: 11 }
+];
+
+// Accounting - Stacked Area Chart
+function AccountingAreaChart() {
+  const chartConfig = {
+    audit: { label: 'Audit', color: COLORS.blue },
+    tax: { label: 'Tax', color: COLORS.green },
+    advisory: { label: 'Advisory', color: COLORS.orange }
+  } satisfies ChartConfig;
+
+  const totalRevenue = accountingRevenueData.reduce((acc, curr) => acc + curr.audit + curr.tax + curr.advisory, 0);
+  const latestMonth = accountingRevenueData[accountingRevenueData.length - 1];
+  const firstMonth = accountingRevenueData[0];
+  const growth = (((latestMonth.audit + latestMonth.tax + latestMonth.advisory) / (firstMonth.audit + firstMonth.tax + firstMonth.advisory)) - 1) * 100;
+
   return (
     <Card className='@container/card'>
       <CardHeader>
-        <CardTitle>Area Chart - Stacked</CardTitle>
-        <CardDescription>
-          Showing total visitors for the last 6 months
-        </CardDescription>
+        <CardTitle className='flex items-center gap-2'>
+          <IconChartAreaLine className='h-5 w-5 text-blue-500' />
+          Revenue Trends
+        </CardTitle>
+        <CardDescription>Monthly revenue by service line (HK$k) • Total: <strong>HK${(totalRevenue/1000).toFixed(1)}M</strong></CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
-        <ChartContainer
-          config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
-        >
-          <AreaChart
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12
-            }}
-          >
+        <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
+          <AreaChart data={accountingRevenueData} margin={{ left: 12, right: 12 }}>
             <defs>
-              <linearGradient id='fillDesktop' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-desktop)'
-                  stopOpacity={1.0}
-                />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-desktop)'
-                  stopOpacity={0.1}
-                />
+              <linearGradient id='fillAuditArea' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='5%' stopColor={COLORS.blue} stopOpacity={0.8} />
+                <stop offset='95%' stopColor={COLORS.blue} stopOpacity={0.1} />
               </linearGradient>
-              <linearGradient id='fillMobile' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='5%'
-                  stopColor='var(--color-mobile)'
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset='95%'
-                  stopColor='var(--color-mobile)'
-                  stopOpacity={0.1}
-                />
+              <linearGradient id='fillTaxArea' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='5%' stopColor={COLORS.green} stopOpacity={0.8} />
+                <stop offset='95%' stopColor={COLORS.green} stopOpacity={0.1} />
+              </linearGradient>
+              <linearGradient id='fillAdvisoryArea' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='5%' stopColor={COLORS.orange} stopOpacity={0.8} />
+                <stop offset='95%' stopColor={COLORS.orange} stopOpacity={0.1} />
               </linearGradient>
             </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey='month'
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => value.slice(0, 3)}
-            />
-            <ChartTooltip
-              cursor={false}
-              content={<ChartTooltipContent indicator='dot' />}
-            />
-            <Area
-              dataKey='mobile'
-              type='natural'
-              fill='url(#fillMobile)'
-              stroke='var(--color-mobile)'
-              stackId='a'
-            />
-            <Area
-              dataKey='desktop'
-              type='natural'
-              fill='url(#fillDesktop)'
-              stroke='var(--color-desktop)'
-              stackId='a'
-            />
+            <CartesianGrid vertical={false} strokeDasharray='3 3' />
+            <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={8} />
+            <ChartTooltip content={<ChartTooltipContent indicator='dot' />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Area dataKey='advisory' name='Advisory' type='natural' fill='url(#fillAdvisoryArea)' stroke={COLORS.orange} strokeWidth={2} stackId='a' />
+            <Area dataKey='tax' name='Tax' type='natural' fill='url(#fillTaxArea)' stroke={COLORS.green} strokeWidth={2} stackId='a' />
+            <Area dataKey='audit' name='Audit' type='natural' fill='url(#fillAuditArea)' stroke={COLORS.blue} strokeWidth={2} stackId='a' />
           </AreaChart>
         </ChartContainer>
       </CardContent>
-      <CardFooter>
-        <div className='flex w-full items-start gap-2 text-sm'>
-          <div className='grid gap-2'>
-            <div className='flex items-center gap-2 leading-none font-medium'>
-              Trending up by 5.2% this month{' '}
-              <IconTrendingUp className='h-4 w-4' />
-            </div>
-            <div className='text-muted-foreground flex items-center gap-2 leading-none'>
-              January - June 2024
-            </div>
-          </div>
+      <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
+        <div className='flex items-center gap-2'>
+          <IconTrendingUp className='h-4 w-4 text-green-500' />
+          <span>Revenue growth <strong className='text-green-500'>+{growth.toFixed(1)}%</strong> from Jul to Dec</span>
         </div>
+        <p className='text-muted-foreground'>📊 Audit services remain the primary revenue driver. Tax advisory shows strongest growth trajectory (+117%).</p>
       </CardFooter>
     </Card>
   );
+}
+
+// Financial PR - Radar Chart
+function PRRadarChart() {
+  const chartConfig = {
+    score: { label: 'Your Score', color: COLORS.purple },
+    benchmark: { label: 'Industry Avg', color: COLORS.cyan }
+  } satisfies ChartConfig;
+
+  const avgScore = Math.round(prPerformanceData.reduce((acc, curr) => acc + curr.score, 0) / prPerformanceData.length);
+  const avgBenchmark = Math.round(prPerformanceData.reduce((acc, curr) => acc + curr.benchmark, 0) / prPerformanceData.length);
+  const outperformCount = prPerformanceData.filter(d => d.score > d.benchmark).length;
+
+  return (
+    <Card className='@container/card'>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          <IconRadar2 className='h-5 w-5 text-purple-500' />
+          Client Performance Radar
+        </CardTitle>
+        <CardDescription>Performance vs industry benchmarks • Your avg: <strong className='text-purple-500'>{avgScore}</strong> vs Industry: <strong>{avgBenchmark}</strong></CardDescription>
+      </CardHeader>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <ChartContainer config={chartConfig} className='mx-auto aspect-square h-[250px]'>
+          <RadarChart data={prPerformanceData}>
+            <PolarGrid stroke='var(--border)' />
+            <PolarAngleAxis dataKey='metric' tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
+            <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Radar name='Industry Avg' dataKey='benchmark' stroke={COLORS.cyan} fill={COLORS.cyan} fillOpacity={0.2} strokeWidth={2} />
+            <Radar name='Your Score' dataKey='score' stroke={COLORS.purple} fill={COLORS.purple} fillOpacity={0.4} strokeWidth={2} />
+            <Legend />
+          </RadarChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
+        <div className='flex items-center gap-2'>
+          <IconTrendingUp className='h-4 w-4 text-purple-500' />
+          <span>Outperforming industry in <strong className='text-purple-500'>{outperformCount}/6</strong> key metrics</span>
+        </div>
+        <div className='grid grid-cols-2 gap-2 w-full text-xs'>
+          {prPerformanceData.map((item) => (
+            <div key={item.metric} className='flex items-center justify-between'>
+              <span className='text-muted-foreground'>{item.metric}:</span>
+              <span className={item.score > item.benchmark ? 'text-green-500 font-medium' : 'text-yellow-500'}>
+                {item.score} {item.score > item.benchmark ? '↑' : '↓'}
+              </span>
+            </div>
+          ))}
+        </div>
+        <p className='text-muted-foreground'>🎯 Investor Relations (92) is the strongest area. Focus on improving Brand Awareness (75) to match competitors.</p>
+      </CardFooter>
+    </Card>
+  );
+}
+
+// IPO Advisory - Composed Bar + Line Chart
+function IPOFunnelChart() {
+  const chartConfig = {
+    count: { label: 'Deal Count', color: COLORS.blue },
+    conversion: { label: 'Conversion %', color: COLORS.orange }
+  } satisfies ChartConfig;
+
+  const totalLeads = ipoFunnelData[0].count;
+  const totalListed = ipoFunnelData[ipoFunnelData.length - 1].count;
+  const overallConversion = ((totalListed / totalLeads) * 100).toFixed(1);
+
+  return (
+    <Card className='@container/card'>
+      <CardHeader>
+        <CardTitle className='flex items-center gap-2'>
+          <IconFilter className='h-5 w-5 text-cyan-500' />
+          IPO Deal Funnel
+        </CardTitle>
+        <CardDescription>Pipeline stages and conversion rates • <strong>{totalLeads}</strong> leads → <strong className='text-green-500'>{totalListed}</strong> listed ({overallConversion}% conversion)</CardDescription>
+      </CardHeader>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
+          <ComposedChart data={ipoFunnelData} margin={{ left: 12, right: 12 }}>
+            <defs>
+              <linearGradient id='fillFunnelBar' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='0%' stopColor={COLORS.blue} stopOpacity={0.9} />
+                <stop offset='100%' stopColor={COLORS.blue} stopOpacity={0.3} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray='3 3' />
+            <XAxis dataKey='stage' tickLine={false} axisLine={false} tickMargin={8} tick={{ fontSize: 10 }} />
+            <YAxis yAxisId='left' tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis yAxisId='right' orientation='right' tickLine={false} axisLine={false} tickMargin={8} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <Legend />
+            <Bar yAxisId='left' dataKey='count' name='Deal Count' fill='url(#fillFunnelBar)' radius={[4, 4, 0, 0]} />
+            <Line yAxisId='right' type='monotone' dataKey='conversion' name='Conversion %' stroke={COLORS.orange} strokeWidth={3} dot={{ fill: COLORS.orange, r: 6, strokeWidth: 2, stroke: '#fff' }} />
+          </ComposedChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
+        <div className='flex gap-4 flex-wrap'>
+          {ipoFunnelData.map((item, index) => (
+            <div key={item.stage} className='text-xs'>
+              <span className='text-muted-foreground'>{item.stage}:</span>{' '}
+              <strong>{item.count}</strong>
+              {index > 0 && (
+                <span className='text-orange-500 ml-1'>({item.conversion}%)</span>
+              )}
+            </div>
+          ))}
+        </div>
+        <p className='text-muted-foreground'>🚀 Strongest drop-off at Qualified stage (38% loss). Consider improving initial screening criteria.</p>
+      </CardFooter>
+    </Card>
+  );
+}
+
+export function AreaGraph() {
+  const { currentCompany } = useApp();
+  const companyType = currentCompany.type;
+
+  // Render different chart types based on company
+  if (companyType === 'accounting') {
+    return <AccountingAreaChart />;
+  } else if (companyType === 'financial-pr') {
+    return <PRRadarChart />;
+  } else {
+    return <IPOFunnelChart />;
+  }
 }

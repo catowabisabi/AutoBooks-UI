@@ -1,7 +1,88 @@
 # 📋 Wisematic ERP Frontend - TODO List
 
 ## 🎯 項目概覽
-前端 Next.js 開發任務清單
+前端 Next.js 開發任務清單，連接 Django 後端 (http://127.0.0.1:8000)
+
+---
+
+## 🚨 緊急修復：AI 功能
+
+### 後端 API 端點 (已有)
+根據 Django URLconf，後端提供以下 API：
+
+```
+認證相關:
+- api/v1/auth/token/           - JWT 登入
+- api/v1/auth/token/refresh/   - Token 刷新
+- api/v1/auth/google/          - Google OAuth URL
+- api/v1/auth/google/callback/ - Google OAuth 回調
+- api/v1/auth/google/token/    - Google OAuth Token
+
+設定相關:
+- api/v1/settings/api-keys/status/        - API Key 狀態
+- api/v1/settings/api-keys/<provider>/    - 管理 API Key
+- api/v1/settings/api-keys/<provider>/test/ - 測試 API Key
+
+RAG 知識庫:
+- api/v1/rag/query/      - RAG 查詢
+- api/v1/rag/chat/       - RAG 聊天
+- api/v1/rag/knowledge/  - 知識庫列表
+```
+
+### 前端 AI 功能修復清單
+
+- [ ] **AI Butler (智能管家)** - `src/components/ai-butler.tsx`
+  - 使用 `/api/v1/ai-service/chat-with-history/` (需要確認後端是否有此端點)
+  - 或改用 `/api/v1/rag/chat/` 端點
+  - 移除前端 API route，直接調用後端
+
+- [ ] **Overview 分析功能** - `src/features/overview/components/analysis-dialog.tsx`
+  - 移除 `/api/analysis` 前端路由
+  - 改用 `/api/v1/rag/chat/` 或專用分析端點
+  - 後端需要新增分析端點或使用現有 RAG
+
+- [ ] **Analyst Assistant** - `src/app/dashboard/analyst-assistant/`
+  - 修改 `services.ts` 使用正確的後端端點
+  - 使用 `/api/v1/analyst-assistant/query/` (需確認)
+
+- [ ] **Planner Assistant** - `src/app/dashboard/planner-assistant/`
+  - 使用 `/api/v1/planner-assistant/query/` (需確認)
+
+- [ ] **Document Assistant** - `src/app/dashboard/document-assistant/`
+  - 使用 `/api/v1/document-assistant/query/`
+  - 使用 `/api/v1/document-assistant/process/`
+
+---
+
+## 🔧 Phase 0: 後端 API 端點確認
+
+### 需要確認的端點
+請檢查後端 Django urls.py 確認以下端點是否存在：
+
+- [ ] `/api/v1/ai-service/chat/` - AI 聊天
+- [ ] `/api/v1/ai-service/chat-with-history/` - 帶歷史的 AI 聊天
+- [ ] `/api/v1/ai-service/providers/` - AI 供應商列表
+- [ ] `/api/v1/ai-service/models/` - AI 模型列表
+- [ ] `/api/v1/analyst-assistant/query/` - 分析師查詢
+- [ ] `/api/v1/analyst-assistant/start/` - 分析師啟動
+- [ ] `/api/v1/planner-assistant/query/` - 規劃師查詢
+- [ ] `/api/v1/planner-assistant/start/` - 規劃師啟動
+- [ ] `/api/v1/document-assistant/query/` - 文件查詢
+- [ ] `/api/v1/document-assistant/process/` - 文件處理
+- [ ] `/api/v1/finance-assistant/analyze/` - 財務分析
+
+### 已確認存在的端點 (從 Django 404 頁面)
+- ✅ `/api/v1/auth/token/`
+- ✅ `/api/v1/auth/token/refresh/`
+- ✅ `/api/v1/auth/google/`
+- ✅ `/api/v1/auth/google/callback/`
+- ✅ `/api/v1/auth/google/token/`
+- ✅ `/api/v1/settings/api-keys/status/`
+- ✅ `/api/v1/settings/api-keys/<provider>/`
+- ✅ `/api/v1/settings/api-keys/<provider>/test/`
+- ✅ `/api/v1/rag/query/`
+- ✅ `/api/v1/rag/chat/`
+- ✅ `/api/v1/rag/knowledge/`
 
 ---
 
@@ -28,6 +109,18 @@
 - [ ] `/api/v1/auth/google/` - Google OAuth
 - [ ] `/api/v1/auth/token/refresh/` - Token 刷新
 - [x] `/api/v1/users/me/` - 當前用戶資訊
+
+### RAG 知識庫 (新增)
+- [ ] 前端整合 `/api/v1/rag/query/` - 知識庫查詢
+- [ ] 前端整合 `/api/v1/rag/chat/` - RAG 增強聊天
+- [ ] 前端整合 `/api/v1/rag/knowledge/` - 知識庫列表
+- [ ] 建立知識庫管理頁面
+
+### 設定頁面
+- [ ] API Key 管理頁面 (已有後端支援)
+  - [ ] 顯示 API Key 狀態
+  - [ ] 新增/更新 API Key
+  - [ ] 測試 API Key
 
 ### Users 模組
 - [ ] `/api/v1/users/` - 用戶列表

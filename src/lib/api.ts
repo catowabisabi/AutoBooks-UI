@@ -246,44 +246,80 @@ export const authApi = {
 // AI 服務 API
 // =================================================================
 export const aiApi = {
-  // 聊天
+  // 聊天 (使用 RAG chat 端點)
   chat: async (message: string, provider: string = 'openai', options?: {
     model?: string;
     systemPrompt?: string;
     temperature?: number;
     maxTokens?: number;
+    category?: string;
   }) => {
-    return api.post<{ content: string; provider: string; model: string; usage?: object }>(
-      '/api/v1/ai-service/chat/',
+    // 優先使用 RAG chat 端點
+    return api.post<{ response: string; sources: string[]; provider: string }>(
+      '/api/v1/rag/chat/',
       {
-        message,
+        query: message,
         provider,
-        model: options?.model,
-        system_prompt: options?.systemPrompt,
-        temperature: options?.temperature,
-        max_tokens: options?.maxTokens,
+        category: options?.category,
       }
-    );
+    ).then(res => ({
+      content: res.response,
+      provider: res.provider,
+      model: provider,
+      sources: res.sources,
+    }));
   },
 
-  // 帶歷史的聊天
+  // 帶歷史的聊天 (使用 RAG chat 端點)
   chatWithHistory: async (
     messages: Array<{ role: 'user' | 'assistant'; content: string }>,
     provider: string = 'openai',
     options?: {
       model?: string;
       systemPrompt?: string;
+      category?: string;
     }
   ) => {
-    return api.post<{ content: string; provider: string; model: string }>(
-      '/api/v1/ai-service/chat-with-history/',
+    // 取得最後一條用戶消息作為查詢
+    const lastUserMessage = [...messages].reverse().find(m => m.role === 'user');
+    const query = lastUserMessage?.content || '';
+    
+    // 將歷史記錄合併為上下文
+    const historyContext = messages
+      .slice(0, -1) // 排除最後一條消息
+      .map(m => `${m.role === 'user' ? 'User' : 'Assistant'}: ${m.content}`)
+      .join('\n');
+    
+    const fullQuery = historyContext 
+      ? `Previous conversation:\n${historyContext}\n\nCurrent question: ${query}`
+      : query;
+
+    return api.post<{ response: string; sources: string[]; provider: string }>(
+      '/api/v1/rag/chat/',
       {
-        messages,
+        query: fullQuery,
         provider,
-        model: options?.model,
+        category: options?.category,
         system_prompt: options?.systemPrompt,
       }
-    );
+    ).then(res => ({
+      content: res.response,
+      provider: res.provider,
+      model: provider,
+      sources: res.sources,
+    }));
+  },
+
+  // 簡單查詢 RAG 知識庫 (不需要登入)
+  queryKnowledge: async (query: string, category?: string) => {
+    return api.post<{
+      results: Array<{ id: string; title: string; content: string; category: string }>;
+      context?: string;
+    }>('/api/v1/rag/query/', {
+      query,
+      category,
+      include_context: true,
+    }, { skipAuth: true });
   },
 
   // 圖片分析

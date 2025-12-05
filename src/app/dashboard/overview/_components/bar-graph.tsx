@@ -16,144 +16,103 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
+import { useApp } from '@/contexts/app-context';
 
-export const description = 'An interactive bar chart';
-
-const chartData = [
-  { date: '2024-04-01', desktop: 222, mobile: 150 },
-  { date: '2024-04-02', desktop: 97, mobile: 180 },
-  { date: '2024-04-03', desktop: 167, mobile: 120 },
-  { date: '2024-04-04', desktop: 242, mobile: 260 },
-  { date: '2024-04-05', desktop: 373, mobile: 290 },
-  { date: '2024-04-06', desktop: 301, mobile: 340 },
-  { date: '2024-04-07', desktop: 245, mobile: 180 },
-  { date: '2024-04-08', desktop: 409, mobile: 320 },
-  { date: '2024-04-09', desktop: 59, mobile: 110 },
-  { date: '2024-04-10', desktop: 261, mobile: 190 },
-  { date: '2024-04-11', desktop: 327, mobile: 350 },
-  { date: '2024-04-12', desktop: 292, mobile: 210 },
-  { date: '2024-04-13', desktop: 342, mobile: 380 },
-  { date: '2024-04-14', desktop: 137, mobile: 220 },
-  { date: '2024-04-15', desktop: 120, mobile: 170 },
-  { date: '2024-04-16', desktop: 138, mobile: 190 },
-  { date: '2024-04-17', desktop: 446, mobile: 360 },
-  { date: '2024-04-18', desktop: 364, mobile: 410 },
-  { date: '2024-04-19', desktop: 243, mobile: 180 },
-  { date: '2024-04-20', desktop: 89, mobile: 150 },
-  { date: '2024-04-21', desktop: 137, mobile: 200 },
-  { date: '2024-04-22', desktop: 224, mobile: 170 },
-  { date: '2024-04-23', desktop: 138, mobile: 230 },
-  { date: '2024-04-24', desktop: 387, mobile: 290 },
-  { date: '2024-04-25', desktop: 215, mobile: 250 },
-  { date: '2024-04-26', desktop: 75, mobile: 130 },
-  { date: '2024-04-27', desktop: 383, mobile: 420 },
-  { date: '2024-04-28', desktop: 122, mobile: 180 },
-  { date: '2024-04-29', desktop: 315, mobile: 240 },
-  { date: '2024-04-30', desktop: 454, mobile: 380 },
-  { date: '2024-05-01', desktop: 165, mobile: 220 },
-  { date: '2024-05-02', desktop: 293, mobile: 310 },
-  { date: '2024-05-03', desktop: 247, mobile: 190 },
-  { date: '2024-05-04', desktop: 385, mobile: 420 },
-  { date: '2024-05-05', desktop: 481, mobile: 390 },
-  { date: '2024-05-06', desktop: 498, mobile: 520 },
-  { date: '2024-05-07', desktop: 388, mobile: 300 },
-  { date: '2024-05-08', desktop: 149, mobile: 210 },
-  { date: '2024-05-09', desktop: 227, mobile: 180 },
-  { date: '2024-05-10', desktop: 293, mobile: 330 },
-  { date: '2024-05-11', desktop: 335, mobile: 270 },
-  { date: '2024-05-12', desktop: 197, mobile: 240 },
-  { date: '2024-05-13', desktop: 197, mobile: 160 },
-  { date: '2024-05-14', desktop: 448, mobile: 490 },
-  { date: '2024-05-15', desktop: 473, mobile: 380 },
-  { date: '2024-05-16', desktop: 338, mobile: 400 },
-  { date: '2024-05-17', desktop: 499, mobile: 420 },
-  { date: '2024-05-18', desktop: 315, mobile: 350 },
-  { date: '2024-05-19', desktop: 235, mobile: 180 },
-  { date: '2024-05-20', desktop: 177, mobile: 230 },
-  { date: '2024-05-21', desktop: 82, mobile: 140 },
-  { date: '2024-05-22', desktop: 81, mobile: 120 },
-  { date: '2024-05-23', desktop: 252, mobile: 290 },
-  { date: '2024-05-24', desktop: 294, mobile: 220 },
-  { date: '2024-05-25', desktop: 201, mobile: 250 },
-  { date: '2024-05-26', desktop: 213, mobile: 170 },
-  { date: '2024-05-27', desktop: 420, mobile: 460 },
-  { date: '2024-05-28', desktop: 233, mobile: 190 },
-  { date: '2024-05-29', desktop: 78, mobile: 130 },
-  { date: '2024-05-30', desktop: 340, mobile: 280 },
-  { date: '2024-05-31', desktop: 178, mobile: 230 },
-  { date: '2024-06-01', desktop: 178, mobile: 200 },
-  { date: '2024-06-02', desktop: 470, mobile: 410 },
-  { date: '2024-06-03', desktop: 103, mobile: 160 },
-  { date: '2024-06-04', desktop: 439, mobile: 380 },
-  { date: '2024-06-05', desktop: 88, mobile: 140 },
-  { date: '2024-06-06', desktop: 294, mobile: 250 },
-  { date: '2024-06-07', desktop: 323, mobile: 370 },
-  { date: '2024-06-08', desktop: 385, mobile: 320 },
-  { date: '2024-06-09', desktop: 438, mobile: 480 },
-  { date: '2024-06-10', desktop: 155, mobile: 200 },
-  { date: '2024-06-11', desktop: 92, mobile: 150 },
-  { date: '2024-06-12', desktop: 492, mobile: 420 },
-  { date: '2024-06-13', desktop: 81, mobile: 130 },
-  { date: '2024-06-14', desktop: 426, mobile: 380 },
-  { date: '2024-06-15', desktop: 307, mobile: 350 },
-  { date: '2024-06-16', desktop: 371, mobile: 310 },
-  { date: '2024-06-17', desktop: 475, mobile: 520 },
-  { date: '2024-06-18', desktop: 107, mobile: 170 },
-  { date: '2024-06-19', desktop: 341, mobile: 290 },
-  { date: '2024-06-20', desktop: 408, mobile: 450 },
-  { date: '2024-06-21', desktop: 169, mobile: 210 },
-  { date: '2024-06-22', desktop: 317, mobile: 270 },
-  { date: '2024-06-23', desktop: 480, mobile: 530 },
-  { date: '2024-06-24', desktop: 132, mobile: 180 },
-  { date: '2024-06-25', desktop: 141, mobile: 190 },
-  { date: '2024-06-26', desktop: 434, mobile: 380 },
-  { date: '2024-06-27', desktop: 448, mobile: 490 },
-  { date: '2024-06-28', desktop: 149, mobile: 200 },
-  { date: '2024-06-29', desktop: 103, mobile: 160 },
-  { date: '2024-06-30', desktop: 446, mobile: 400 }
+// Accounting - Monthly billable hours by service type
+const accountingBillableData = [
+  { month: 'Jul', audit: 420, tax: 180, advisory: 95 },
+  { month: 'Aug', audit: 380, tax: 220, advisory: 110 },
+  { month: 'Sep', audit: 450, tax: 195, advisory: 85 },
+  { month: 'Oct', audit: 520, tax: 240, advisory: 120 },
+  { month: 'Nov', audit: 480, tax: 280, advisory: 105 },
+  { month: 'Dec', audit: 550, tax: 350, advisory: 140 }
 ];
 
-const chartConfig = {
-  views: {
-    label: 'Page Views'
+// Financial PR - Client engagement metrics
+const prEngagementData = [
+  { month: 'Jul', announcements: 18, meetings: 42, events: 3 },
+  { month: 'Aug', announcements: 22, meetings: 38, events: 2 },
+  { month: 'Sep', announcements: 28, meetings: 52, events: 4 },
+  { month: 'Oct', announcements: 24, meetings: 48, events: 3 },
+  { month: 'Nov', announcements: 32, meetings: 58, events: 5 },
+  { month: 'Dec', announcements: 35, meetings: 62, events: 4 }
+];
+
+// IPO Advisory - Deal value by stage (HK$ millions)
+const ipoDealValueData = [
+  { month: 'Jul', preparation: 850, filing: 420, listing: 1200 },
+  { month: 'Aug', preparation: 920, filing: 680, listing: 0 },
+  { month: 'Sep', preparation: 780, filing: 520, listing: 1850 },
+  { month: 'Oct', preparation: 1100, filing: 890, listing: 2200 },
+  { month: 'Nov', preparation: 950, filing: 720, listing: 1500 },
+  { month: 'Dec', preparation: 1250, filing: 980, listing: 2800 }
+];
+
+const chartConfigs = {
+  accounting: {
+    title: 'Billable Hours by Service',
+    description: 'Monthly breakdown of billable hours',
+    metrics: {
+      audit: { label: 'Audit', color: 'var(--primary)' },
+      tax: { label: 'Tax', color: 'var(--primary)' },
+      advisory: { label: 'Advisory', color: 'var(--primary)' }
+    }
   },
-  desktop: {
-    label: 'Desktop',
-    color: 'var(--primary)'
+  'financial-pr': {
+    title: 'Client Engagement Activities',
+    description: 'Monthly PR activities performed',
+    metrics: {
+      announcements: { label: 'Announcements', color: 'var(--primary)' },
+      meetings: { label: 'Investor Meetings', color: 'var(--primary)' },
+      events: { label: 'Events', color: 'var(--primary)' }
+    }
   },
-  mobile: {
-    label: 'Mobile',
-    color: 'var(--primary)'
-  },
-  error: {
-    label: 'Error',
-    color: 'var(--primary)'
+  'ipo-advisory': {
+    title: 'Deal Pipeline Value',
+    description: 'Deal value by stage (HK$ millions)',
+    metrics: {
+      preparation: { label: 'Preparation', color: 'var(--primary)' },
+      filing: { label: 'Filing', color: 'var(--primary)' },
+      listing: { label: 'Listed', color: 'var(--primary)' }
+    }
   }
-} satisfies ChartConfig;
+};
 
 export function BarGraph() {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>('desktop');
+  const { currentCompany } = useApp();
+  const companyType = currentCompany.type;
+  
+  const chartData = companyType === 'accounting'
+    ? accountingBillableData
+    : companyType === 'financial-pr'
+    ? prEngagementData
+    : ipoDealValueData;
 
-  const total = React.useMemo(
-    () => ({
-      desktop: chartData.reduce((acc, curr) => acc + curr.desktop, 0),
-      mobile: chartData.reduce((acc, curr) => acc + curr.mobile, 0)
-    }),
-    []
-  );
+  const config = chartConfigs[companyType];
+  const metrics = Object.keys(config.metrics) as string[];
+  
+  const [activeMetric, setActiveMetric] = React.useState<string>(metrics[0]);
+
+  // Reset active metric when company changes
+  React.useEffect(() => {
+    setActiveMetric(metrics[0]);
+  }, [companyType]);
+
+  const totals = React.useMemo(() => {
+    const result: Record<string, number> = {};
+    metrics.forEach(metric => {
+      result[metric] = chartData.reduce((acc, curr) => acc + (curr[metric as keyof typeof curr] as number || 0), 0);
+    });
+    return result;
+  }, [chartData, metrics]);
+
+  const chartConfig = config.metrics as ChartConfig;
 
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
     setIsClient(true);
   }, []);
-
-  React.useEffect(() => {
-    if (activeChart === 'error') {
-      throw new Error('Mocking Error');
-    }
-  }, [activeChart]);
 
   if (!isClient) {
     return null;
@@ -163,30 +122,29 @@ export function BarGraph() {
     <Card className='@container/card !pt-3'>
       <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
-          <CardTitle>Bar Chart - Interactive</CardTitle>
+          <CardTitle>{config.title}</CardTitle>
           <CardDescription>
             <span className='hidden @[540px]/card:block'>
-              Total for the last 3 months
+              {config.description}
             </span>
-            <span className='@[540px]/card:hidden'>Last 3 months</span>
+            <span className='@[540px]/card:hidden'>Last 6 months</span>
           </CardDescription>
         </div>
         <div className='flex'>
-          {['desktop', 'mobile', 'error'].map((key) => {
-            const chart = key as keyof typeof chartConfig;
-            if (!chart || total[key as keyof typeof total] === 0) return null;
+          {metrics.map((metric) => {
+            const metricConfig = config.metrics[metric as keyof typeof config.metrics];
             return (
               <button
-                key={chart}
-                data-active={activeChart === chart}
+                key={metric}
+                data-active={activeMetric === metric}
                 className='data-[active=true]:bg-primary/5 hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left transition-colors duration-200 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
-                onClick={() => setActiveChart(chart)}
+                onClick={() => setActiveMetric(metric)}
               >
                 <span className='text-muted-foreground text-xs'>
-                  {chartConfig[chart].label}
+                  {metricConfig?.label || metric}
                 </span>
                 <span className='text-lg leading-none font-bold sm:text-3xl'>
-                  {total[key as keyof typeof total]?.toLocaleString()}
+                  {totals[metric]?.toLocaleString()}
                 </span>
               </button>
             );
@@ -221,37 +179,22 @@ export function BarGraph() {
             </defs>
             <CartesianGrid vertical={false} />
             <XAxis
-              dataKey='date'
+              dataKey='month'
               tickLine={false}
               axisLine={false}
               tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric'
-                });
-              }}
             />
             <ChartTooltip
               cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
               content={
                 <ChartTooltipContent
                   className='w-[150px]'
-                  nameKey='views'
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    });
-                  }}
+                  nameKey='value'
                 />
               }
             />
             <Bar
-              dataKey={activeChart}
+              dataKey={activeMetric}
               fill='url(#fillBar)'
               radius={[4, 4, 0, 0]}
             />

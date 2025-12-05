@@ -72,8 +72,8 @@ export interface ServiceRevenue {
 // ============================================
 export const accountingFirm: DemoCompany = {
   id: 'accounting-firm',
-  name: 'Wisematic CPA & Co.',
-  nameZh: '睿智會計師事務所',
+  name: 'ZL CPA',
+  nameZh: 'ZL 會計師事務所',
   type: 'accounting',
   description: 'Full-service accounting and audit firm specializing in statutory audits, tax compliance and business advisory',
   descriptionZh: '提供法定審計、稅務合規及商業顧問服務的綜合會計師事務所',
@@ -138,8 +138,8 @@ export const accountingFirm: DemoCompany = {
 // ============================================
 export const financialPRCompany: DemoCompany = {
   id: 'financial-pr',
-  name: 'Strategic IR Partners',
-  nameZh: '策略投資者關係顧問',
+  name: 'BMI Innovation (PR)',
+  nameZh: 'BMI 創新公關',
   type: 'financial-pr',
   description: 'Premier financial PR and investor relations firm serving listed companies in Hong Kong and Greater China',
   descriptionZh: '服務香港及大中華區上市公司的頂級財經公關及投資者關係顧問',
@@ -204,8 +204,8 @@ export const financialPRCompany: DemoCompany = {
 // ============================================
 export const ipoAdvisoryCompany: DemoCompany = {
   id: 'ipo-advisory',
-  name: 'Capital Gateway Advisory',
-  nameZh: '資本通道顧問有限公司',
+  name: 'BMI (IPO)',
+  nameZh: 'BMI IPO 顧問',
   type: 'ipo-advisory',
   description: 'Leading IPO sponsor and corporate finance advisory firm for Main Board and GEM listings',
   descriptionZh: '專業IPO保薦人及企業融資顧問，服務主板及GEM上市',

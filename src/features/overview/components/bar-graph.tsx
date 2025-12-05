@@ -1,145 +1,340 @@
 'use client';
 
 import * as React from 'react';
-import { Bar, BarChart, CartesianGrid, XAxis } from 'recharts';
+import { Bar, BarChart, CartesianGrid, XAxis, Line, LineChart, YAxis, RadialBar, RadialBarChart, PolarAngleAxis, Legend } from 'recharts';
 
 import {
   Card,
   CardContent,
   CardDescription,
   CardHeader,
-  CardTitle
+  CardTitle,
+  CardFooter
 } from '@/components/ui/card';
 import {
   ChartConfig,
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent
 } from '@/components/ui/chart';
+import { useApp } from '@/contexts/app-context';
+import { IconTrendingUp, IconClock, IconUsers, IconChartBar } from '@tabler/icons-react';
 
-export const description = 'An interactive bar chart for financial data';
-
-// Accounting data: Invoices issued vs Payments received (in thousands HKD)
-const chartData = [
-  { date: '2024-04-01', invoices: 125, payments: 98 },
-  { date: '2024-04-02', invoices: 87, payments: 112 },
-  { date: '2024-04-03', invoices: 156, payments: 89 },
-  { date: '2024-04-04', invoices: 234, payments: 178 },
-  { date: '2024-04-05', invoices: 312, payments: 256 },
-  { date: '2024-04-06', invoices: 189, payments: 201 },
-  { date: '2024-04-07', invoices: 145, payments: 167 },
-  { date: '2024-04-08', invoices: 278, payments: 234 },
-  { date: '2024-04-09', invoices: 56, payments: 89 },
-  { date: '2024-04-10', invoices: 198, payments: 145 },
-  { date: '2024-04-11', invoices: 267, payments: 312 },
-  { date: '2024-04-12', invoices: 234, payments: 189 },
-  { date: '2024-04-13', invoices: 289, payments: 267 },
-  { date: '2024-04-14', invoices: 123, payments: 145 },
-  { date: '2024-04-15', invoices: 98, payments: 134 },
-  { date: '2024-04-16', invoices: 167, payments: 156 },
-  { date: '2024-04-17', invoices: 345, payments: 289 },
-  { date: '2024-04-18', invoices: 289, payments: 312 },
-  { date: '2024-04-19', invoices: 178, payments: 145 },
-  { date: '2024-04-20', invoices: 67, payments: 98 },
-  { date: '2024-04-21', invoices: 112, payments: 134 },
-  { date: '2024-04-22', invoices: 189, payments: 156 },
-  { date: '2024-04-23', invoices: 134, payments: 178 },
-  { date: '2024-04-24', invoices: 312, payments: 234 },
-  { date: '2024-04-25', invoices: 178, payments: 201 },
-  { date: '2024-04-26', invoices: 56, payments: 89 },
-  { date: '2024-04-27', invoices: 298, payments: 345 },
-  { date: '2024-04-28', invoices: 98, payments: 123 },
-  { date: '2024-04-29', invoices: 256, payments: 189 },
-  { date: '2024-04-30', invoices: 378, payments: 312 },
-  { date: '2024-05-01', invoices: 134, payments: 167 },
-  { date: '2024-05-02', invoices: 234, payments: 256 },
-  { date: '2024-05-03', invoices: 189, payments: 145 },
-  { date: '2024-05-04', invoices: 312, payments: 345 },
-  { date: '2024-05-05', invoices: 398, payments: 312 },
-  { date: '2024-05-06', invoices: 423, payments: 456 },
-  { date: '2024-05-07', invoices: 312, payments: 234 },
-  { date: '2024-05-08', invoices: 123, payments: 167 },
-  { date: '2024-05-09', invoices: 178, payments: 145 },
-  { date: '2024-05-10', invoices: 234, payments: 267 },
-  { date: '2024-05-11', invoices: 267, payments: 212 },
-  { date: '2024-05-12', invoices: 156, payments: 189 },
-  { date: '2024-05-13', invoices: 145, payments: 123 },
-  { date: '2024-05-14', invoices: 367, payments: 398 },
-  { date: '2024-05-15', invoices: 389, payments: 312 },
-  { date: '2024-05-16', invoices: 278, payments: 334 },
-  { date: '2024-05-17', invoices: 412, payments: 356 },
-  { date: '2024-05-18', invoices: 256, payments: 289 },
-  { date: '2024-05-19', invoices: 189, payments: 145 },
-  { date: '2024-05-20', invoices: 145, payments: 178 },
-  { date: '2024-05-21', invoices: 67, payments: 112 },
-  { date: '2024-05-22', invoices: 78, payments: 98 },
-  { date: '2024-05-23', invoices: 201, payments: 234 },
-  { date: '2024-05-24', invoices: 234, payments: 178 },
-  { date: '2024-05-25', invoices: 167, payments: 201 },
-  { date: '2024-05-26', invoices: 178, payments: 134 },
-  { date: '2024-05-27', invoices: 345, payments: 378 },
-  { date: '2024-05-28', invoices: 189, payments: 156 },
-  { date: '2024-05-29', invoices: 67, payments: 98 },
-  { date: '2024-05-30', invoices: 278, payments: 234 },
-  { date: '2024-05-31', invoices: 145, payments: 178 },
-  { date: '2024-06-01', invoices: 145, payments: 167 },
-  { date: '2024-06-02', invoices: 389, payments: 345 },
-  { date: '2024-06-03', invoices: 89, payments: 123 },
-  { date: '2024-06-04', invoices: 356, payments: 312 },
-  { date: '2024-06-05', invoices: 78, payments: 112 },
-  { date: '2024-06-06', invoices: 234, payments: 201 },
-  { date: '2024-06-07', invoices: 267, payments: 298 },
-  { date: '2024-06-08', invoices: 312, payments: 267 },
-  { date: '2024-06-09', invoices: 356, payments: 389 },
-  { date: '2024-06-10', invoices: 123, payments: 156 },
-  { date: '2024-06-11', invoices: 78, payments: 112 },
-  { date: '2024-06-12', invoices: 401, payments: 356 },
-  { date: '2024-06-13', invoices: 67, payments: 98 },
-  { date: '2024-06-14', invoices: 345, payments: 312 },
-  { date: '2024-06-15', invoices: 256, payments: 289 },
-  { date: '2024-06-16', invoices: 298, payments: 256 },
-  { date: '2024-06-17', invoices: 389, payments: 423 },
-  { date: '2024-06-18', invoices: 89, payments: 134 },
-  { date: '2024-06-19', invoices: 278, payments: 234 },
-  { date: '2024-06-20', invoices: 334, payments: 367 },
-  { date: '2024-06-21', invoices: 134, payments: 167 },
-  { date: '2024-06-22', invoices: 256, payments: 212 },
-  { date: '2024-06-23', invoices: 389, payments: 423 },
-  { date: '2024-06-24', invoices: 112, payments: 145 },
-  { date: '2024-06-25', invoices: 123, payments: 156 },
-  { date: '2024-06-26', invoices: 356, payments: 312 },
-  { date: '2024-06-27', invoices: 367, payments: 398 },
-  { date: '2024-06-28', invoices: 123, payments: 156 },
-  { date: '2024-06-29', invoices: 89, payments: 123 },
-  { date: '2024-06-30', invoices: 367, payments: 334 }
+// Accounting - Monthly billable hours by service type (Bar Chart)
+const accountingBillableData = [
+  { month: 'Jul', audit: 420, tax: 180, advisory: 95 },
+  { month: 'Aug', audit: 380, tax: 220, advisory: 110 },
+  { month: 'Sep', audit: 450, tax: 195, advisory: 85 },
+  { month: 'Oct', audit: 520, tax: 240, advisory: 120 },
+  { month: 'Nov', audit: 480, tax: 280, advisory: 105 },
+  { month: 'Dec', audit: 550, tax: 350, advisory: 140 }
 ];
 
-const chartConfig = {
-  views: {
-    label: 'Amount'
+// Financial PR - Media sentiment tracking (Line Chart)
+const prSentimentData = [
+  { month: 'Jul', positive: 72, neutral: 20, negative: 8 },
+  { month: 'Aug', positive: 68, neutral: 25, negative: 7 },
+  { month: 'Sep', positive: 78, neutral: 18, negative: 4 },
+  { month: 'Oct', positive: 82, neutral: 15, negative: 3 },
+  { month: 'Nov', positive: 75, neutral: 20, negative: 5 },
+  { month: 'Dec', positive: 85, neutral: 12, negative: 3 }
+];
+
+// IPO Advisory - Service completion rates (Radial Bar Chart)
+const ipoCompletionData = [
+  { name: 'Due Diligence', value: 92, fill: 'var(--primary)' },
+  { name: 'Documentation', value: 78, fill: 'var(--primary)' },
+  { name: 'Regulatory', value: 85, fill: 'var(--primary)' },
+  { name: 'Marketing', value: 65, fill: 'var(--primary)' }
+];
+
+const chartConfigs = {
+  accounting: {
+    title: 'Billable Hours by Service',
+    description: 'Monthly breakdown of billable hours',
+    metrics: {
+      audit: { label: 'Audit', color: 'var(--primary)' },
+      tax: { label: 'Tax', color: 'var(--primary)' },
+      advisory: { label: 'Advisory', color: 'var(--primary)' }
+    }
   },
-  invoices: {
-    label: 'Invoices',
-    color: 'var(--primary)'
+  'financial-pr': {
+    title: 'Media Sentiment Analysis',
+    description: 'Monthly sentiment breakdown (%)',
+    metrics: {
+      positive: { label: 'Positive', color: 'hsl(142, 76%, 36%)' },
+      neutral: { label: 'Neutral', color: 'hsl(48, 96%, 53%)' },
+      negative: { label: 'Negative', color: 'hsl(0, 84%, 60%)' }
+    }
   },
-  payments: {
-    label: 'Payments',
-    color: 'var(--primary)'
+  'ipo-advisory': {
+    title: 'IPO Process Completion',
+    description: 'Current project milestone progress',
+    metrics: {
+      value: { label: 'Completion %', color: 'var(--primary)' }
+    }
   }
-} satisfies ChartConfig;
+};
+
+// Color schemes
+const COLORS = {
+  blue: 'hsl(217, 91%, 60%)',
+  green: 'hsl(142, 76%, 36%)',
+  orange: 'hsl(24, 95%, 53%)',
+  purple: 'hsl(262, 83%, 58%)',
+  pink: 'hsl(330, 81%, 60%)',
+  cyan: 'hsl(186, 94%, 41%)',
+  red: 'hsl(0, 84%, 60%)',
+  yellow: 'hsl(48, 96%, 53%)'
+};
+
+// Bar Chart for Accounting
+function AccountingBarChart() {
+  const config = chartConfigs.accounting;
+  
+  const chartConfig = {
+    audit: { label: 'Audit', color: COLORS.blue },
+    tax: { label: 'Tax', color: COLORS.green },
+    advisory: { label: 'Advisory', color: COLORS.orange }
+  } satisfies ChartConfig;
+
+  const totals = React.useMemo(() => {
+    return {
+      audit: accountingBillableData.reduce((acc, curr) => acc + curr.audit, 0),
+      tax: accountingBillableData.reduce((acc, curr) => acc + curr.tax, 0),
+      advisory: accountingBillableData.reduce((acc, curr) => acc + curr.advisory, 0)
+    };
+  }, []);
+
+  const totalHours = totals.audit + totals.tax + totals.advisory;
+
+  return (
+    <Card className='@container/card !pt-3'>
+      <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+        <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+          <CardTitle className='flex items-center gap-2'>
+            <IconClock className='h-5 w-5 text-blue-500' />
+            {config.title}
+          </CardTitle>
+          <CardDescription>{config.description}</CardDescription>
+        </div>
+        <div className='flex'>
+          <div className='flex flex-col justify-center gap-1 border-l px-6 py-4'>
+            <span className='text-muted-foreground text-xs'>Total Hours</span>
+            <span className='text-2xl font-bold'>{totalHours.toLocaleString()}</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
+          <BarChart data={accountingBillableData} margin={{ left: 12, right: 12 }}>
+            <defs>
+              <linearGradient id='fillAuditBar' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='0%' stopColor={COLORS.blue} stopOpacity={0.9} />
+                <stop offset='100%' stopColor={COLORS.blue} stopOpacity={0.3} />
+              </linearGradient>
+              <linearGradient id='fillTaxBar' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='0%' stopColor={COLORS.green} stopOpacity={0.9} />
+                <stop offset='100%' stopColor={COLORS.green} stopOpacity={0.3} />
+              </linearGradient>
+              <linearGradient id='fillAdvisoryBar' x1='0' y1='0' x2='0' y2='1'>
+                <stop offset='0%' stopColor={COLORS.orange} stopOpacity={0.9} />
+                <stop offset='100%' stopColor={COLORS.orange} stopOpacity={0.3} />
+              </linearGradient>
+            </defs>
+            <CartesianGrid vertical={false} strokeDasharray='3 3' />
+            <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={8} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Bar dataKey='audit' name='Audit' fill='url(#fillAuditBar)' radius={[4, 4, 0, 0]} />
+            <Bar dataKey='tax' name='Tax' fill='url(#fillTaxBar)' radius={[4, 4, 0, 0]} />
+            <Bar dataKey='advisory' name='Advisory' fill='url(#fillAdvisoryBar)' radius={[4, 4, 0, 0]} />
+          </BarChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
+        <div className='flex gap-4 flex-wrap'>
+          <div className='flex items-center gap-2'>
+            <div className='w-3 h-3 rounded' style={{ background: COLORS.blue }} />
+            <span>Audit: <strong>{totals.audit.toLocaleString()}h</strong> ({((totals.audit/totalHours)*100).toFixed(0)}%)</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='w-3 h-3 rounded' style={{ background: COLORS.green }} />
+            <span>Tax: <strong>{totals.tax.toLocaleString()}h</strong> ({((totals.tax/totalHours)*100).toFixed(0)}%)</span>
+          </div>
+          <div className='flex items-center gap-2'>
+            <div className='w-3 h-3 rounded' style={{ background: COLORS.orange }} />
+            <span>Advisory: <strong>{totals.advisory.toLocaleString()}h</strong> ({((totals.advisory/totalHours)*100).toFixed(0)}%)</span>
+          </div>
+        </div>
+        <p className='text-muted-foreground'>📈 Audit hours increased 31% from Jul to Dec. Peak season in Q4.</p>
+      </CardFooter>
+    </Card>
+  );
+}
+
+// Line Chart for Financial PR
+function PRLineChart() {
+  const config = chartConfigs['financial-pr'];
+  
+  const chartConfig = {
+    positive: { label: 'Positive', color: COLORS.green },
+    neutral: { label: 'Neutral', color: COLORS.yellow },
+    negative: { label: 'Negative', color: COLORS.red }
+  } satisfies ChartConfig;
+
+  const latestData = prSentimentData[prSentimentData.length - 1];
+  const firstData = prSentimentData[0];
+  const positiveTrend = latestData.positive - firstData.positive;
+
+  return (
+    <Card className='@container/card !pt-3'>
+      <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+        <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+          <CardTitle className='flex items-center gap-2'>
+            <IconChartBar className='h-5 w-5 text-purple-500' />
+            {config.title}
+          </CardTitle>
+          <CardDescription>{config.description}</CardDescription>
+        </div>
+        <div className='flex'>
+          <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
+            <span className='text-muted-foreground text-xs'>Positive</span>
+            <span className='text-xl font-bold text-green-500'>{latestData.positive}%</span>
+          </div>
+          <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
+            <span className='text-muted-foreground text-xs'>Neutral</span>
+            <span className='text-xl font-bold text-yellow-500'>{latestData.neutral}%</span>
+          </div>
+          <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
+            <span className='text-muted-foreground text-xs'>Negative</span>
+            <span className='text-xl font-bold text-red-500'>{latestData.negative}%</span>
+          </div>
+        </div>
+      </CardHeader>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
+          <LineChart data={prSentimentData} margin={{ left: 12, right: 12, top: 12 }}>
+            <CartesianGrid vertical={false} strokeDasharray='3 3' />
+            <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={8} />
+            <YAxis tickLine={false} axisLine={false} tickMargin={8} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
+            <ChartTooltip content={<ChartTooltipContent />} />
+            <ChartLegend content={<ChartLegendContent />} />
+            <Line type='monotone' dataKey='positive' name='Positive' stroke={COLORS.green} strokeWidth={3} dot={{ fill: COLORS.green, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+            <Line type='monotone' dataKey='neutral' name='Neutral' stroke={COLORS.yellow} strokeWidth={3} dot={{ fill: COLORS.yellow, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+            <Line type='monotone' dataKey='negative' name='Negative' stroke={COLORS.red} strokeWidth={3} dot={{ fill: COLORS.red, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+          </LineChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
+        <div className='flex items-center gap-2'>
+          <IconTrendingUp className='h-4 w-4 text-green-500' />
+          <span>Positive sentiment <strong className='text-green-500'>+{positiveTrend}%</strong> since July</span>
+        </div>
+        <p className='text-muted-foreground'>🎯 Client media coverage shows strong positive momentum. Negative mentions reduced to just {latestData.negative}%.</p>
+      </CardFooter>
+    </Card>
+  );
+}
+
+// IPO Completion Data with colors
+const ipoCompletionDataColored = [
+  { name: 'Due Diligence', value: 92, fill: COLORS.blue },
+  { name: 'Documentation', value: 78, fill: COLORS.green },
+  { name: 'Regulatory', value: 85, fill: COLORS.purple },
+  { name: 'Marketing', value: 65, fill: COLORS.orange }
+];
+
+// Radial Bar Chart for IPO
+function IPORadialChart() {
+  const config = chartConfigs['ipo-advisory'];
+  const avgCompletion = Math.round(ipoCompletionDataColored.reduce((acc, curr) => acc + curr.value, 0) / ipoCompletionDataColored.length);
+
+  const chartConfig = {
+    value: { label: 'Completion' }
+  } satisfies ChartConfig;
+
+  const getStatusText = (value: number) => {
+    if (value >= 90) return { text: 'Excellent', color: 'text-green-500' };
+    if (value >= 75) return { text: 'Good', color: 'text-blue-500' };
+    if (value >= 60) return { text: 'In Progress', color: 'text-yellow-500' };
+    return { text: 'Needs Attention', color: 'text-red-500' };
+  };
+
+  return (
+    <Card className='@container/card !pt-3'>
+      <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
+        <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
+          <CardTitle className='flex items-center gap-2'>
+            <IconUsers className='h-5 w-5 text-cyan-500' />
+            {config.title}
+          </CardTitle>
+          <CardDescription>{config.description}</CardDescription>
+        </div>
+        <div className='flex flex-col justify-center gap-1 border-l px-6 py-4'>
+          <span className='text-muted-foreground text-xs'>Average</span>
+          <span className='text-2xl font-bold'>{avgCompletion}%</span>
+        </div>
+      </CardHeader>
+      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
+        <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
+          <RadialBarChart
+            data={ipoCompletionDataColored}
+            innerRadius='25%'
+            outerRadius='100%'
+            startAngle={180}
+            endAngle={0}
+            cx='50%'
+            cy='85%'
+          >
+            <PolarAngleAxis type='number' domain={[0, 100]} angleAxisId={0} tick={false} />
+            <RadialBar
+              background={{ fill: 'var(--muted)' }}
+              dataKey='value'
+              cornerRadius={8}
+            />
+            <ChartTooltip 
+              content={({ active, payload }) => {
+                if (active && payload && payload.length) {
+                  const data = payload[0].payload;
+                  return (
+                    <div className='bg-background border rounded-lg shadow-lg p-3'>
+                      <p className='font-medium'>{data.name}</p>
+                      <p className='text-sm'><strong>{data.value}%</strong> complete</p>
+                    </div>
+                  );
+                }
+                return null;
+              }}
+            />
+          </RadialBarChart>
+        </ChartContainer>
+      </CardContent>
+      <CardFooter className='flex-col items-start gap-3 text-sm border-t pt-4'>
+        <div className='grid grid-cols-2 gap-3 w-full'>
+          {ipoCompletionDataColored.map((item) => {
+            const status = getStatusText(item.value);
+            return (
+              <div key={item.name} className='flex items-center gap-2'>
+                <div className='w-3 h-3 rounded-full' style={{ background: item.fill }} />
+                <span className='text-sm'>{item.name}: <strong>{item.value}%</strong></span>
+                <span className={`text-xs ${status.color}`}>({status.text})</span>
+              </div>
+            );
+          })}
+        </div>
+        <p className='text-muted-foreground'>🚀 Due Diligence near completion. Marketing phase needs acceleration to meet Q1 listing target.</p>
+      </CardFooter>
+    </Card>
+  );
+}
 
 export function BarGraph() {
-  const [activeChart, setActiveChart] =
-    React.useState<keyof typeof chartConfig>('invoices');
-
-  const total = React.useMemo(
-    () => ({
-      invoices: chartData.reduce((acc, curr) => acc + curr.invoices, 0),
-      payments: chartData.reduce((acc, curr) => acc + curr.payments, 0)
-    }),
-    []
-  );
-
+  const { currentCompany } = useApp();
+  const companyType = currentCompany.type;
+  
   const [isClient, setIsClient] = React.useState(false);
 
   React.useEffect(() => {
@@ -150,106 +345,12 @@ export function BarGraph() {
     return null;
   }
 
-  return (
-    <Card className='@container/card !pt-3'>
-      <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
-        <div className='flex flex-1 flex-col justify-center gap-1 px-6 !py-0'>
-          <CardTitle>Financial Overview</CardTitle>
-          <CardDescription>
-            <span className='hidden @[540px]/card:block'>
-              Invoices vs Payments (HKD thousands) - Last 3 months
-            </span>
-            <span className='@[540px]/card:hidden'>Last 3 months</span>
-          </CardDescription>
-        </div>
-        <div className='flex'>
-          {['invoices', 'payments'].map((key) => {
-            const chart = key as keyof typeof chartConfig;
-            if (!chart || total[key as keyof typeof total] === 0) return null;
-            return (
-              <button
-                key={chart}
-                data-active={activeChart === chart}
-                className='data-[active=true]:bg-primary/5 hover:bg-primary/5 relative flex flex-1 flex-col justify-center gap-1 border-t px-6 py-4 text-left transition-colors duration-200 even:border-l sm:border-t-0 sm:border-l sm:px-8 sm:py-6'
-                onClick={() => setActiveChart(chart)}
-              >
-                <span className='text-muted-foreground text-xs'>
-                  {chartConfig[chart].label}
-                </span>
-                <span className='text-lg leading-none font-bold sm:text-3xl'>
-                  ${total[key as keyof typeof total]?.toLocaleString()}k
-                </span>
-              </button>
-            );
-          })}
-        </div>
-      </CardHeader>
-      <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
-        <ChartContainer
-          config={chartConfig}
-          className='aspect-auto h-[250px] w-full'
-        >
-          <BarChart
-            data={chartData}
-            margin={{
-              left: 12,
-              right: 12
-            }}
-          >
-            <defs>
-              <linearGradient id='fillBar' x1='0' y1='0' x2='0' y2='1'>
-                <stop
-                  offset='0%'
-                  stopColor='var(--primary)'
-                  stopOpacity={0.8}
-                />
-                <stop
-                  offset='100%'
-                  stopColor='var(--primary)'
-                  stopOpacity={0.2}
-                />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis
-              dataKey='date'
-              tickLine={false}
-              axisLine={false}
-              tickMargin={8}
-              minTickGap={32}
-              tickFormatter={(value) => {
-                const date = new Date(value);
-                return date.toLocaleDateString('en-US', {
-                  month: 'short',
-                  day: 'numeric'
-                });
-              }}
-            />
-            <ChartTooltip
-              cursor={{ fill: 'var(--primary)', opacity: 0.1 }}
-              content={
-                <ChartTooltipContent
-                  className='w-[180px]'
-                  nameKey='views'
-                  labelFormatter={(value) => {
-                    return new Date(value).toLocaleDateString('en-US', {
-                      month: 'short',
-                      day: 'numeric',
-                      year: 'numeric'
-                    });
-                  }}
-                  formatter={(value) => `$${value}k HKD`}
-                />
-              }
-            />
-            <Bar
-              dataKey={activeChart}
-              fill='url(#fillBar)'
-              radius={[4, 4, 0, 0]}
-            />
-          </BarChart>
-        </ChartContainer>
-      </CardContent>
-    </Card>
-  );
+  // Render different chart types based on company
+  if (companyType === 'accounting') {
+    return <AccountingBarChart />;
+  } else if (companyType === 'financial-pr') {
+    return <PRLineChart />;
+  } else {
+    return <IPORadialChart />;
+  }
 }

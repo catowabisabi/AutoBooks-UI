@@ -1,3 +1,5 @@
+import { api } from '@/lib/api';
+
 export interface AnalystQueryPayload {
   query: string;
 }
@@ -13,16 +15,20 @@ export interface RechartsResponse {
   message?: string;
 }
 
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+
 export async function sendAnalystQuery(
   payload: AnalystQueryPayload
 ): Promise<RechartsResponse> {
   try {
+    // 嘗試使用後端 API
     const response = await fetch(
-      'http://127.0.0.1:8000/analyst-assistant/query',
+      `${API_BASE_URL}/api/v1/analyst-assistant/query/`,
       {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
         },
         body: JSON.stringify(payload)
       }
@@ -36,6 +42,30 @@ export async function sendAnalystQuery(
     return data as RechartsResponse;
   } catch (error) {
     console.error('Error sending analyst query:', error);
+    throw error;
+  }
+}
+
+export async function startAnalystAssistant(): Promise<{ status: string }> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/analyst-assistant/start/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Failed to start analyst assistant');
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('Error starting analyst assistant:', error);
     throw error;
   }
 }

@@ -15,6 +15,7 @@ import { AreaGraph } from './area-graph';
 import { BarGraph } from './bar-graph';
 import { PieGraph } from './pie-graph';
 import { RecentSales } from './recent-sales';
+import { AnalysisDialog } from './analysis-dialog';
 import { IconTrendingUp, IconTrendingDown } from '@tabler/icons-react';
 import { Badge } from '@/components/ui/badge';
 import { useApp } from '@/contexts/app-context';
@@ -22,6 +23,16 @@ import { useApp } from '@/contexts/app-context';
 export default function OverViewPage() {
   const { currentCompany } = useApp();
   const stats = currentCompany.stats;
+
+  // Prepare company data for analysis
+  const companyDataForAnalysis = {
+    name: currentCompany.name,
+    type: currentCompany.type,
+    stats: currentCompany.stats as unknown as Record<string, unknown>,
+    engagements: currentCompany.engagements || [],
+    serviceBreakdown: currentCompany.serviceBreakdown || [],
+    currency: currentCompany.currency || 'HKD',
+  };
 
   return (
     <PageContainer>
@@ -31,6 +42,7 @@ export default function OverViewPage() {
             Hi, Welcome back 👋
           </h2>
           <div className='hidden items-center space-x-2 md:flex'>
+            <AnalysisDialog companyData={companyDataForAnalysis} />
             <Button>Download</Button>
           </div>
         </div>

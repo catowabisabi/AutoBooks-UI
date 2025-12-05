@@ -15,7 +15,7 @@ import {
 } from '@/components/ui/sheet';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { sendAnalystQuery } from './services';
+import { sendAnalystQuery, startAnalystAssistant } from './services';
 
 import DashboardSidebar from './_components/DashboardSidebar';
 import DashboardGrid from './_components/DashboardGrid';
@@ -136,8 +136,7 @@ export default function AnalystAssistantPage() {
   useEffect(() => {
     const startAssistant = async () => {
       try {
-        const res = await fetch('http://127.0.0.1:8000/start');
-        const data = await res.json();
+        const data = await startAnalystAssistant();
         console.log('Assistant started:', data);
       } catch (error) {
         console.error('Failed to start assistant:', error);

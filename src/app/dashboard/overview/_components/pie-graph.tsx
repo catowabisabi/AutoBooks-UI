@@ -18,55 +18,92 @@ import {
   ChartTooltip,
   ChartTooltipContent
 } from '@/components/ui/chart';
+import { useApp } from '@/contexts/app-context';
 
-const chartData = [
-  { browser: 'chrome', visitors: 275, fill: 'var(--primary)' },
-  { browser: 'safari', visitors: 200, fill: 'var(--primary-light)' },
-  { browser: 'firefox', visitors: 287, fill: 'var(--primary-lighter)' },
-  { browser: 'edge', visitors: 173, fill: 'var(--primary-dark)' },
-  { browser: 'other', visitors: 190, fill: 'var(--primary-darker)' }
+// Accounting - Revenue by service type (HK$ thousands)
+const accountingRevenueData = [
+  { service: 'audit', revenue: 5200, label: 'Statutory Audit', fill: 'var(--primary)' },
+  { service: 'tax', revenue: 2800, label: 'Tax Services', fill: 'var(--primary-light)' },
+  { service: 'bookkeeping', revenue: 1800, label: 'Bookkeeping', fill: 'var(--primary-lighter)' },
+  { service: 'advisory', revenue: 1500, label: 'Advisory', fill: 'var(--primary-dark)' },
+  { service: 'secretarial', revenue: 1000, label: 'Company Secretary', fill: 'var(--primary-darker)' }
 ];
 
-const chartConfig = {
-  visitors: {
-    label: 'Visitors'
+// Financial PR - Revenue by service type (HK$ thousands)
+const prRevenueData = [
+  { service: 'retainer', revenue: 6500, label: 'IR Retainer', fill: 'var(--primary)' },
+  { service: 'ipo', revenue: 4200, label: 'IPO Campaigns', fill: 'var(--primary-light)' },
+  { service: 'results', revenue: 3100, label: 'Results Announcements', fill: 'var(--primary-lighter)' },
+  { service: 'annual', revenue: 2400, label: 'Annual Reports', fill: 'var(--primary-dark)' },
+  { service: 'crisis', revenue: 1500, label: 'Crisis Comms', fill: 'var(--primary-darker)' }
+];
+
+// IPO Advisory - Revenue by deal type (HK$ thousands)
+const ipoRevenueData = [
+  { service: 'mainboard', revenue: 22000, label: 'Main Board IPO', fill: 'var(--primary)' },
+  { service: 'gem', revenue: 9500, label: 'GEM Listing', fill: 'var(--primary-light)' },
+  { service: 'preipo', revenue: 6200, label: 'Pre-IPO Advisory', fill: 'var(--primary-lighter)' },
+  { service: 'corpfin', revenue: 5100, label: 'Corporate Finance', fill: 'var(--primary-dark)' },
+  { service: 'compliance', revenue: 2200, label: 'Compliance', fill: 'var(--primary-darker)' }
+];
+
+const chartConfigs = {
+  accounting: {
+    title: 'Revenue by Service',
+    description: 'Fee income breakdown by service line',
+    centerLabel: 'Total Revenue',
+    trend: 'Audit leads with',
+    period: 'FY 2024 Year-to-Date'
   },
-  chrome: {
-    label: 'Chrome',
-    color: 'var(--primary)'
+  'financial-pr': {
+    title: 'Revenue by Service',
+    description: 'Income breakdown by PR service type',
+    centerLabel: 'Total Revenue',
+    trend: 'IR Retainer leads with',
+    period: 'FY 2024 Year-to-Date'
   },
-  safari: {
-    label: 'Safari',
-    color: 'var(--primary)'
-  },
-  firefox: {
-    label: 'Firefox',
-    color: 'var(--primary)'
-  },
-  edge: {
-    label: 'Edge',
-    color: 'var(--primary)'
-  },
-  other: {
-    label: 'Other',
-    color: 'var(--primary)'
+  'ipo-advisory': {
+    title: 'Revenue by Deal Type',
+    description: 'Fee income by transaction category',
+    centerLabel: 'Total Revenue',
+    trend: 'Main Board IPO leads with',
+    period: 'FY 2024 Year-to-Date'
   }
-} satisfies ChartConfig;
+};
 
 export function PieGraph() {
-  const totalVisitors = React.useMemo(() => {
-    return chartData.reduce((acc, curr) => acc + curr.visitors, 0);
-  }, []);
+  const { currentCompany } = useApp();
+  const companyType = currentCompany.type;
+  
+  const chartData = companyType === 'accounting'
+    ? accountingRevenueData
+    : companyType === 'financial-pr'
+    ? prRevenueData
+    : ipoRevenueData;
+
+  const config = chartConfigs[companyType];
+  
+  const totalRevenue = React.useMemo(() => {
+    return chartData.reduce((acc, curr) => acc + curr.revenue, 0);
+  }, [chartData]);
+
+  const topService = chartData[0];
+  const topPercentage = ((topService.revenue / totalRevenue) * 100).toFixed(1);
+
+  const chartConfig = chartData.reduce((acc, item) => {
+    acc[item.service] = { label: item.label, color: 'var(--primary)' };
+    return acc;
+  }, { revenue: { label: 'Revenue' } } as ChartConfig);
 
   return (
     <Card className='@container/card'>
       <CardHeader>
-        <CardTitle>Pie Chart - Donut with Text</CardTitle>
+        <CardTitle>{config.title}</CardTitle>
         <CardDescription>
           <span className='hidden @[540px]/card:block'>
-            Total visitors by browser for the last 6 months
+            {config.description}
           </span>
-          <span className='@[540px]/card:hidden'>Browser distribution</span>
+          <span className='@[540px]/card:hidden'>Revenue breakdown</span>
         </CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
@@ -76,29 +113,27 @@ export function PieGraph() {
         >
           <PieChart>
             <defs>
-              {['chrome', 'safari', 'firefox', 'edge', 'other'].map(
-                (browser, index) => (
-                  <linearGradient
-                    key={browser}
-                    id={`fill${browser}`}
-                    x1='0'
-                    y1='0'
-                    x2='0'
-                    y2='1'
-                  >
-                    <stop
-                      offset='0%'
-                      stopColor='var(--primary)'
-                      stopOpacity={1 - index * 0.15}
-                    />
-                    <stop
-                      offset='100%'
-                      stopColor='var(--primary)'
-                      stopOpacity={0.8 - index * 0.15}
-                    />
-                  </linearGradient>
-                )
-              )}
+              {chartData.map((item, index) => (
+                <linearGradient
+                  key={item.service}
+                  id={`fill${item.service}`}
+                  x1='0'
+                  y1='0'
+                  x2='0'
+                  y2='1'
+                >
+                  <stop
+                    offset='0%'
+                    stopColor='var(--primary)'
+                    stopOpacity={1 - index * 0.15}
+                  />
+                  <stop
+                    offset='100%'
+                    stopColor='var(--primary)'
+                    stopOpacity={0.8 - index * 0.15}
+                  />
+                </linearGradient>
+              ))}
             </defs>
             <ChartTooltip
               cursor={false}
@@ -107,10 +142,10 @@ export function PieGraph() {
             <Pie
               data={chartData.map((item) => ({
                 ...item,
-                fill: `url(#fill${item.browser})`
+                fill: `url(#fill${item.service})`
               }))}
-              dataKey='visitors'
-              nameKey='browser'
+              dataKey='revenue'
+              nameKey='label'
               innerRadius={60}
               strokeWidth={2}
               stroke='var(--background)'
@@ -128,16 +163,18 @@ export function PieGraph() {
                         <tspan
                           x={viewBox.cx}
                           y={viewBox.cy}
-                          className='fill-foreground text-3xl font-bold'
+                          className='fill-foreground text-2xl font-bold'
                         >
-                          {totalVisitors.toLocaleString()}
+                          {companyType === 'ipo-advisory' 
+                            ? `$${(totalRevenue / 1000).toFixed(1)}M`
+                            : `$${(totalRevenue / 1000).toFixed(1)}M`}
                         </tspan>
                         <tspan
                           x={viewBox.cx}
                           y={(viewBox.cy || 0) + 24}
-                          className='fill-muted-foreground text-sm'
+                          className='fill-muted-foreground text-xs'
                         >
-                          Total Visitors
+                          {config.centerLabel}
                         </tspan>
                       </text>
                     );
@@ -150,12 +187,11 @@ export function PieGraph() {
       </CardContent>
       <CardFooter className='flex-col gap-2 text-sm'>
         <div className='flex items-center gap-2 leading-none font-medium'>
-          Chrome leads with{' '}
-          {((chartData[0].visitors / totalVisitors) * 100).toFixed(1)}%{' '}
+          {config.trend} {topPercentage}%{' '}
           <IconTrendingUp className='h-4 w-4' />
         </div>
         <div className='text-muted-foreground leading-none'>
-          Based on data from January - June 2024
+          {config.period}
         </div>
       </CardFooter>
     </Card>
