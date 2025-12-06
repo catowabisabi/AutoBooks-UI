@@ -13,6 +13,7 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/auth-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 const user = {
   fullName: 'John Doe',
@@ -23,6 +24,7 @@ const user = {
 export function UserNav() {
   const router = useRouter();
   const { logout } = useAuth();
+  const { t } = useTranslation();
 
   return (
     <DropdownMenu>
@@ -48,20 +50,23 @@ export function UserNav() {
         <DropdownMenuSeparator />
         <DropdownMenuGroup>
           <DropdownMenuItem onClick={() => router.push('/dashboard/profile')}>
-            Profile
+            {t('sidebar.profile')}
           </DropdownMenuItem>
-          <DropdownMenuItem>Billing</DropdownMenuItem>
-          <DropdownMenuItem>Settings</DropdownMenuItem>
-          <DropdownMenuItem>New Team</DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            {t('sidebar.billing')}
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={() => router.push('/dashboard/settings')}>
+            {t('common.settings')}
+          </DropdownMenuItem>
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem
           onClick={() => {
-            logout(); // ✅ clears auth context + localStorage
-            router.push('/auth/sign-in'); // ✅ navigate to login page
+            logout();
+            router.push('/auth/sign-in');
           }}
         >
-          Sign out
+          {t('sidebar.signOut')}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

@@ -1,4 +1,9 @@
+'use client';
+
+import { useTranslation } from '@/lib/i18n/provider';
+
 export default function ProfileViewPage() {
+  const { t } = useTranslation();
   const user = {
     fullName: 'John Doe',
     email: 'john.doe@example.com',
@@ -7,7 +12,7 @@ export default function ProfileViewPage() {
 
   return (
     <div className='flex w-full flex-col gap-4 p-4'>
-      <h1 className='text-2xl font-semibold'>Profile</h1>
+      <h1 className='text-2xl font-semibold'>{t('sidebar.profile')}</h1>
       <div className='flex items-center gap-4'>
         <img
           src={user.imageUrl}

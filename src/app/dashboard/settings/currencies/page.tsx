@@ -40,8 +40,10 @@ import {
   IconStarFilled,
 } from '@tabler/icons-react';
 import { getCurrencies, createCurrency, updateCurrency, Currency } from '@/app/dashboard/finance/services';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function CurrenciesPage() {
+  const { t } = useTranslation();
   const [currencies, setCurrencies] = useState<Currency[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -144,7 +146,7 @@ export default function CurrenciesPage() {
   const CurrencyForm = () => (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Code / 代碼 *</Label>
+        <Label className="text-right">{t('currencies.code')} *</Label>
         <Input
           className="col-span-3"
           value={formData.code}
@@ -155,7 +157,7 @@ export default function CurrenciesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Name / 名稱 *</Label>
+        <Label className="text-right">{t('currencies.name')} *</Label>
         <Input
           className="col-span-3"
           value={formData.name}
@@ -165,7 +167,7 @@ export default function CurrenciesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Symbol / 符號</Label>
+        <Label className="text-right">{t('currencies.symbol')}</Label>
         <Input
           className="col-span-3"
           value={formData.symbol}
@@ -175,7 +177,7 @@ export default function CurrenciesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Exchange Rate / 匯率</Label>
+        <Label className="text-right">{t('currencies.exchangeRate')}</Label>
         <Input
           type="number"
           step="0.0001"
@@ -186,7 +188,7 @@ export default function CurrenciesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Decimal Places / 小數位</Label>
+        <Label className="text-right">{t('currencies.decimalPlaces')}</Label>
         <Input
           type="number"
           min={0}
@@ -198,27 +200,27 @@ export default function CurrenciesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Base Currency / 基準貨幣</Label>
+        <Label className="text-right">{t('currencies.baseCurrency')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_base}
             onCheckedChange={(checked) => setFormData({ ...formData, is_base: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            {formData.is_base ? 'Yes / 是' : 'No / 否'}
+            {formData.is_base ? t('currencies.yes') : t('currencies.no')}
           </span>
         </div>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Active / 啟用</Label>
+        <Label className="text-right">{t('currencies.status')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_active}
             onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            {formData.is_active ? 'Active / 啟用' : 'Inactive / 停用'}
+            {formData.is_active ? t('currencies.active') : t('currencies.inactive')}
           </span>
         </div>
       </div>
@@ -234,22 +236,20 @@ export default function CurrenciesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Currencies / 貨幣管理
+              {t('currencies.title')}
             </h1>
             <p className="text-muted-foreground">
-              Manage currencies and exchange rates
-              <br />
-              管理貨幣和匯率
+              {t('currencies.description')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={loadData}>
               <IconRefresh className="mr-2 h-4 w-4" />
-              Refresh / 重新整理
+              {t('currencies.refresh')}
             </Button>
             <Button onClick={() => setShowCreateDialog(true)}>
               <IconPlus className="mr-2 h-4 w-4" />
-              Add Currency / 新增貨幣
+              {t('currencies.addCurrency')}
             </Button>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function CurrenciesPage() {
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <IconStarFilled className="h-4 w-4 text-yellow-500" />
-                Base Currency / 基準貨幣
+                {t('currencies.baseCurrency')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -271,9 +271,7 @@ export default function CurrenciesPage() {
                 <div>
                   <div className="font-medium">{baseCurrency.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    All exchange rates are relative to this currency
-                    <br />
-                    所有匯率都相對於此貨幣
+                    {t('currencies.baseCurrencyNote')}
                   </div>
                 </div>
               </div>
@@ -284,9 +282,9 @@ export default function CurrenciesPage() {
         {/* Currencies Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Currencies / 貨幣列表</CardTitle>
+            <CardTitle>{t('currencies.list')}</CardTitle>
             <CardDescription>
-              Manage available currencies for transactions
+              {t('currencies.description')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -297,20 +295,19 @@ export default function CurrenciesPage() {
             ) : currencies.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 <IconCurrencyDollar className="mx-auto h-12 w-12 mb-4" />
-                <p>No currencies configured</p>
-                <p className="text-sm">尚未設定貨幣</p>
+                <p>{t('currencies.noCurrencies')}</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Code / 代碼</TableHead>
-                    <TableHead>Name / 名稱</TableHead>
-                    <TableHead>Symbol / 符號</TableHead>
-                    <TableHead className="text-right">Exchange Rate / 匯率</TableHead>
-                    <TableHead className="text-center">Decimals / 小數</TableHead>
-                    <TableHead>Status / 狀態</TableHead>
-                    <TableHead>Actions / 操作</TableHead>
+                    <TableHead>{t('currencies.code')}</TableHead>
+                    <TableHead>{t('currencies.name')}</TableHead>
+                    <TableHead>{t('currencies.symbol')}</TableHead>
+                    <TableHead className="text-right">{t('currencies.exchangeRate')}</TableHead>
+                    <TableHead className="text-center">{t('currencies.decimalPlaces')}</TableHead>
+                    <TableHead>{t('currencies.status')}</TableHead>
+                    <TableHead>{t('currencies.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -334,7 +331,7 @@ export default function CurrenciesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={currency.is_active ? 'default' : 'secondary'}>
-                          {currency.is_active ? '啟用' : '停用'}
+                          {currency.is_active ? t('currencies.active') : t('currencies.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -354,19 +351,19 @@ export default function CurrenciesPage() {
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add Currency / 新增貨幣</DialogTitle>
+              <DialogTitle>{t('currencies.addCurrency')}</DialogTitle>
               <DialogDescription>
-                Add a new currency for transactions
+                {t('currencies.description')}
               </DialogDescription>
             </DialogHeader>
             <CurrencyForm />
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowCreateDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('currencies.cancel')}
               </Button>
               <Button onClick={handleCreate} disabled={isSubmitting || !formData.code || !formData.name}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Create / 建立
+                {t('currencies.save')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -376,19 +373,19 @@ export default function CurrenciesPage() {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Edit Currency / 編輯貨幣</DialogTitle>
+              <DialogTitle>{t('currencies.editCurrency')}</DialogTitle>
               <DialogDescription>
-                Update currency settings
+                {t('currencies.description')}
               </DialogDescription>
             </DialogHeader>
             <CurrencyForm />
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowEditDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('currencies.cancel')}
               </Button>
               <Button onClick={handleUpdate} disabled={isSubmitting}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Update / 更新
+                {t('currencies.save')}
               </Button>
             </DialogFooter>
           </DialogContent>

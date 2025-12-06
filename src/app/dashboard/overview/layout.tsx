@@ -1,7 +1,10 @@
+'use client';
+
 import PageContainer from '@/components/layout/page-container';
 import React from 'react';
 import { StatsCards } from './_components/stats-cards';
 import { AnalysisDialogWrapper } from './_components/analysis-dialog-wrapper';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function OverViewLayout({
   sales,
@@ -14,12 +17,14 @@ export default function OverViewLayout({
   bar_stats: React.ReactNode;
   area_stats: React.ReactNode;
 }) {
+  const { t } = useTranslation();
+  
   return (
     <PageContainer>
       <div className='flex flex-1 flex-col space-y-2'>
         <div className='flex items-center justify-between'>
           <h2 className='text-2xl font-bold tracking-tight'>
-            Hi, Welcome back 👋
+            {t('dashboard.welcomeBack')} 👋
           </h2>
           <div className='flex items-center space-x-2'>
             <AnalysisDialogWrapper />

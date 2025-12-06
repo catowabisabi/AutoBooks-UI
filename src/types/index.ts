@@ -2,6 +2,7 @@ import { Icons } from '@/components/icons';
 
 export interface NavItem {
   title: string;
+  titleKey?: string;
   url: string;
   disabled?: boolean;
   external?: boolean;

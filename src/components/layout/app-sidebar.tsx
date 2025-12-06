@@ -40,6 +40,7 @@ import {
   IconCreditCard,
   IconLogout,
   IconPhotoUp,
+  IconSettings,
   IconUserCircle
 } from '@tabler/icons-react';
 import Link from 'next/link';
@@ -48,6 +49,7 @@ import * as React from 'react';
 import { Icons } from '../icons';
 import { OrgSwitcher } from '../org-switcher';
 import { useAuth } from '@/contexts/auth-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export const company = {
   name: 'Acme Inc',
@@ -68,6 +70,7 @@ export default function AppSidebar() {
   const { currentApp, getCurrentAppConfig } = useApp();
   const currentAppConfig = getCurrentAppConfig();
   const { user, logout } = useAuth();
+  const { t } = useTranslation();
 
   const handleSwitchTenant = () => {
     // Future tenant switch logic
@@ -91,10 +94,11 @@ export default function AppSidebar() {
 
       <SidebarContent className='overflow-x-hidden'>
         <SidebarGroup>
-          <SidebarGroupLabel>Overview</SidebarGroupLabel>
+          <SidebarGroupLabel>{t('sidebar.overview')}</SidebarGroupLabel>
           <SidebarMenu>
             {navItems.map((item) => {
               const Icon = item.icon ? Icons[item.icon] : Icons.logo;
+              const itemTitle = item.titleKey ? t(item.titleKey) : item.title;
               return item?.items && item?.items?.length > 0 ? (
                 <Collapsible
                   key={item.title}
@@ -105,28 +109,30 @@ export default function AppSidebar() {
                   <SidebarMenuItem>
                     <CollapsibleTrigger asChild>
                       <SidebarMenuButton
-                        tooltip={item.title}
+                        tooltip={itemTitle}
                         isActive={pathname === item.url}
                       >
                         {item.icon && <Icon />}
-                        <span>{item.title}</span>
+                        <span>{itemTitle}</span>
                         <IconChevronRight className='ml-auto transition-transform duration-200 group-data-[state=open]/collapsible:rotate-90' />
                       </SidebarMenuButton>
                     </CollapsibleTrigger>
                     <CollapsibleContent>
                       <SidebarMenuSub>
-                        {item.items?.map((subItem) => (
+                        {item.items?.map((subItem) => {
+                          const subItemTitle = subItem.titleKey ? t(subItem.titleKey) : subItem.title;
+                          return (
                           <SidebarMenuSubItem key={subItem.title}>
                             <SidebarMenuSubButton
                               asChild
                               isActive={pathname === subItem.url}
                             >
                               <Link href={subItem.url}>
-                                <span>{subItem.title}</span>
+                                <span>{subItemTitle}</span>
                               </Link>
                             </SidebarMenuSubButton>
                           </SidebarMenuSubItem>
-                        ))}
+                        )})}
                       </SidebarMenuSub>
                     </CollapsibleContent>
                   </SidebarMenuItem>
@@ -135,12 +141,12 @@ export default function AppSidebar() {
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton
                     asChild
-                    tooltip={item.title}
+                    tooltip={itemTitle}
                     isActive={pathname === item.url}
                   >
                     <Link href={item.url}>
                       <Icon />
-                      <span>{item.title}</span>
+                      <span>{itemTitle}</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -223,15 +229,25 @@ export default function AppSidebar() {
                     onClick={() => router.push('/dashboard/profile')}
                   >
                     <IconUserCircle className='mr-2 h-4 w-4' />
-                    Profile
+                    {t('sidebar.profile')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/dashboard/settings?tab=billing')}
+                  >
                     <IconCreditCard className='mr-2 h-4 w-4' />
-                    Billing
+                    {t('sidebar.billing')}
                   </DropdownMenuItem>
-                  <DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/dashboard/settings?tab=notifications')}
+                  >
                     <IconBell className='mr-2 h-4 w-4' />
-                    Notifications
+                    {t('sidebar.notifications')}
+                  </DropdownMenuItem>
+                  <DropdownMenuItem
+                    onClick={() => router.push('/dashboard/settings')}
+                  >
+                    <IconSettings className='mr-2 h-4 w-4' />
+                    {t('common.settings')}
                   </DropdownMenuItem>
                 </DropdownMenuGroup>
 
@@ -240,7 +256,7 @@ export default function AppSidebar() {
                   {' '}
                   {/* ✅ Updated */}
                   <IconLogout className='mr-2 h-4 w-4' />
-                  Sign out
+                  {t('sidebar.signOut')}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
