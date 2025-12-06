@@ -46,15 +46,10 @@ import {
   IconPercentage,
 } from '@tabler/icons-react';
 import { getTaxRates, createTaxRate, updateTaxRate, TaxRate } from '@/app/dashboard/finance/services';
-
-// Tax type config
-const taxTypeConfig: Record<string, { label: string; labelZh: string }> = {
-  SALES: { label: 'Sales Tax', labelZh: '銷售稅' },
-  PURCHASE: { label: 'Purchase Tax', labelZh: '進項稅' },
-  BOTH: { label: 'Both', labelZh: '銷售/進項' },
-};
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function TaxRatesPage() {
+  const { t } = useTranslation();
   const [taxRates, setTaxRates] = useState<TaxRate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   
@@ -95,7 +90,7 @@ export default function TaxRatesPage() {
 
   const handleCreate = async () => {
     if (!formData.name) {
-      alert('Name is required / 名稱為必填');
+      alert(t('taxRates.nameRequired'));
       return;
     }
     
