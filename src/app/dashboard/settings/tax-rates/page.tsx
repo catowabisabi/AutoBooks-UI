@@ -155,7 +155,7 @@ export default function TaxRatesPage() {
   const TaxRateForm = () => (
     <div className="grid gap-4 py-4">
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Name / 名稱 *</Label>
+        <Label className="text-right">{t('taxRates.name')} *</Label>
         <Input
           className="col-span-3"
           value={formData.name}
@@ -165,7 +165,7 @@ export default function TaxRatesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Rate (%) / 稅率 *</Label>
+        <Label className="text-right">{t('taxRates.ratePercent')} *</Label>
         <div className="col-span-3 relative">
           <Input
             type="number"
@@ -180,7 +180,7 @@ export default function TaxRatesPage() {
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Type / 類型</Label>
+        <Label className="text-right">{t('taxRates.type')}</Label>
         <Select
           value={formData.tax_type}
           onValueChange={(v) => setFormData({ ...formData, tax_type: v as any })}
@@ -189,71 +189,71 @@ export default function TaxRatesPage() {
             <SelectValue />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="SALES">Sales Tax / 銷售稅</SelectItem>
-            <SelectItem value="PURCHASE">Purchase Tax / 進項稅</SelectItem>
-            <SelectItem value="BOTH">Both / 兩者皆可</SelectItem>
+            <SelectItem value="SALES">{t('taxRates.salesTax')}</SelectItem>
+            <SelectItem value="PURCHASE">{t('taxRates.purchaseTax')}</SelectItem>
+            <SelectItem value="BOTH">{t('taxRates.both')}</SelectItem>
           </SelectContent>
         </Select>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Description / 說明</Label>
+        <Label className="text-right">{t('taxRates.description_label')}</Label>
         <Input
           className="col-span-3"
           value={formData.description}
           onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-          placeholder="Optional description"
+          placeholder={t('taxRates.descriptionPlaceholder')}
         />
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Compound / 複合稅</Label>
+        <Label className="text-right">{t('taxRates.compound')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_compound}
             onCheckedChange={(checked) => setFormData({ ...formData, is_compound: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            Calculate on top of other taxes / 基於其他稅額計算
+            {t('taxRates.compoundHint')}
           </span>
         </div>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Recoverable / 可扣抵</Label>
+        <Label className="text-right">{t('taxRates.recoverable')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_recoverable}
             onCheckedChange={(checked) => setFormData({ ...formData, is_recoverable: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            Tax can be recovered/refunded / 稅額可申報扣抵
+            {t('taxRates.recoverableHint')}
           </span>
         </div>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Default / 預設</Label>
+        <Label className="text-right">{t('taxRates.default')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_default}
             onCheckedChange={(checked) => setFormData({ ...formData, is_default: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            Use as default tax rate / 設為預設稅率
+            {t('taxRates.defaultHint')}
           </span>
         </div>
       </div>
       
       <div className="grid grid-cols-4 items-center gap-4">
-        <Label className="text-right">Active / 啟用</Label>
+        <Label className="text-right">{t('taxRates.active')}</Label>
         <div className="col-span-3 flex items-center gap-2">
           <Switch
             checked={formData.is_active}
             onCheckedChange={(checked) => setFormData({ ...formData, is_active: checked })}
           />
           <span className="text-sm text-muted-foreground">
-            {formData.is_active ? 'Active / 啟用' : 'Inactive / 停用'}
+            {formData.is_active ? t('taxRates.active') : t('taxRates.inactive')}
           </span>
         </div>
       </div>
@@ -269,22 +269,20 @@ export default function TaxRatesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Tax Rates / 稅率管理
+              {t('taxRates.title')}
             </h1>
             <p className="text-muted-foreground">
-              Configure tax rates for invoices and expenses
-              <br />
-              設定發票和費用的稅率
+              {t('taxRates.description')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={loadData}>
               <IconRefresh className="mr-2 h-4 w-4" />
-              Refresh / 重新整理
+              {t('taxRates.refresh')}
             </Button>
             <Button onClick={() => setShowCreateDialog(true)}>
               <IconPlus className="mr-2 h-4 w-4" />
-              Add Tax Rate / 新增稅率
+              {t('taxRates.addTaxRate')}
             </Button>
           </div>
         </div>
@@ -295,7 +293,7 @@ export default function TaxRatesPage() {
             <CardHeader className="pb-2">
               <CardDescription className="flex items-center gap-2">
                 <IconReceipt2 className="h-4 w-4" />
-                Default Tax Rate / 預設稅率
+                {t('taxRates.defaultTaxRate')}
               </CardDescription>
             </CardHeader>
             <CardContent>
@@ -306,9 +304,7 @@ export default function TaxRatesPage() {
                 <div>
                   <div className="font-medium">{defaultTaxRate.name}</div>
                   <div className="text-sm text-muted-foreground">
-                    Applied to new transactions by default
-                    <br />
-                    預設套用於新交易
+                    {t('taxRates.defaultNote')}
                   </div>
                 </div>
               </div>
@@ -319,9 +315,9 @@ export default function TaxRatesPage() {
         {/* Tax Rates Table */}
         <Card>
           <CardHeader>
-            <CardTitle>Tax Rates / 稅率列表</CardTitle>
+            <CardTitle>{t('taxRates.list')}</CardTitle>
             <CardDescription>
-              Manage available tax rates for transactions
+              {t('taxRates.manageDescription')}
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -332,20 +328,19 @@ export default function TaxRatesPage() {
             ) : taxRates.length === 0 ? (
               <div className="text-center text-muted-foreground py-12">
                 <IconReceipt2 className="mx-auto h-12 w-12 mb-4" />
-                <p>No tax rates configured</p>
-                <p className="text-sm">尚未設定稅率</p>
+                <p>{t('taxRates.noTaxRates')}</p>
               </div>
             ) : (
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Name / 名稱</TableHead>
-                    <TableHead className="text-right">Rate / 稅率</TableHead>
-                    <TableHead>Type / 類型</TableHead>
-                    <TableHead className="text-center">Compound / 複合</TableHead>
-                    <TableHead className="text-center">Recoverable / 可扣抵</TableHead>
-                    <TableHead>Status / 狀態</TableHead>
-                    <TableHead>Actions / 操作</TableHead>
+                    <TableHead>{t('taxRates.name')}</TableHead>
+                    <TableHead className="text-right">{t('taxRates.rate')}</TableHead>
+                    <TableHead>{t('taxRates.type')}</TableHead>
+                    <TableHead className="text-center">{t('taxRates.compound')}</TableHead>
+                    <TableHead className="text-center">{t('taxRates.recoverable')}</TableHead>
+                    <TableHead>{t('taxRates.status')}</TableHead>
+                    <TableHead>{t('taxRates.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -354,7 +349,7 @@ export default function TaxRatesPage() {
                       <TableCell className="font-medium">
                         <div className="flex items-center gap-2">
                           {taxRate.is_default && (
-                            <Badge variant="outline" className="text-xs">Default</Badge>
+                            <Badge variant="outline" className="text-xs">{t('taxRates.default')}</Badge>
                           )}
                           {taxRate.name}
                         </div>
@@ -364,7 +359,9 @@ export default function TaxRatesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant="secondary">
-                          {taxTypeConfig[taxRate.tax_type || 'BOTH']?.labelZh || taxRate.tax_type}
+                          {taxRate.tax_type === 'SALES' ? t('taxRates.salesTax') : 
+                           taxRate.tax_type === 'PURCHASE' ? t('taxRates.purchaseTax') : 
+                           t('taxRates.both')}
                         </Badge>
                       </TableCell>
                       <TableCell className="text-center">
@@ -375,7 +372,7 @@ export default function TaxRatesPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={taxRate.is_active ? 'default' : 'secondary'}>
-                          {taxRate.is_active ? '啟用' : '停用'}
+                          {taxRate.is_active ? t('taxRates.active') : t('taxRates.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -395,19 +392,19 @@ export default function TaxRatesPage() {
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Add Tax Rate / 新增稅率</DialogTitle>
+              <DialogTitle>{t('taxRates.addTaxRate')}</DialogTitle>
               <DialogDescription>
-                Configure a new tax rate for transactions
+                {t('taxRates.createDescription')}
               </DialogDescription>
             </DialogHeader>
             <TaxRateForm />
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowCreateDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('taxRates.cancel')}
               </Button>
               <Button onClick={handleCreate} disabled={isSubmitting || !formData.name}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Create / 建立
+                {t('taxRates.create')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -417,19 +414,19 @@ export default function TaxRatesPage() {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent className="max-w-lg">
             <DialogHeader>
-              <DialogTitle>Edit Tax Rate / 編輯稅率</DialogTitle>
+              <DialogTitle>{t('taxRates.editTaxRate')}</DialogTitle>
               <DialogDescription>
-                Update tax rate configuration
+                {t('taxRates.editDescription')}
               </DialogDescription>
             </DialogHeader>
             <TaxRateForm />
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowEditDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('taxRates.cancel')}
               </Button>
               <Button onClick={handleUpdate} disabled={isSubmitting}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Update / 更新
+                {t('taxRates.update')}
               </Button>
             </DialogFooter>
           </DialogContent>
