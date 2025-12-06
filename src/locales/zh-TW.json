@@ -721,6 +721,7 @@
     "features": {
       "title": "為什麼選擇",
       "titleHighlight": "AutoBooks",
+      "badge": "強大功能",
       "subtitle": "不只是 ERP，是您的智能財務夥伴。告別繁瑣，擁抱效率。",
       "hrm": {
         "title": "智能薪資管理",
@@ -775,6 +776,15 @@
       "successMessage": "訊息發送成功！",
       "errorMessage": "發送訊息失敗，請重試。",
       "networkError": "發生錯誤，請稍後再試。"
+    },
+    "stats": {
+      "title": "深受",
+      "titleHighlight": "成長中企業信賴",
+      "subtitle": "加入數千間已透過 AutoBooks 轉型財務營運的企業行列。",
+      "activeUsers": "活躍用戶",
+      "invoicesProcessed": "已處理發票",
+      "accuracy": "AI 準確率",
+      "timeSaved": "節省時間"
     },
     "pricing": {
       "title": "簡單透明的",
@@ -856,7 +866,23 @@
           "現場培訓服務",
           "企業級安全稽核"
         ]
-      }
+      },
+      "trustBadges": {
+        "security": {
+          "title": "銀行級安全",
+          "description": "256-bit SSL 加密保護"
+        },
+        "uptime": {
+          "title": "99.9% 服務可用率",
+          "description": "企業級穩定性保證"
+        },
+        "support": {
+          "title": "專業支援團隊",
+          "description": "週一至週五在線服務"
+        }
+      },
+      "faqQuestion": "還有疑問？",
+      "faqLink": "查看常見問題"
     },
     "footer": {
       "description": "專為現代企業打造的智能 ERP。自動化記帳、一鍵報稅、即時財務洞察，讓管理變得前所未有的簡單。",

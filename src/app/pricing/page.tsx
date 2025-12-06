@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { Check, Sparkles, Building2, ArrowLeft } from 'lucide-react';
+import { Check, Sparkles, Building2, ArrowLeft, Zap, Shield, Headphones } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/provider';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,6 +12,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 import { cn } from '@/lib/utils';
 import { LanguageSwitcher } from '@/components/language-switcher';
+import AnimatedBackground from '@/components/landing-page/animated-background';
 
 export default function PricingPage() {
   const { t } = useTranslation();
@@ -146,7 +147,10 @@ export default function PricingPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-muted/30">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background */}
+      <AnimatedBackground variant="pricing" />
+
       {/* Navigation */}
       <nav className="sticky top-0 z-50 border-b bg-background/80 backdrop-blur-sm">
         <div className="container mx-auto flex h-16 items-center justify-between px-4">
@@ -167,7 +171,7 @@ export default function PricingPage() {
       </nav>
 
       {/* Header */}
-      <div className="container mx-auto px-4 py-16 text-center">
+      <div className="relative z-10 container mx-auto px-4 py-16 text-center">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -211,7 +215,7 @@ export default function PricingPage() {
       </div>
 
       {/* Pricing Cards */}
-      <div className="container mx-auto px-4 pb-20">
+      <div className="relative z-10 container mx-auto px-4 pb-20">
         <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
           {plans.map((plan, index) => (
             <motion.div
@@ -221,8 +225,8 @@ export default function PricingPage() {
               transition={{ delay: 0.1 * index }}
             >
               <Card className={cn(
-                'relative flex h-full flex-col',
-                plan.popular && 'border-primary shadow-lg shadow-primary/20',
+                'relative flex h-full flex-col backdrop-blur-sm bg-card/80',
+                plan.popular && 'border-primary shadow-lg shadow-primary/20 scale-105',
                 plan.enterprise && 'border-amber-500/50 bg-gradient-to-b from-amber-500/5 to-transparent'
               )}>
                 {plan.popular && (
@@ -288,12 +292,62 @@ export default function PricingPage() {
         </div>
       </div>
 
+      {/* Trust Badges */}
+      <div className="relative z-10 container mx-auto px-4 pb-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true }}
+          className="grid grid-cols-1 md:grid-cols-3 gap-6"
+        >
+          <div className="flex items-center gap-4 p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50">
+            <div className="p-3 rounded-xl bg-green-500/10">
+              <Shield className="h-6 w-6 text-green-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.security.title') : 'Bank-Level Security'}
+              </h3>
+              <p className="text-sm text-muted-foreground" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.security.description') : '256-bit SSL encryption'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50">
+            <div className="p-3 rounded-xl bg-blue-500/10">
+              <Zap className="h-6 w-6 text-blue-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.uptime.title') : '99.9% Uptime'}
+              </h3>
+              <p className="text-sm text-muted-foreground" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.uptime.description') : 'Enterprise-grade stability'}
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-4 p-6 rounded-2xl bg-card/60 backdrop-blur-sm border border-border/50">
+            <div className="p-3 rounded-xl bg-purple-500/10">
+              <Headphones className="h-6 w-6 text-purple-500" />
+            </div>
+            <div>
+              <h3 className="font-semibold" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.support.title') : 'Professional Support'}
+              </h3>
+              <p className="text-sm text-muted-foreground" suppressHydrationWarning>
+                {mounted ? t('landing.pricing.trustBadges.support.description') : 'Monday to Friday service'}
+              </p>
+            </div>
+          </div>
+        </motion.div>
+      </div>
+
       {/* FAQ Link */}
-      <div className="container mx-auto px-4 pb-20 text-center">
-        <p className="text-muted-foreground">
-          {mounted ? '還有疑問？' : 'Have questions?'}{' '}
-          <Link href="/#faqs" className="text-primary hover:underline">
-            {mounted ? '查看常見問題' : 'Check our FAQs'}
+      <div className="relative z-10 container mx-auto px-4 pb-20 text-center">
+        <p className="text-muted-foreground" suppressHydrationWarning>
+          {mounted ? t('landing.pricing.faqQuestion') : 'Have questions?'}{' '}
+          <Link href="/#faqs" className="text-primary hover:underline" suppressHydrationWarning>
+            {mounted ? t('landing.pricing.faqLink') : 'Check our FAQs'}
           </Link>
         </p>
       </div>

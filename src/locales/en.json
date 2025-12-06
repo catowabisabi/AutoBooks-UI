@@ -721,6 +721,7 @@
     "features": {
       "title": "Why Choose",
       "titleHighlight": "AutoBooks",
+      "badge": "Powerful Features",
       "subtitle": "More than an ERP — your intelligent financial partner. Say goodbye to tedious tasks, embrace efficiency.",
       "hrm": {
         "title": "Smart Payroll Management",
@@ -775,6 +776,15 @@
       "successMessage": "Message sent successfully!",
       "errorMessage": "Failed to send message. Please try again.",
       "networkError": "An error occurred. Please try again later."
+    },
+    "stats": {
+      "title": "Trusted by",
+      "titleHighlight": "Growing Businesses",
+      "subtitle": "Join thousands of businesses that have transformed their financial operations with AutoBooks.",
+      "activeUsers": "Active Users",
+      "invoicesProcessed": "Invoices Processed",
+      "accuracy": "AI Accuracy",
+      "timeSaved": "Time Saved"
     },
     "pricing": {
       "title": "Simple, Transparent",
@@ -856,7 +866,23 @@
           "On-site training",
           "Enterprise security audit"
         ]
-      }
+      },
+      "trustBadges": {
+        "security": {
+          "title": "Bank-Level Security",
+          "description": "256-bit SSL encryption"
+        },
+        "uptime": {
+          "title": "99.9% Uptime",
+          "description": "Enterprise-grade stability"
+        },
+        "support": {
+          "title": "Professional Support",
+          "description": "Monday to Friday service"
+        }
+      },
+      "faqQuestion": "Have questions?",
+      "faqLink": "Check our FAQs"
     },
     "footer": {
       "description": "The intelligent ERP for modern business. Automated bookkeeping, one-click tax filing, and real-time financial insights. Management made simple.",
