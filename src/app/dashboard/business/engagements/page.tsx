@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -45,16 +46,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { engagementsApi, ActiveEngagement } from '@/features/business/services';
 
-// Engagement type label mapping
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    'RETAINER': '長期合約',
-    'PROJECT': '項目',
-    'AD_HOC': '臨時委託',
-  };
-  return labels[type] || type;
-};
-
 // Status badge color mapping
 const getStatusColor = (status: string) => {
   const colors: Record<string, string> = {
@@ -64,16 +55,6 @@ const getStatusColor = (status: string) => {
     'CANCELLED': 'destructive',
   };
   return colors[status] || 'secondary';
-};
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    'ACTIVE': '進行中',
-    'PAUSED': '暫停',
-    'COMPLETED': '已完成',
-    'CANCELLED': '已取消',
-  };
-  return labels[status] || status;
 };
 
 // Format currency for display
@@ -90,10 +71,31 @@ const formatDate = (date?: string) => {
 
 export default function EngagementsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data, setData] = useState<ActiveEngagement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Engagement type label mapping
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      'RETAINER': t('business.retainer'),
+      'PROJECT': t('business.project'),
+      'AD_HOC': t('business.adHoc'),
+    };
+    return labels[type] || type;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      'ACTIVE': t('business.inProgress'),
+      'PAUSED': t('business.paused'),
+      'COMPLETED': t('business.completed'),
+      'CANCELLED': t('business.cancelled'),
+    };
+    return labels[status] || status;
+  };
 
   // Mock data for demo
   const mockData: ActiveEngagement[] = [
@@ -183,10 +185,10 @@ export default function EngagementsPage() {
     if (!deleteId) return;
     try {
       await engagementsApi.delete(deleteId);
-      toast.success('項目委託已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -194,7 +196,7 @@ export default function EngagementsPage() {
   const columns: ColumnDef<ActiveEngagement>[] = [
     {
       accessorKey: 'title',
-      header: '項目名稱',
+      header: t('business.projectName'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/engagements/${row.original.id}`}
@@ -206,12 +208,12 @@ export default function EngagementsPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.client'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       accessorKey: 'engagement_type',
-      header: '類型',
+      header: t('business.engagementType'),
       cell: ({ row }) => (
         <Badge variant='outline'>
           {getTypeLabel(row.original.engagement_type)}
@@ -220,7 +222,7 @@ export default function EngagementsPage() {
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status) as any}>
           {getStatusLabel(row.original.status)}
@@ -229,7 +231,7 @@ export default function EngagementsPage() {
     },
     {
       accessorKey: 'value',
-      header: '項目價值',
+      header: t('business.value'),
       cell: ({ row }) => (
         <span className='font-semibold'>
           {formatCurrency(row.original.value)}
@@ -238,7 +240,7 @@ export default function EngagementsPage() {
     },
     {
       accessorKey: 'progress',
-      header: '進度',
+      header: t('common.progress'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Progress value={row.original.progress || 0} className='w-16' />
@@ -250,12 +252,12 @@ export default function EngagementsPage() {
     },
     {
       accessorKey: 'lead_name',
-      header: '負責人',
+      header: t('business.lead'),
       cell: ({ row }) => row.original.lead_name || '-',
     },
     {
       accessorKey: 'start_date',
-      header: '開始日期',
+      header: t('business.startDate'),
       cell: ({ row }) => formatDate(row.original.start_date),
     },
     {
@@ -274,7 +276,7 @@ export default function EngagementsPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -282,7 +284,7 @@ export default function EngagementsPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -290,7 +292,7 @@ export default function EngagementsPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -313,8 +315,8 @@ export default function EngagementsPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='項目委託'
-            description='管理客戶項目委託與合約'
+            title={t('business.engagementsManagement')}
+            description={t('business.engagementsDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -338,7 +340,7 @@ export default function EngagementsPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增項目
+              {t('business.newEngagement')}
             </Link>
           </div>
         </div>

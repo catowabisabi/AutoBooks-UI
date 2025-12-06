@@ -305,20 +305,20 @@ export default function AnnouncementsPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='公告管理'
-            description='管理上市公司公告、通函和新聞稿'
+            title={t('business.announcementsManagement')}
+            description={t('business.announcementsDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
               {isUsingMockData ? (
                 <span className='flex items-center gap-1'>
                   <IconCloudOff className='size-3' />
-                  Demo Data
+                  {t('business.usingMockData')}
                 </span>
               ) : (
                 <span className='flex items-center gap-1 text-green-600'>
                   <IconCloud className='size-3' />
-                  Live API
+                  {t('business.usingLiveData')}
                 </span>
               )}
               <Button variant='ghost' size='icon' onClick={fetchData}>
@@ -330,7 +330,7 @@ export default function AnnouncementsPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增公告
+              {t('business.newAnnouncement')}
             </Link>
           </div>
         </div>
@@ -348,14 +348,14 @@ export default function AnnouncementsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此公告嗎？此操作無法撤銷。
+              {t('business.deleteAnnouncementConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

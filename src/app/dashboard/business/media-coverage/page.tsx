@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -54,15 +55,6 @@ const getSentimentColor = (sentiment: string) => {
   return colors[sentiment] || 'secondary';
 };
 
-const getSentimentLabel = (sentiment: string) => {
-  const labels: Record<string, string> = {
-    POSITIVE: '正面',
-    NEUTRAL: '中立',
-    NEGATIVE: '負面',
-  };
-  return labels[sentiment] || sentiment;
-};
-
 const formatNumber = (value?: number) => {
   if (!value) return '-';
   if (value >= 1000000) return `${(value / 1000000).toFixed(1)}M`;
@@ -72,6 +64,16 @@ const formatNumber = (value?: number) => {
 
 export default function MediaCoveragePage() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const getSentimentLabel = (sentiment: string) => {
+    const labels: Record<string, string> = {
+      POSITIVE: t('business.positive'),
+      NEUTRAL: t('business.neutral'),
+      NEGATIVE: t('business.negative'),
+    };
+    return labels[sentiment] || sentiment;
+  };
   const [data, setData] = useState<MediaCoverage[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
@@ -158,10 +160,10 @@ export default function MediaCoveragePage() {
     if (!deleteId) return;
     try {
       await mediaCoverageApi.delete(deleteId);
-      toast.success('媒體報導已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -169,7 +171,7 @@ export default function MediaCoveragePage() {
   const columns: ColumnDef<MediaCoverage>[] = [
     {
       accessorKey: 'title',
-      header: '標題',
+      header: t('common.name'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Link
@@ -193,11 +195,11 @@ export default function MediaCoveragePage() {
     },
     {
       accessorKey: 'media_outlet',
-      header: '媒體',
+      header: t('business.mediaOutlet'),
     },
     {
       accessorKey: 'publish_date',
-      header: '發布日期',
+      header: t('business.publishDate'),
       cell: ({ row }) =>
         row.original.publish_date
           ? new Date(row.original.publish_date).toLocaleDateString('zh-TW')
@@ -205,7 +207,7 @@ export default function MediaCoveragePage() {
     },
     {
       accessorKey: 'sentiment',
-      header: '情緒',
+      header: t('business.sentiment'),
       cell: ({ row }) => (
         <Badge variant={getSentimentColor(row.original.sentiment) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getSentimentLabel(row.original.sentiment)}
@@ -214,7 +216,7 @@ export default function MediaCoveragePage() {
     },
     {
       accessorKey: 'reach',
-      header: '觸及人數',
+      header: t('business.reach'),
       cell: ({ row }) => formatNumber(row.original.reach),
     },
     {
@@ -242,7 +244,7 @@ export default function MediaCoveragePage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -250,7 +252,7 @@ export default function MediaCoveragePage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -258,7 +260,7 @@ export default function MediaCoveragePage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -281,20 +283,20 @@ export default function MediaCoveragePage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='媒體報導'
-            description='管理媒體報導和新聞稿'
+            title={t('business.mediaCoverageManagement')}
+            description={t('business.mediaCoverageDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
               {isUsingMockData ? (
                 <span className='flex items-center gap-1'>
                   <IconCloudOff className='size-3' />
-                  Demo Data
+                  {t('business.usingMockData')}
                 </span>
               ) : (
                 <span className='flex items-center gap-1 text-green-600'>
                   <IconCloud className='size-3' />
-                  Live API
+                  {t('business.usingLiveData')}
                 </span>
               )}
               <Button variant='ghost' size='icon' onClick={fetchData}>
@@ -306,7 +308,7 @@ export default function MediaCoveragePage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增報導
+              {t('business.newMediaCoverage')}
             </Link>
           </div>
         </div>
@@ -324,14 +326,14 @@ export default function MediaCoveragePage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此媒體報導嗎？此操作無法撤銷。
+              {t('business.deleteMediaCoverageConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

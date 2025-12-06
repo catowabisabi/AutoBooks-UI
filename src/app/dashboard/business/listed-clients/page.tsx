@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -55,16 +56,6 @@ const getStatusColor = (status: string) => {
   return colors[status] || 'secondary';
 };
 
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    ACTIVE: '活躍',
-    INACTIVE: '非活躍',
-    PROSPECT: '潛在客戶',
-    CHURNED: '已流失',
-  };
-  return labels[status] || status;
-};
-
 // Format market cap for display
 const formatMarketCap = (value?: number) => {
   if (!value) return '-';
@@ -75,6 +66,17 @@ const formatMarketCap = (value?: number) => {
 
 export default function ListedClientsPage() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      ACTIVE: t('business.active'),
+      INACTIVE: t('business.inactive'),
+      PROSPECT: t('business.prospect'),
+      CHURNED: t('business.churned'),
+    };
+    return labels[status] || status;
+  };
   const [data, setData] = useState<ListedClient[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
@@ -165,10 +167,10 @@ export default function ListedClientsPage() {
     if (!deleteId) return;
     try {
       await listedClientsApi.delete(deleteId);
-      toast.success('上市公司客戶已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -176,7 +178,7 @@ export default function ListedClientsPage() {
   const columns: ColumnDef<ListedClient>[] = [
     {
       accessorKey: 'company_name',
-      header: '公司名稱',
+      header: t('common.name'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/listed-clients/${row.original.id}`}
@@ -188,28 +190,28 @@ export default function ListedClientsPage() {
     },
     {
       accessorKey: 'stock_code',
-      header: '股票代碼',
+      header: t('business.stockCode'),
       cell: ({ row }) => (
         <span className='font-mono'>{row.original.stock_code}</span>
       ),
     },
     {
       accessorKey: 'exchange',
-      header: '交易所',
+      header: t('business.exchange'),
     },
     {
       accessorKey: 'sector',
-      header: '行業',
+      header: t('business.sector'),
       cell: ({ row }) => row.original.sector || '-',
     },
     {
       accessorKey: 'market_cap',
-      header: '市值',
+      header: t('business.marketCap'),
       cell: ({ row }) => formatMarketCap(row.original.market_cap),
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getStatusLabel(row.original.status)}
@@ -245,7 +247,7 @@ export default function ListedClientsPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -253,7 +255,7 @@ export default function ListedClientsPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -261,7 +263,7 @@ export default function ListedClientsPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -284,20 +286,20 @@ export default function ListedClientsPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='上市公司客戶'
-            description='管理財經公關上市公司客戶'
+            title={t('business.listedClientsManagement')}
+            description={t('business.listedClientsDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
               {isUsingMockData ? (
                 <span className='flex items-center gap-1'>
                   <IconCloudOff className='size-3' />
-                  Demo Data
+                  {t('business.usingMockData')}
                 </span>
               ) : (
                 <span className='flex items-center gap-1 text-green-600'>
                   <IconCloud className='size-3' />
-                  Live API
+                  {t('business.usingLiveData')}
                 </span>
               )}
               <Button variant='ghost' size='icon' onClick={fetchData}>
@@ -309,7 +311,7 @@ export default function ListedClientsPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增客戶
+              {t('business.newListedClient')}
             </Link>
           </div>
         </div>
@@ -327,14 +329,14 @@ export default function ListedClientsPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此上市公司客戶嗎？此操作無法撤銷。
+              {t('business.deleteListedClientConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
