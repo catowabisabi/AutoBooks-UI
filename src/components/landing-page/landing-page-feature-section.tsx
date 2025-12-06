@@ -1,13 +1,14 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import {
-  Calendar,
+  Calculator,
   DollarSign,
   Users,
   Bell,
-  BarChart,
-  FileText
+  Brain,
+  Search
 } from 'lucide-react';
 import {
   LANDING_SECTION_STYLES,
@@ -17,6 +18,11 @@ import { useTranslation } from '@/lib/i18n/provider';
 
 const LandingPageFeatureSection = () => {
   const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Features List with translation keys
   const features = [
@@ -24,43 +30,43 @@ const LandingPageFeatureSection = () => {
       icon: <Users size={20} />,
       textKey: 'landing.features.hrm.title',
       descKey: 'landing.features.hrm.description',
-      defaultText: 'Human Resource Management',
-      defaultDesc: 'Handle employee records, payroll, attendance, and leaves with complete visibility and automation.'
+      defaultText: 'Smart Payroll Management',
+      defaultDesc: 'Auto-calculate salaries, MPF, tax deductions. Employee self-service payslips. Reduce HR workload by 70%.'
     },
     {
-      icon: <BarChart size={20} />,
+      icon: <Brain size={20} />,
       textKey: 'landing.features.analytics.title',
       descKey: 'landing.features.analytics.description',
-      defaultText: 'Smart Analytics',
-      defaultDesc: 'Let our AI assistants convert data into dashboards, reports, and strategic insights – instantly.'
+      defaultText: 'AI That Knows Your Business',
+      defaultDesc: 'Stop guessing. AI analyzes cash flow trends, alerts you to risks, and accurately forecasts future revenue.'
     },
     {
-      icon: <Calendar size={20} />,
+      icon: <Calculator size={20} />,
       textKey: 'landing.features.project.title',
       descKey: 'landing.features.project.description',
-      defaultText: 'Project Management',
-      defaultDesc: 'Plan, track, and manage projects with integrated timelines, resource allocation, and progress tracking.'
+      defaultText: 'Real-Time Project Costing',
+      defaultDesc: 'Track labor and expenses for every project at a glance. Overspend alerts and resource optimization.'
     },
     {
       icon: <DollarSign size={20} />,
       textKey: 'landing.features.finance.title',
       descKey: 'landing.features.finance.description',
-      defaultText: 'Financial Management',
-      defaultDesc: 'Streamline accounting, budgeting, invoicing, and financial reporting with automated workflows.'
+      defaultText: 'Zero-Entry Bookkeeping',
+      defaultDesc: 'Snap a photo of invoices to book them instantly. Auto-reconcile bank transactions. 99% accuracy.'
     },
     {
       icon: <Bell size={20} />,
       textKey: 'landing.features.notification.title',
       descKey: 'landing.features.notification.description',
-      defaultText: 'Notification System',
-      defaultDesc: 'Stay informed with real-time alerts for tasks, approvals, deadlines, and important updates.'
+      defaultText: 'Never Miss What Matters',
+      defaultDesc: 'Receivables due, tax filing deadlines, pending approvals... Smart reminders for everything important.'
     },
     {
-      icon: <FileText size={20} />,
+      icon: <Search size={20} />,
       textKey: 'landing.features.document.title',
       descKey: 'landing.features.document.description',
-      defaultText: 'Document Management',
-      defaultDesc: 'Centralize, organize, and secure all your business documents with intelligent search and retrieval.'
+      defaultText: 'Find Documents in Seconds',
+      defaultDesc: 'Contracts, invoices, receipts — all digitized. AI-powered categorization. Type a keyword, find it instantly.'
     }
   ];
 
@@ -81,11 +87,14 @@ const LandingPageFeatureSection = () => {
         {...LANDING_ANIMATIONS.fadeInUp}
         className={LANDING_SECTION_STYLES.sectionHeader.wrapper}
       >
-        <h2 className={LANDING_SECTION_STYLES.sectionHeader.title}>
-          {t('landing.features.title', 'Key Features')}
+        <h2 className={LANDING_SECTION_STYLES.sectionHeader.title} suppressHydrationWarning>
+          {mounted ? t('landing.features.title') : 'Why Choose'}{' '}
+          <span className="bg-gradient-to-r from-primary to-primary/60 bg-clip-text text-transparent" suppressHydrationWarning>
+            {mounted ? t('landing.features.titleHighlight') : 'AutoBooks'}
+          </span>
         </h2>
-        <p className={LANDING_SECTION_STYLES.sectionHeader.subtitle}>
-          {t('landing.features.subtitle', 'Comprehensive tools to streamline operations, automate workflows, and drive business growth.')}
+        <p className={LANDING_SECTION_STYLES.sectionHeader.subtitle} suppressHydrationWarning>
+          {mounted ? t('landing.features.subtitle') : 'More than an ERP — your intelligent financial partner. Say goodbye to tedious tasks, embrace efficiency.'}
         </p>
       </motion.div>
 
@@ -108,11 +117,11 @@ const LandingPageFeatureSection = () => {
 
                 {/* Feature Details */}
                 <div>
-                  <h5 className={LANDING_SECTION_STYLES.card.title}>
-                    {t(feature.textKey, feature.defaultText)}
+                  <h5 className={LANDING_SECTION_STYLES.card.title} suppressHydrationWarning>
+                    {mounted ? t(feature.textKey) : feature.defaultText}
                   </h5>
-                  <p className={LANDING_SECTION_STYLES.card.description}>
-                    {t(feature.descKey, feature.defaultDesc)}
+                  <p className={LANDING_SECTION_STYLES.card.description} suppressHydrationWarning>
+                    {mounted ? t(feature.descKey) : feature.defaultDesc}
                   </p>
                 </div>
               </div>

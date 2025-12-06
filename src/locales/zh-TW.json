@@ -79,33 +79,33 @@
     "completingGoogleSignIn": "正在完成 Google 登入...",
     "backToSignIn": "返回登入",
     "noAuthCode": "未收到 Google 授權碼",
-    "featureQuote": "透過我們全面的 ERP 解決方案，簡化您的業務流程。",
+    "featureQuote": "繁瑣帳務交給 AI，您專注於開拓商機。",
     "erpTeam": "AutoBooks 團隊",
     "continueWithGoogle": "使用 Google 繼續",
     "features": {
       "aiAnalytics": {
-        "title": "AI 驅動分析",
-        "description": "用自然語言提問，即時獲得視覺化結果。AI 分析您的數據並自動生成圖表。"
+        "title": "比您更懂公司的 AI",
+        "description": "不再依賴直覺。AI 自動分析現金流趨勢，為您預警風險，精準預測未來營收。"
       },
       "documentAssistant": {
-        "title": "智能文件助手",
-        "description": "上傳文件並與 AI 對話，即時提取洞察、摘要內容、查找資訊。"
+        "title": "零輸入自動記帳",
+        "description": "發票拍照即入帳，銀行交易自動對帳。準確率高達 99%，告別手動輸入錯誤。"
       },
       "planningAssistant": {
-        "title": "智能規劃助手",
-        "description": "AI 驅動的專案規劃，包含任務分解、時間線建議和資源分配優化。"
+        "title": "辦公室在雲端",
+        "description": "無論身在何處，手機即時查看多公司報表。連結銀行與稅務，一站式掌控全局。"
       },
       "brainstorming": {
-        "title": "腦力激盪工作區",
-        "description": "與 AI 協作產生創意、整理思路，為任何商業挑戰制定策略。"
+        "title": "智能薪資管理",
+        "description": "自動計算薪資、強積金、稅務扣減。員工自助查詢薪單，HR 工作量減少 70%。"
       },
       "financialAnalytics": {
-        "title": "財務分析",
-        "description": "全面的財務報告，配備 AI 生成的洞察、趨勢分析和預測功能。"
+        "title": "專案成本即時追蹤",
+        "description": "每個專案的人力、支出一目了然。超支預警、資源優化，讓利潤不再流失。"
       },
       "knowledgeBase": {
-        "title": "知識庫整合",
-        "description": "建立公司知識庫，讓 AI 從您的文件中提供準確的上下文感知答案。"
+        "title": "文件秒搜即得",
+        "description": "合約、發票、收據全數位化。AI 智能分類，輸入關鍵字秒找文件。"
       }
     }
   },
@@ -699,6 +699,7 @@
     "nav": {
       "home": "首頁",
       "features": "功能特色",
+      "pricing": "方案定價",
       "faqs": "常見問題",
       "contactUs": "聯絡我們",
       "bookDemo": "預約示範",
@@ -708,55 +709,58 @@
       "mobileNav": "行動選單"
     },
     "hero": {
-      "title": "以 AI 驅動的 ERP 轉型您的業務",
-      "tagline": "經營企業的最智慧方式",
-      "subtitle": "AI 驅動的一體化 ERP 平台，專為簡化營運、自動化工作流程，並為組織提供可行的洞察而設計。",
-      "getStarted": "立即開始",
-      "exploreFeatures": "探索功能",
-      "learnMore": "了解更多"
+      "title": "繁瑣帳務交給 AI",
+      "titleHighlight": "您專注於開拓商機",
+      "tagline": "會計自動化，讓營運更聰明",
+      "subtitle": "專為現代企業打造的智能 ERP。自動化記帳、一鍵報稅、即時財務洞察，讓管理變得前所未有的簡單。",
+      "getStarted": "立即免費試用",
+      "exploreFeatures": "觀看 1 分鐘介紹",
+      "learnMore": "了解更多",
+      "trustedBy": "受信賴於多間會計師事務所與中小企業"
     },
     "features": {
-      "title": "核心功能",
-      "subtitle": "全方位工具，簡化營運、自動化工作流程，並推動業務增長。",
+      "title": "為什麼選擇",
+      "titleHighlight": "AutoBooks",
+      "subtitle": "不只是 ERP，是您的智能財務夥伴。告別繁瑣，擁抱效率。",
       "hrm": {
-        "title": "人力資源管理",
-        "description": "完整掌控員工記錄、薪資、出勤和請假管理，實現全面可視化和自動化。"
+        "title": "智能薪資管理",
+        "description": "自動計算薪資、強積金、稅務扣減。員工自助查詢薪單，HR 工作量減少 70%。"
       },
       "analytics": {
-        "title": "智慧分析",
-        "description": "讓我們的 AI 助手即時將數據轉換為儀表板、報表和策略洞察。"
+        "title": "比您更懂公司的 AI",
+        "description": "不再依賴直覺。AI 自動分析現金流趨勢，為您預警風險，精準預測未來營收。"
       },
       "project": {
-        "title": "專案管理",
-        "description": "透過整合的時間表、資源配置和進度追蹤來規劃、追蹤和管理專案。"
+        "title": "專案成本即時追蹤",
+        "description": "每個專案的人力、支出一目了然。超支預警、資源優化，讓利潤不再流失。"
       },
       "finance": {
-        "title": "財務管理",
-        "description": "透過自動化工作流程簡化會計、預算、發票和財務報告。"
+        "title": "零輸入自動記帳",
+        "description": "發票拍照即入帳，銀行交易自動對帳。準確率高達 99%，告別手動輸入錯誤。"
       },
       "notification": {
-        "title": "通知系統",
-        "description": "即時接收任務、審批、截止日期和重要更新的提醒。"
+        "title": "重要事項不遺漏",
+        "description": "應收款到期、稅務申報截止、審批待處理⋯⋯ 智能提醒確保每筆生意不漏拍。"
       },
       "document": {
-        "title": "文件管理",
-        "description": "集中管理、整理並保護所有業務文件，具備智慧搜尋和檢索功能。"
+        "title": "文件秒搜即得",
+        "description": "合約、發票、收據全數位化。AI 智能分類，輸入關鍵字秒找文件，不再翻箱倒櫃。"
       }
     },
     "faq": {
       "title": "常見",
       "titleHighlight": "問題",
       "subtitle": "有疑問嗎？我們有答案。探索關於 AutoBooks ERP 最常見的問題。",
-      "q1": "什麼是 AutoBooks ERP？誰可以使用？",
-      "a1": "AutoBooks ERP 是一個全面的企業管理平台，專為各種規模的企業、教育機構和組織設計。它簡化營運、促進溝通，並為所有利害關係人提供深入分析。",
-      "q2": "AutoBooks 平台有多安全？",
-      "a2": "我們以端到端加密、多重身份驗證和符合行業數據保護法規為優先。您的資訊始終受到企業級安全保護。",
-      "q3": "我可以為我的組織客製化 AutoBooks 嗎？",
-      "a3": "當然可以！AutoBooks 提供靈活的配置選項，可適應不同的組織環境，無論您是小型企業還是具有複雜工作流程的大型企業。",
-      "q4": "你們提供什麼樣的支援？",
-      "a4": "我們透過多種管道提供 24/7 客戶支援，包括即時聊天、電子郵件和電話。我們專業的支援團隊隨時準備幫助您最大化 AutoBooks 體驗。",
-      "q5": "定價是如何運作的？",
-      "a5": "AutoBooks 根據您組織的規模和所需功能提供可擴展的定價模式。我們提供透明、具競爭力的定價，沒有隱藏費用，並有靈活的付款選項。"
+      "q1": "AutoBooks 適合什麼類型的公司？",
+      "a1": "無論是初創企業、中小企業還是集團公司，AutoBooks 都能完美適配。我們特別為香港及大中華區企業優化，支援多幣種、多公司帳務合併，完全符合本地稅務法規。",
+      "q2": "我的財務數據安全嗎？",
+      "a2": "絕對安全。我們採用銀行級 256-bit 加密技術，數據儲存於符合 ISO 27001 認證的雲端伺服器。支援多重身份驗證，確保只有授權人員才能存取敏感資料。",
+      "q3": "需要多長時間才能上手？",
+      "a3": "大部分用戶在 30 分鐘內即可完成基礎設定並開始使用。我們提供免費的一對一導入服務，協助您從舊系統無痛轉移數據。",
+      "q4": "可以與現有系統整合嗎？",
+      "a4": "當然可以！AutoBooks 提供開放 API，可與常見的銀行、電商平台、POS 系統無縫對接。我們的技術團隊也可為您度身訂造整合方案。",
+      "q5": "訂閱後可以隨時取消嗎？",
+      "a5": "可以，沒有任何長期綁約。您可以隨時升級、降級或取消訂閱。取消後，您的數據仍可匯出保存。"
     },
     "contact": {
       "title": "與我們",
@@ -772,8 +776,90 @@
       "errorMessage": "發送訊息失敗，請重試。",
       "networkError": "發生錯誤，請稍後再試。"
     },
+    "pricing": {
+      "title": "簡單透明的",
+      "titleHighlight": "定價方案",
+      "subtitle": "選擇最適合您業務規模的方案，隨時升級，沒有隱藏費用。",
+      "monthly": "月付",
+      "yearly": "年付",
+      "yearlyDiscount": "年付享 8 折",
+      "perMonth": "/月",
+      "getStarted": "立即開始",
+      "contactSales": "聯絡銷售",
+      "currentPlan": "目前方案",
+      "mostPopular": "最受歡迎",
+      "enterprise": "企業方案",
+      "free": {
+        "name": "AutoBooks Free",
+        "price": "0",
+        "description": "適合個人或剛起步的小型企業",
+        "features": [
+          "每日 10 次 AI 功能使用",
+          "基礎記帳功能",
+          "單一公司帳戶",
+          "標準報表匯出",
+          "社群支援"
+        ]
+      },
+      "plus": {
+        "name": "AutoBooks+",
+        "price": "38.88",
+        "description": "適合成長中的小型企業",
+        "features": [
+          "每日 50 次 AI 功能使用",
+          "進階記帳與對帳",
+          "最多 2 間公司",
+          "發票自動化",
+          "銀行帳戶連結",
+          "電郵支援"
+        ]
+      },
+      "pro": {
+        "name": "AutoBooks Pro",
+        "price": "58.88",
+        "description": "適合需要完整功能的中型企業",
+        "features": [
+          "每日 200 次 AI 功能使用",
+          "完整會計功能",
+          "最多 5 間公司",
+          "多幣種支援",
+          "自動稅務計算",
+          "進階分析儀表板",
+          "優先電郵支援"
+        ]
+      },
+      "proPlus": {
+        "name": "AutoBooks Pro+",
+        "price": "178.88",
+        "description": "適合大型企業或會計師事務所",
+        "features": [
+          "無限 AI 功能使用",
+          "所有 Pro 功能",
+          "無限公司數量",
+          "API 存取權限",
+          "自訂報表建立",
+          "多用戶權限管理",
+          "專屬客戶經理",
+          "電話支援"
+        ]
+      },
+      "enterpriseInfo": {
+        "name": "AutoBooks 企業",
+        "price": "聯絡我們",
+        "description": "為大型集團量身訂造的解決方案",
+        "features": [
+          "所有 Pro+ 功能",
+          "私有雲部署選項",
+          "自訂功能開發",
+          "專屬技術團隊",
+          "SLA 服務保證",
+          "現場培訓服務",
+          "企業級安全稽核"
+        ]
+      }
+    },
     "footer": {
-      "description": "AI 驅動的一體化 ERP 平台，專為簡化營運、自動化工作流程，並為組織提供可行的洞察而設計。",
+      "description": "專為現代企業打造的智能 ERP。自動化記帳、一鍵報稅、即時財務洞察，讓管理變得前所未有的簡單。",
       "company": "公司",
       "resources": "資源",
       "platform": "平台",

@@ -31,6 +31,7 @@ export default function LandingPageNavbar() {
   const navMenuItems = [
     { title: mounted ? t('landing.nav.home') : 'Home', href: '/' },
     { title: mounted ? t('landing.nav.features') : 'Features', href: '#features' },
+    { title: mounted ? t('landing.nav.pricing') : 'Pricing', href: '/pricing' },
     { title: mounted ? t('landing.nav.faqs') : 'FAQs', href: '#faqs' },
     { title: mounted ? t('landing.nav.contactUs') : 'Contact', href: '#contact' }
   ];

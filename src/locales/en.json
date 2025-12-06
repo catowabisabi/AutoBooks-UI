@@ -79,33 +79,33 @@
     "completingGoogleSignIn": "Completing Google sign in...",
     "backToSignIn": "Back to Sign In",
     "noAuthCode": "No authorization code received from Google",
-    "featureQuote": "Streamline your business operations with our comprehensive ERP solution.",
+    "featureQuote": "Let AI Handle the Books. You Focus on Growth.",
     "erpTeam": "AutoBooks Team",
     "continueWithGoogle": "Continue with Google",
     "features": {
       "aiAnalytics": {
-        "title": "AI-Powered Analytics",
-        "description": "Ask questions in natural language and get instant visualizations. Our AI analyzes your data and generates charts automatically."
+        "title": "AI That Knows Your Business",
+        "description": "Stop guessing. AI analyzes cash flow trends, alerts you to risks, and accurately forecasts future revenue."
       },
       "documentAssistant": {
-        "title": "Intelligent Document Assistant",
-        "description": "Upload documents and chat with AI to extract insights, summarize content, and find information instantly."
+        "title": "Zero-Entry Bookkeeping",
+        "description": "Snap a photo of invoices to book them instantly. Auto-reconcile bank transactions. 99% accuracy."
       },
       "planningAssistant": {
-        "title": "Smart Planning Assistant",
-        "description": "AI-powered project planning with task breakdown, timeline suggestions, and resource allocation optimization."
+        "title": "Business at Your Fingertips",
+        "description": "Manage multiple companies from anywhere. Real-time insights, bank integration, and tax compliance in one place."
       },
       "brainstorming": {
-        "title": "Brainstorming Workspace",
-        "description": "Collaborate with AI to generate ideas, organize thoughts, and develop strategies for any business challenge."
+        "title": "Smart Payroll Management",
+        "description": "Auto-calculate salaries, MPF, tax deductions. Employee self-service payslips. Reduce HR workload by 70%."
       },
       "financialAnalytics": {
-        "title": "Financial Analytics",
-        "description": "Comprehensive financial reporting with AI-generated insights, trend analysis, and forecasting capabilities."
+        "title": "Real-Time Project Costing",
+        "description": "Track labor and expenses for every project at a glance. Overspend alerts and resource optimization."
       },
       "knowledgeBase": {
-        "title": "Knowledge Base Integration",
-        "description": "Build your company knowledge base and let AI provide accurate, context-aware answers from your documents."
+        "title": "Find Documents in Seconds",
+        "description": "Contracts, invoices, receipts — all digitized. AI-powered categorization. Type a keyword, find it instantly."
       }
     }
   },
@@ -699,6 +699,7 @@
     "nav": {
       "home": "Home",
       "features": "Features",
+      "pricing": "Pricing",
       "faqs": "FAQs",
       "contactUs": "Contact Us",
       "bookDemo": "Book a Demo",
@@ -708,55 +709,58 @@
       "mobileNav": "Mobile Navigation"
     },
     "hero": {
-      "title": "Transform Your Business with AI-Powered ERP",
-      "tagline": "The Smartest Way to Run Your Enterprise",
-      "subtitle": "An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.",
-      "getStarted": "Get Started",
-      "exploreFeatures": "Explore Features",
-      "learnMore": "Learn More"
+      "title": "Let AI Handle the Books.",
+      "titleHighlight": "You Focus on Growth.",
+      "tagline": "Automate Accounting. Run Smarter.",
+      "subtitle": "The intelligent ERP for modern business. Automated bookkeeping, one-click tax filing, and real-time financial insights. Management made simple.",
+      "getStarted": "Start Free Trial",
+      "exploreFeatures": "Watch 1-Min Demo",
+      "learnMore": "Learn More",
+      "trustedBy": "Trusted by accounting firms and SMEs"
     },
     "features": {
-      "title": "Key Features",
-      "subtitle": "Comprehensive tools to streamline operations, automate workflows, and drive business growth.",
+      "title": "Why Choose",
+      "titleHighlight": "AutoBooks",
+      "subtitle": "More than an ERP — your intelligent financial partner. Say goodbye to tedious tasks, embrace efficiency.",
       "hrm": {
-        "title": "Human Resource Management",
-        "description": "Handle employee records, payroll, attendance, and leaves with complete visibility and automation."
+        "title": "Smart Payroll Management",
+        "description": "Auto-calculate salaries, MPF, tax deductions. Employee self-service payslips. Reduce HR workload by 70%."
       },
       "analytics": {
-        "title": "Smart Analytics",
-        "description": "Let our AI assistants convert data into dashboards, reports, and strategic insights – instantly."
+        "title": "AI That Knows Your Business",
+        "description": "Stop guessing. AI analyzes cash flow trends, alerts you to risks, and accurately forecasts future revenue."
       },
       "project": {
-        "title": "Project Management",
-        "description": "Plan, track, and manage projects with integrated timelines, resource allocation, and progress tracking."
+        "title": "Real-Time Project Costing",
+        "description": "Track labor and expenses for every project at a glance. Overspend alerts and resource optimization to protect your margins."
       },
       "finance": {
-        "title": "Financial Management",
-        "description": "Streamline accounting, budgeting, invoicing, and financial reporting with automated workflows."
+        "title": "Zero-Entry Bookkeeping",
+        "description": "Snap a photo of invoices to book them instantly. Auto-reconcile bank transactions. 99% accuracy, no more manual entry errors."
       },
       "notification": {
-        "title": "Notification System",
-        "description": "Stay informed with real-time alerts for tasks, approvals, deadlines, and important updates."
+        "title": "Never Miss What Matters",
+        "description": "Receivables due, tax filing deadlines, pending approvals... Smart reminders ensure no business falls through the cracks."
       },
       "document": {
-        "title": "Document Management",
-        "description": "Centralize, organize, and secure all your business documents with intelligent search and retrieval."
+        "title": "Find Documents in Seconds",
+        "description": "Contracts, invoices, receipts — all digitized. AI-powered categorization. Type a keyword, find it instantly."
       }
     },
     "faq": {
       "title": "Frequently Asked",
       "titleHighlight": "Questions",
       "subtitle": "Got questions? We've got answers. Explore our most common inquiries about AutoBooks ERP.",
-      "q1": "What is AutoBooks ERP and who can use it?",
-      "a1": "AutoBooks ERP is a comprehensive enterprise management platform designed for businesses, educational institutions, and organizations of all sizes. It streamlines operations, facilitates communication, and provides insightful analytics for all stakeholders.",
-      "q2": "How secure is the AutoBooks platform?",
-      "a2": "We prioritize data security with end-to-end encryption, multi-factor authentication, and compliance with industry data protection regulations. Your information is always safe and protected with enterprise-grade security.",
-      "q3": "Can I customize AutoBooks for my specific organization?",
-      "a3": "Absolutely! AutoBooks offers flexible configuration options to adapt to different organizational environments, whether you're a small business or a large enterprise with complex workflows.",
-      "q4": "What kind of support do you offer?",
-      "a4": "We provide 24/7 customer support through multiple channels including live chat, email, and phone. Our dedicated support team is always ready to help you maximize your AutoBooks experience.",
-      "q5": "How does pricing work?",
-      "a5": "AutoBooks offers scalable pricing models based on the size of your organization and required features. We provide transparent, competitive pricing with no hidden costs and flexible payment options."
+      "q1": "What types of companies is AutoBooks suitable for?",
+      "a1": "Whether you're a startup, SME, or enterprise group, AutoBooks fits perfectly. We've optimized specifically for Hong Kong and Greater China businesses, supporting multi-currency, multi-company consolidation, and full compliance with local tax regulations.",
+      "q2": "Is my financial data secure?",
+      "a2": "Absolutely. We use bank-grade 256-bit encryption, with data stored on ISO 27001 certified cloud servers. Multi-factor authentication ensures only authorized personnel can access sensitive data.",
+      "q3": "How long does it take to get started?",
+      "a3": "Most users complete basic setup and start using AutoBooks within 30 minutes. We offer free one-on-one onboarding assistance to help you migrate data from your old system painlessly.",
+      "q4": "Can it integrate with my existing systems?",
+      "a4": "Of course! AutoBooks provides open APIs that integrate seamlessly with common banks, e-commerce platforms, and POS systems. Our technical team can also create custom integration solutions for you.",
+      "q5": "Can I cancel my subscription anytime?",
+      "a5": "Yes, no long-term contracts required. You can upgrade, downgrade, or cancel your subscription at any time. After cancellation, your data can still be exported and saved."
     },
     "contact": {
       "title": "Get in",
@@ -772,8 +776,90 @@
       "errorMessage": "Failed to send message. Please try again.",
       "networkError": "An error occurred. Please try again later."
     },
+    "pricing": {
+      "title": "Simple, Transparent",
+      "titleHighlight": "Pricing",
+      "subtitle": "Choose the plan that fits your business. Upgrade anytime, no hidden fees.",
+      "monthly": "Monthly",
+      "yearly": "Yearly",
+      "yearlyDiscount": "Save 20% with yearly",
+      "perMonth": "/mo",
+      "getStarted": "Get Started",
+      "contactSales": "Contact Sales",
+      "currentPlan": "Current Plan",
+      "mostPopular": "Most Popular",
+      "enterprise": "Enterprise",
+      "free": {
+        "name": "AutoBooks Free",
+        "price": "0",
+        "description": "Perfect for individuals or small startups",
+        "features": [
+          "10 AI features per day",
+          "Basic bookkeeping",
+          "Single company account",
+          "Standard report exports",
+          "Community support"
+        ]
+      },
+      "plus": {
+        "name": "AutoBooks+",
+        "price": "38.88",
+        "description": "For growing small businesses",
+        "features": [
+          "50 AI features per day",
+          "Advanced bookkeeping & reconciliation",
+          "Up to 2 companies",
+          "Invoice automation",
+          "Bank account linking",
+          "Email support"
+        ]
+      },
+      "pro": {
+        "name": "AutoBooks Pro",
+        "price": "58.88",
+        "description": "For mid-sized businesses needing full features",
+        "features": [
+          "200 AI features per day",
+          "Complete accounting suite",
+          "Up to 5 companies",
+          "Multi-currency support",
+          "Automated tax calculations",
+          "Advanced analytics dashboard",
+          "Priority email support"
+        ]
+      },
+      "proPlus": {
+        "name": "AutoBooks Pro+",
+        "price": "178.88",
+        "description": "For large businesses or accounting firms",
+        "features": [
+          "Unlimited AI features",
+          "All Pro features",
+          "Unlimited companies",
+          "API access",
+          "Custom report builder",
+          "Multi-user permissions",
+          "Dedicated account manager",
+          "Phone support"
+        ]
+      },
+      "enterpriseInfo": {
+        "name": "AutoBooks Enterprise",
+        "price": "Contact Us",
+        "description": "Tailored solutions for large enterprises",
+        "features": [
+          "All Pro+ features",
+          "Private cloud deployment",
+          "Custom feature development",
+          "Dedicated technical team",
+          "SLA guarantee",
+          "On-site training",
+          "Enterprise security audit"
+        ]
+      }
+    },
     "footer": {
-      "description": "An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.",
+      "description": "The intelligent ERP for modern business. Automated bookkeeping, one-click tax filing, and real-time financial insights. Management made simple.",
       "company": "Company",
       "resources": "Resources",
       "platform": "Platform",
