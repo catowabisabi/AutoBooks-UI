@@ -400,7 +400,24 @@ function IdeaCard({
 }
 
 // =========================================
-// Create Session Dialog
+// AI Chat Message Type
+// =========================================
+
+interface ChatMessage {
+  id: string;
+  role: 'user' | 'assistant';
+  content: string;
+  timestamp: Date;
+  suggestions?: {
+    title?: string;
+    prompt?: string;
+    targetOutcome?: string;
+    sessionType?: SessionType;
+  };
+}
+
+// =========================================
+// Create Session Dialog with AI Assistant
 // =========================================
 
 function CreateSessionDialog({
@@ -413,10 +430,148 @@ function CreateSessionDialog({
   onSubmit: (data: Omit<BrainstormSession, 'id' | 'ideas_count' | 'created_at' | 'updated_at'>) => void;
 }) {
   const { t } = useTranslation();
+  const { toast } = useToast();
   const [title, setTitle] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sessionType, setSessionType] = useState<SessionType>('STRATEGY');
   const [targetOutcome, setTargetOutcome] = useState('');
+  
+  // AI Assistant states
+  const [showAiAssistant, setShowAiAssistant] = useState(true);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAiThinking, setIsAiThinking] = useState(false);
+  const chatScrollRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-scroll to bottom when new messages
+  useEffect(() => {
+    if (chatScrollRef.current) {
+      chatScrollRef.current.scrollTop = chatScrollRef.current.scrollHeight;
+    }
+  }, [chatMessages]);
+
+  // Initial greeting when dialog opens
+  useEffect(() => {
+    if (open && chatMessages.length === 0) {
+      setChatMessages([{
+        id: '1',
+        role: 'assistant',
+        content: t('brainstormingAssistant.aiAssistant.greeting'),
+        timestamp: new Date(),
+      }]);
+    }
+  }, [open, t]);
+
+  // Reset when dialog closes
+  useEffect(() => {
+    if (!open) {
+      setChatMessages([]);
+      setChatInput('');
+      setTitle('');
+      setPrompt('');
+      setSessionType('STRATEGY');
+      setTargetOutcome('');
+    }
+  }, [open]);
+
+  const handleSendMessage = async () => {
+    if (!chatInput.trim() || isAiThinking) return;
+
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      role: 'user',
+      content: chatInput.trim(),
+      timestamp: new Date(),
+    };
+
+    setChatMessages(prev => [...prev, userMessage]);
+    setChatInput('');
+    setIsAiThinking(true);
+
+    try {
+      const aiPrompt = `你是一個專業的腦力激盪會議規劃助手。用戶想要建立一個新的腦力激盪會議。
+
+用戶說: "${userMessage.content}"
+
+根據用戶的描述，請幫助生成適合的會議設定。請以 JSON 格式回覆，包含以下欄位：
+- title: 建議的會議標題（簡潔有力，10-30字）
+- prompt: 詳細的主題提示（描述要探討的問題或方向，50-150字）
+- targetOutcome: 期望成果（具體可衡量的目標，30-80字）
+- sessionType: 會議類型，必須是以下之一: STRATEGY, PITCH_WRITER, MARKET_ANALYSIS, CAMPAIGN_BREAKDOWN, IDEA_GENERATOR, FINANCIAL_PLANNING, RISK_ASSESSMENT, PROCESS_OPTIMIZATION
+- explanation: 給用戶的說明（解釋你的建議，用友善的語氣）
+
+可用的會議類型說明:
+- STRATEGY: 策略規劃 - 商業策略、公司發展方向
+- PITCH_WRITER: 簡報撰寫 - 產品簡報、投資提案
+- MARKET_ANALYSIS: 市場分析 - 市場調研、競爭分析
+- CAMPAIGN_BREAKDOWN: 行銷活動 - 推廣活動、廣告企劃
+- IDEA_GENERATOR: 創意發想 - 創新點子、新產品概念
+- FINANCIAL_PLANNING: 財務規劃 - 預算、財務策略
+- RISK_ASSESSMENT: 風險評估 - 風險識別、應對策略
+- PROCESS_OPTIMIZATION: 流程優化 - 效率提升、流程改進
+
+請用繁體中文回覆，只輸出 JSON，不要其他文字。`;
+
+      const response = await aiApi.chat(aiPrompt, 'openai');
+      const content = response.content || '';
+      
+      // Parse JSON from response
+      let suggestions: ChatMessage['suggestions'] = {};
+      let explanation = '';
+      
+      try {
+        // Try to extract JSON from the response
+        const jsonMatch = content.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          suggestions = {
+            title: parsed.title,
+            prompt: parsed.prompt,
+            targetOutcome: parsed.targetOutcome,
+            sessionType: parsed.sessionType as SessionType,
+          };
+          explanation = parsed.explanation || t('brainstormingAssistant.aiAssistant.suggestionReady');
+        } else {
+          explanation = content;
+        }
+      } catch {
+        explanation = content || t('brainstormingAssistant.aiAssistant.parseError');
+      }
+
+      const assistantMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: explanation,
+        timestamp: new Date(),
+        suggestions: Object.keys(suggestions).length > 0 ? suggestions : undefined,
+      };
+
+      setChatMessages(prev => [...prev, assistantMessage]);
+    } catch (error) {
+      console.error('AI chat error:', error);
+      setChatMessages(prev => [...prev, {
+        id: (Date.now() + 1).toString(),
+        role: 'assistant',
+        content: t('brainstormingAssistant.aiAssistant.error'),
+        timestamp: new Date(),
+      }]);
+    } finally {
+      setIsAiThinking(false);
+    }
+  };
+
+  const applySuggestions = (suggestions: ChatMessage['suggestions']) => {
+    if (!suggestions) return;
+    if (suggestions.title) setTitle(suggestions.title);
+    if (suggestions.prompt) setPrompt(suggestions.prompt);
+    if (suggestions.targetOutcome) setTargetOutcome(suggestions.targetOutcome);
+    if (suggestions.sessionType) setSessionType(suggestions.sessionType);
+    toast({
+      title: t('brainstormingAssistant.aiAssistant.applied'),
+      description: t('brainstormingAssistant.aiAssistant.appliedDescription'),
+    });
+  };
 
   const handleSubmit = () => {
     if (!title.trim() || !prompt.trim()) return;
@@ -426,10 +581,6 @@ function CreateSessionDialog({
       session_type: sessionType,
       target_outcome: targetOutcome.trim() || undefined,
     });
-    setTitle('');
-    setPrompt('');
-    setSessionType('STRATEGY');
-    setTargetOutcome('');
     onOpenChange(false);
   };
 
@@ -437,86 +588,239 @@ function CreateSessionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Brain className="h-5 w-5 text-purple-500" />
-            {t('brainstormingAssistant.newSession')}
-          </DialogTitle>
-          <DialogDescription>
-            {t('brainstormingAssistant.newSessionDescription')}
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden p-0">
+        <div className="flex h-[80vh]">
+          {/* Left: AI Assistant Chat */}
+          {showAiAssistant && (
+            <div className="w-[400px] border-r flex flex-col bg-muted/30">
+              <div className="p-4 border-b bg-gradient-to-r from-purple-500/10 to-blue-500/10">
+                <div className="flex items-center gap-2">
+                  <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
+                    <Sparkles className="h-4 w-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-sm">{t('brainstormingAssistant.aiAssistant.title')}</h3>
+                    <p className="text-xs text-muted-foreground">{t('brainstormingAssistant.aiAssistant.subtitle')}</p>
+                  </div>
+                </div>
+              </div>
 
-        <div className="grid gap-4 py-4">
-          <div className="grid gap-2">
-            <Label htmlFor="title">{t('brainstormingAssistant.sessionTitle')}</Label>
-            <Input
-              id="title"
-              placeholder={t('brainstormingAssistant.sessionTitlePlaceholder')}
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-            />
-          </div>
-
-          <div className="grid gap-2">
-            <Label htmlFor="type">{t('brainstormingAssistant.sessionType')}</Label>
-            <Select value={sessionType} onValueChange={(v) => setSessionType(v as SessionType)}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {Object.entries(SESSION_TYPES).map(([key, config]) => {
-                  const Icon = config.icon;
-                  return (
-                    <SelectItem key={key} value={key}>
-                      <div className="flex items-center gap-2">
-                        <div className={cn("p-1 rounded", config.color)}>
-                          <Icon className="h-3 w-3 text-white" />
+              {/* Chat Messages */}
+              <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
+                <div className="space-y-4">
+                  {chatMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={cn(
+                        "flex gap-2",
+                        msg.role === 'user' ? "justify-end" : "justify-start"
+                      )}
+                    >
+                      {msg.role === 'assistant' && (
+                        <div className="p-1.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit shrink-0">
+                          <Sparkles className="h-3 w-3 text-white" />
                         </div>
-                        <span>{t(config.labelKey)}</span>
+                      )}
+                      <div
+                        className={cn(
+                          "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                          msg.role === 'user'
+                            ? "bg-primary text-primary-foreground"
+                            : "bg-background border shadow-sm"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        
+                        {/* Suggestions Card */}
+                        {msg.suggestions && (
+                          <div className="mt-3 p-3 bg-muted rounded-md space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-medium text-muted-foreground">
+                                {t('brainstormingAssistant.aiAssistant.suggestions')}
+                              </span>
+                              <Button
+                                size="sm"
+                                variant="secondary"
+                                className="h-6 text-xs"
+                                onClick={() => applySuggestions(msg.suggestions)}
+                              >
+                                <Check className="h-3 w-3 mr-1" />
+                                {t('brainstormingAssistant.aiAssistant.apply')}
+                              </Button>
+                            </div>
+                            {msg.suggestions.title && (
+                              <div>
+                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.sessionTitle')}</span>
+                                <p className="text-xs font-medium">{msg.suggestions.title}</p>
+                              </div>
+                            )}
+                            {msg.suggestions.sessionType && (
+                              <div>
+                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.sessionType')}</span>
+                                <p className="text-xs font-medium">{t(SESSION_TYPES[msg.suggestions.sessionType].labelKey)}</p>
+                              </div>
+                            )}
+                            {msg.suggestions.prompt && (
+                              <div>
+                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.prompt')}</span>
+                                <p className="text-xs line-clamp-3">{msg.suggestions.prompt}</p>
+                              </div>
+                            )}
+                          </div>
+                        )}
                       </div>
-                    </SelectItem>
-                  );
-                })}
-              </SelectContent>
-            </Select>
-            {selectedType && (
-              <p className="text-xs text-muted-foreground">{selectedType.description}</p>
-            )}
-          </div>
+                      {msg.role === 'user' && (
+                        <div className="p-1.5 rounded-full bg-primary h-fit shrink-0">
+                          <MessageSquare className="h-3 w-3 text-primary-foreground" />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                  
+                  {isAiThinking && (
+                    <div className="flex gap-2">
+                      <div className="p-1.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit">
+                        <Sparkles className="h-3 w-3 text-white animate-pulse" />
+                      </div>
+                      <div className="bg-background border rounded-lg px-3 py-2 shadow-sm">
+                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                          <Loader2 className="h-3 w-3 animate-spin" />
+                          {t('brainstormingAssistant.aiAssistant.thinking')}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </ScrollArea>
 
-          <div className="grid gap-2">
-            <Label htmlFor="prompt">{t('brainstormingAssistant.prompt')}</Label>
-            <Textarea
-              id="prompt"
-              placeholder={t('brainstormingAssistant.promptPlaceholder')}
-              value={prompt}
-              onChange={(e) => setPrompt(e.target.value)}
-              rows={4}
-              className="resize-none"
-            />
-          </div>
+              {/* Chat Input */}
+              <div className="p-3 border-t bg-background">
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    handleSendMessage();
+                  }}
+                  className="flex gap-2"
+                >
+                  <Input
+                    ref={inputRef}
+                    placeholder={t('brainstormingAssistant.aiAssistant.inputPlaceholder')}
+                    value={chatInput}
+                    onChange={(e) => setChatInput(e.target.value)}
+                    disabled={isAiThinking}
+                    className="flex-1"
+                  />
+                  <Button
+                    type="submit"
+                    size="icon"
+                    disabled={!chatInput.trim() || isAiThinking}
+                  >
+                    <Send className="h-4 w-4" />
+                  </Button>
+                </form>
+                <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                  {t('brainstormingAssistant.aiAssistant.hint')}
+                </p>
+              </div>
+            </div>
+          )}
 
-          <div className="grid gap-2">
-            <Label htmlFor="outcome">{t('brainstormingAssistant.targetOutcome')}</Label>
-            <Input
-              id="outcome"
-              placeholder={t('brainstormingAssistant.targetOutcomePlaceholder')}
-              value={targetOutcome}
-              onChange={(e) => setTargetOutcome(e.target.value)}
-            />
+          {/* Right: Form */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            <DialogHeader className="p-4 border-b shrink-0">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Brain className="h-5 w-5 text-purple-500" />
+                  <DialogTitle>{t('brainstormingAssistant.newSession')}</DialogTitle>
+                </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowAiAssistant(!showAiAssistant)}
+                  className="gap-1"
+                >
+                  <Sparkles className="h-3 w-3" />
+                  {showAiAssistant ? t('brainstormingAssistant.aiAssistant.hide') : t('brainstormingAssistant.aiAssistant.show')}
+                </Button>
+              </div>
+              <DialogDescription>
+                {t('brainstormingAssistant.newSessionDescription')}
+              </DialogDescription>
+            </DialogHeader>
+
+            <ScrollArea className="flex-1 p-4">
+              <div className="grid gap-4">
+                <div className="grid gap-2">
+                  <Label htmlFor="title">{t('brainstormingAssistant.sessionTitle')}</Label>
+                  <Input
+                    id="title"
+                    placeholder={t('brainstormingAssistant.sessionTitlePlaceholder')}
+                    value={title}
+                    onChange={(e) => setTitle(e.target.value)}
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="type">{t('brainstormingAssistant.sessionType')}</Label>
+                  <Select value={sessionType} onValueChange={(v) => setSessionType(v as SessionType)}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Object.entries(SESSION_TYPES).map(([key, config]) => {
+                        const Icon = config.icon;
+                        return (
+                          <SelectItem key={key} value={key}>
+                            <div className="flex items-center gap-2">
+                              <div className={cn("p-1 rounded", config.color)}>
+                                <Icon className="h-3 w-3 text-white" />
+                              </div>
+                              <span>{t(config.labelKey)}</span>
+                            </div>
+                          </SelectItem>
+                        );
+                      })}
+                    </SelectContent>
+                  </Select>
+                  {selectedType && (
+                    <p className="text-xs text-muted-foreground">{selectedType.description}</p>
+                  )}
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="prompt">{t('brainstormingAssistant.prompt')}</Label>
+                  <Textarea
+                    id="prompt"
+                    placeholder={t('brainstormingAssistant.promptPlaceholder')}
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    rows={5}
+                    className="resize-none"
+                  />
+                </div>
+
+                <div className="grid gap-2">
+                  <Label htmlFor="outcome">{t('brainstormingAssistant.targetOutcome')}</Label>
+                  <Input
+                    id="outcome"
+                    placeholder={t('brainstormingAssistant.targetOutcomePlaceholder')}
+                    value={targetOutcome}
+                    onChange={(e) => setTargetOutcome(e.target.value)}
+                  />
+                </div>
+              </div>
+            </ScrollArea>
+
+            <DialogFooter className="p-4 border-t shrink-0">
+              <Button variant="outline" onClick={() => onOpenChange(false)}>
+                {t('common.cancel')}
+              </Button>
+              <Button onClick={handleSubmit} disabled={!title.trim() || !prompt.trim()}>
+                {t('brainstormingAssistant.createSession')}
+              </Button>
+            </DialogFooter>
           </div>
         </div>
-
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
-            {t('common.cancel')}
-          </Button>
-          <Button onClick={handleSubmit} disabled={!title.trim() || !prompt.trim()}>
-            {t('brainstormingAssistant.createSession')}
-          </Button>
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   );

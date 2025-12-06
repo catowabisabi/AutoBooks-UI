@@ -1966,6 +1966,23 @@
       "financial": "Financial Planning",
       "risk": "Risk Assessment",
       "process": "Process Optimization"
+    },
+    "aiAssistant": {
+      "title": "AI Assistant",
+      "subtitle": "Tell me what you want to do, I'll help generate session settings",
+      "greeting": "Hi! I'm your AI Assistant 👋\n\nTell me what you want to do, for example:\n• \"I want to create a perfume promotion campaign\"\n• \"Help me plan a new product launch strategy\"\n• \"I need to analyze competitor market positioning\"\n\nI'll automatically generate session title, topic prompt, and more!",
+      "thinking": "Thinking...",
+      "suggestions": "Suggestions",
+      "apply": "Apply",
+      "applied": "Suggestions applied",
+      "appliedDescription": "AI suggestions have been filled in the form. You can adjust as needed.",
+      "inputPlaceholder": "Tell me what you want to do...",
+      "hint": "E.g., perfume promotion, annual budget planning, market trend analysis...",
+      "error": "Sorry, something went wrong. Please try again.",
+      "parseError": "I understand your needs, let me think of better suggestions...",
+      "suggestionReady": "I've prepared some suggestions based on your description. Click \"Apply\" to use these settings!",
+      "show": "Show AI Assistant",
+      "hide": "Hide AI Assistant"
     }
   },
   "invoices": {
