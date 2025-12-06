@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,15 +23,6 @@ import {
 } from '@tabler/icons-react';
 import { ipoDealFunnelApi, IPODealFunnel } from '@/features/business/services';
 import { useDataTable } from '@/hooks/use-data-table';
-
-// Stage labels in Chinese
-const stageLabels: Record<string, string> = {
-  leads: '潛在客戶',
-  qualified: '合格客戶',
-  proposal: '提案中',
-  negotiation: '談判中',
-  closed_won: '已成交',
-};
 
 // Stage colors for badges
 const stageConfig: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline' }> = {
@@ -129,8 +121,18 @@ const mockData: IPODealFunnel[] = [
 ];
 
 export default function IPODealFunnelPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<IPODealFunnel[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Stage labels with i18n
+  const stageLabels: Record<string, string> = useMemo(() => ({
+    leads: t('business.leads'),
+    qualified: t('business.qualified'),
+    proposal: t('business.proposal'),
+    negotiation: t('business.negotiation'),
+    closed_won: t('business.closedWon'),
+  }), [t]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -143,7 +145,7 @@ export default function IPODealFunnelPage() {
         setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO deal funnel:', error);
-        toast.error('無法載入交易漏斗資料，使用模擬數據');
+        toast.error(t('business.loadFunnelDataError'));
         setData(mockData);
       } finally {
         setIsLoading(false);
@@ -157,23 +159,23 @@ export default function IPODealFunnelPage() {
     try {
       await ipoDealFunnelApi.delete(id);
       setData((prev) => prev.filter((item) => item.id !== id));
-      toast.success('記錄已刪除');
+      toast.success(t('common.recordDeleted'));
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
   };
 
   const columns: ColumnDef<IPODealFunnel>[] = useMemo(() => [
     {
       accessorKey: 'period_date',
-      header: '期間',
+      header: t('business.period'),
       cell: ({ row }) => (
         <span className='font-medium'>{row.original.period_date}</span>
       ),
     },
     {
       accessorKey: 'stage',
-      header: '漏斗階段',
+      header: t('business.stage'),
       cell: ({ row }) => {
         const config = stageConfig[row.original.stage];
         return (
@@ -186,7 +188,7 @@ export default function IPODealFunnelPage() {
     },
     {
       accessorKey: 'deal_count',
-      header: '交易數量',
+      header: t('business.dealCount'),
       cell: ({ row }) => (
         <span className='font-mono font-medium text-lg'>
           {row.original.deal_count}
@@ -195,7 +197,7 @@ export default function IPODealFunnelPage() {
     },
     {
       accessorKey: 'conversion_rate',
-      header: '轉換率',
+      header: t('business.conversionRate'),
       cell: ({ row }) => (
         <div className='flex items-center gap-1'>
           {row.original.conversion_rate > 0 ? (
@@ -213,7 +215,7 @@ export default function IPODealFunnelPage() {
     },
     {
       accessorKey: 'total_value',
-      header: '總價值',
+      header: t('business.totalValue'),
       cell: ({ row }) => (
         <span className='font-mono font-medium'>
           {formatCurrency(row.original.total_value)}
@@ -222,12 +224,12 @@ export default function IPODealFunnelPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '公司',
+      header: t('business.company'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       id: 'actions',
-      header: '操作',
+      header: t('common.actions'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Link
@@ -252,7 +254,7 @@ export default function IPODealFunnelPage() {
         </div>
       ),
     },
-  ], []);
+  ], [t, stageLabels]);
 
   const { table } = useDataTable({
     data,
@@ -267,15 +269,15 @@ export default function IPODealFunnelPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='IPO 交易漏斗'
-            description='追蹤從潛在客戶到成交的轉換過程'
+            title={t('business.ipoDealFunnelManagement')}
+            description={t('business.ipoDealFunnelDescription')}
           />
           <Link
             href='/dashboard/business/ipo-deal-funnel/new/edit'
             className={cn(buttonVariants())}
           >
             <IconPlus className='mr-2 size-4' />
-            新增記錄
+            {t('business.newFunnelRecord')}
           </Link>
         </div>
         <Separator />

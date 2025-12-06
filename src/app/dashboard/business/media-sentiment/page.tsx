@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/provider';
 import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { DataTable } from '@/components/ui/table/data-table';
@@ -66,14 +67,15 @@ const formatNumber = (value?: number) => {
 };
 
 // Get sentiment score badge
-const getSentimentBadge = (score?: number) => {
+const getSentimentBadge = (score: number | undefined, t: (key: string) => string) => {
   if (!score) return { label: '-', variant: 'secondary', icon: IconMoodNeutral };
-  if (score >= 0.5) return { label: '正面', variant: 'success', icon: IconMoodSmile };
-  if (score >= -0.5) return { label: '中性', variant: 'default', icon: IconMoodNeutral };
-  return { label: '負面', variant: 'destructive', icon: IconMoodSad };
+  if (score >= 0.5) return { label: t('business.positive'), variant: 'success', icon: IconMoodSmile };
+  if (score >= -0.5) return { label: t('business.neutral'), variant: 'default', icon: IconMoodNeutral };
+  return { label: t('business.negative'), variant: 'destructive', icon: IconMoodSad };
 };
 
 export default function MediaSentimentPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<MediaSentimentRecord[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -157,10 +159,10 @@ export default function MediaSentimentPage() {
     if (!deleteId) return;
     try {
       await mediaSentimentApi.delete(deleteId);
-      toast.success('媒體情緒記錄已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('business.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -168,7 +170,7 @@ export default function MediaSentimentPage() {
   const columns: ColumnDef<MediaSentimentRecord>[] = [
     {
       accessorKey: 'period_date',
-      header: '日期',
+      header: t('business.date'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/media-sentiment/${row.original.id}`}
@@ -180,11 +182,11 @@ export default function MediaSentimentPage() {
     },
     {
       accessorKey: 'sentiment_score',
-      header: '情緒評分',
+      header: t('business.sentimentScore'),
       cell: ({ row }) => {
         const score = row.original.sentiment_score;
         const numScore = typeof score === 'string' ? parseFloat(score) : score;
-        const badge = getSentimentBadge(numScore);
+        const badge = getSentimentBadge(numScore, t);
         const Icon = badge.icon;
         return (
           <div className='flex items-center gap-2'>
@@ -199,7 +201,7 @@ export default function MediaSentimentPage() {
     },
     {
       accessorKey: 'positive_count',
-      header: '正面報導',
+      header: t('business.positiveReports'),
       cell: ({ row }) => (
         <span className='text-green-600 font-medium'>
           {row.original.positive_count}
@@ -208,7 +210,7 @@ export default function MediaSentimentPage() {
     },
     {
       accessorKey: 'neutral_count',
-      header: '中性報導',
+      header: t('business.neutralReports'),
       cell: ({ row }) => (
         <span className='text-muted-foreground'>
           {row.original.neutral_count}
@@ -217,7 +219,7 @@ export default function MediaSentimentPage() {
     },
     {
       accessorKey: 'negative_count',
-      header: '負面報導',
+      header: t('business.negativeReports'),
       cell: ({ row }) => (
         <span className='text-red-600 font-medium'>
           {row.original.negative_count}
@@ -226,12 +228,12 @@ export default function MediaSentimentPage() {
     },
     {
       accessorKey: 'total_reach',
-      header: '總觸及',
+      header: t('business.totalReach'),
       cell: ({ row }) => formatNumber(row.original.total_reach),
     },
     {
       accessorKey: 'total_engagement',
-      header: '總互動',
+      header: t('business.totalEngagement'),
       cell: ({ row }) => formatNumber(row.original.total_engagement),
     },
     {
@@ -250,7 +252,7 @@ export default function MediaSentimentPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -258,7 +260,7 @@ export default function MediaSentimentPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -266,7 +268,7 @@ export default function MediaSentimentPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -289,8 +291,8 @@ export default function MediaSentimentPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='媒體情緒追蹤'
-            description='追蹤媒體報導情緒分析'
+            title={t('business.mediaSentimentManagement')}
+            description={t('business.mediaSentimentDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -314,7 +316,7 @@ export default function MediaSentimentPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增記錄
+              {t('common.addRecord')}
             </Link>
           </div>
         </div>
@@ -332,14 +334,14 @@ export default function MediaSentimentPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此媒體情緒記錄嗎？此操作無法撤銷。
+              {t('business.confirmDeleteMediaSentiment')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

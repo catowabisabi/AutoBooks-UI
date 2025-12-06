@@ -23,23 +23,7 @@ import {
 import { ipoTimelineProgressApi, IPOTimelineProgress } from '@/features/business/services';
 import { useDataTable } from '@/hooks/use-data-table';
 import { Progress } from '@/components/ui/progress';
-
-// Phase labels in Chinese
-const phaseLabels: Record<string, string> = {
-  due_diligence: '盡職調查',
-  documentation: '文件準備',
-  regulatory: '監管申報',
-  marketing: '路演推廣',
-  pricing: '定價發行',
-};
-
-// Status badges
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'success' }> = {
-  not_started: { label: '未開始', variant: 'secondary' },
-  in_progress: { label: '進行中', variant: 'default' },
-  completed: { label: '已完成', variant: 'success' },
-  delayed: { label: '延遲', variant: 'destructive' },
-};
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Mock data matching frontend chart
 const mockData: IPOTimelineProgress[] = [
@@ -106,8 +90,26 @@ const mockData: IPOTimelineProgress[] = [
 ];
 
 export default function IPOTimelineProgressPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<IPOTimelineProgress[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Phase labels
+  const phaseLabels: Record<string, string> = {
+    due_diligence: t('business.dueDiligencePhase'),
+    documentation: t('business.documentation'),
+    regulatory: t('business.regulatoryFiling'),
+    marketing: t('business.marketing'),
+    pricing: t('business.pricing'),
+  };
+
+  // Status badges
+  const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'success' }> = {
+    not_started: { label: t('business.notStartedStatus'), variant: 'secondary' },
+    in_progress: { label: t('business.inProgressStatus'), variant: 'default' },
+    completed: { label: t('business.completedStatus'), variant: 'success' },
+    delayed: { label: t('business.delayed'), variant: 'destructive' },
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -120,7 +122,7 @@ export default function IPOTimelineProgressPage() {
         setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO timeline progress:', error);
-        toast.error('無法載入IPO進度資料，使用模擬數據');
+        toast.error(t('business.loadFailed'));
         setData(mockData);
       } finally {
         setIsLoading(false);
@@ -134,16 +136,16 @@ export default function IPOTimelineProgressPage() {
     try {
       await ipoTimelineProgressApi.delete(id);
       setData((prev) => prev.filter((item) => item.id !== id));
-      toast.success('記錄已刪除');
+      toast.success(t('business.recordDeleted'));
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
   };
 
   const columns: ColumnDef<IPOTimelineProgress>[] = useMemo(() => [
     {
       accessorKey: 'phase',
-      header: '階段',
+      header: t('business.phase'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <IconProgress className='size-4 text-muted-foreground' />
@@ -153,7 +155,7 @@ export default function IPOTimelineProgressPage() {
     },
     {
       accessorKey: 'progress_percentage',
-      header: '完成進度',
+      header: t('common.progress'),
       cell: ({ row }) => (
         <div className='flex items-center gap-3 min-w-[150px]'>
           <Progress value={row.original.progress_percentage} className='h-2 flex-1' />
@@ -165,7 +167,7 @@ export default function IPOTimelineProgressPage() {
     },
     {
       accessorKey: 'target_date',
-      header: '目標日期',
+      header: t('business.targetDate'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <IconCalendar className='size-4 text-muted-foreground' />
@@ -175,7 +177,7 @@ export default function IPOTimelineProgressPage() {
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => {
         const config = statusConfig[row.original.status];
         return (
@@ -217,7 +219,7 @@ export default function IPOTimelineProgressPage() {
         </div>
       ),
     },
-  ], []);
+  ], [t, phaseLabels, statusConfig]);
 
   const { table } = useDataTable({
     data,
@@ -232,15 +234,15 @@ export default function IPOTimelineProgressPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='IPO 時間線進度'
-            description='追蹤各IPO階段的完成進度'
+            title={t('business.ipoTimelineProgressManagement')}
+            description={t('business.ipoTimelineProgressDescription')}
           />
           <Link
             href='/dashboard/business/ipo-timeline-progress/new/edit'
             className={cn(buttonVariants())}
           >
             <IconPlus className='mr-2 size-4' />
-            新增記錄
+            {t('business.newTimelineRecord')}
           </Link>
         </div>
         <Separator />

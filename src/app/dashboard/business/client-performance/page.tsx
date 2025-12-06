@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/provider';
 import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { DataTable } from '@/components/ui/table/data-table';
@@ -58,15 +59,16 @@ const formatCurrency = (value?: number) => {
 };
 
 // Get satisfaction score badge
-const getSatisfactionBadge = (score?: number) => {
+const getSatisfactionBadge = (score: number | undefined, t: (key: string) => string) => {
   if (!score) return { label: '-', variant: 'secondary' };
-  if (score >= 4.5) return { label: `${score} 優秀`, variant: 'success' };
-  if (score >= 3.5) return { label: `${score} 良好`, variant: 'default' };
-  if (score >= 2.5) return { label: `${score} 一般`, variant: 'warning' };
-  return { label: `${score} 需改善`, variant: 'destructive' };
+  if (score >= 4.5) return { label: `${score} ${t('business.excellent')}`, variant: 'success' };
+  if (score >= 3.5) return { label: `${score} ${t('business.good')}`, variant: 'default' };
+  if (score >= 2.5) return { label: `${score} ${t('business.average')}`, variant: 'warning' };
+  return { label: `${score} ${t('business.needsImprovement')}`, variant: 'destructive' };
 };
 
 export default function ClientPerformancePage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<ClientPerformance[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -156,10 +158,10 @@ export default function ClientPerformancePage() {
     if (!deleteId) return;
     try {
       await clientPerformanceApi.delete(deleteId);
-      toast.success('客戶績效記錄已刪除');
+      toast.success(t('business.performanceRecordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('business.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -167,7 +169,7 @@ export default function ClientPerformancePage() {
   const columns: ColumnDef<ClientPerformance>[] = [
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.client'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/client-performance/${row.original.id}`}
@@ -179,12 +181,12 @@ export default function ClientPerformancePage() {
     },
     {
       id: 'period',
-      header: '期間',
+      header: t('business.period'),
       cell: ({ row }) => formatQuarter(row.original.period_year, row.original.period_quarter),
     },
     {
       accessorKey: 'revenue_generated',
-      header: '產生收入',
+      header: t('business.revenueGenerated'),
       cell: ({ row }) => (
         <span className='font-semibold text-green-600'>
           {formatCurrency(row.original.revenue_generated)}
@@ -193,9 +195,9 @@ export default function ClientPerformancePage() {
     },
     {
       accessorKey: 'satisfaction_score',
-      header: '滿意度',
+      header: t('business.satisfactionScore'),
       cell: ({ row }) => {
-        const badge = getSatisfactionBadge(row.original.satisfaction_score);
+        const badge = getSatisfactionBadge(row.original.satisfaction_score, t);
         return (
           <Badge variant={badge.variant as any}>
             <IconStar className='mr-1 size-3' />
@@ -206,20 +208,20 @@ export default function ClientPerformancePage() {
     },
     {
       accessorKey: 'projects_completed',
-      header: '完成項目',
+      header: t('business.projectsCompleted'),
       cell: ({ row }) => row.original.projects_completed || 0,
     },
     {
       accessorKey: 'referrals_made',
-      header: '推薦數',
+      header: t('business.referralsMade'),
       cell: ({ row }) => row.original.referrals_made || 0,
     },
     {
       accessorKey: 'response_time_hours',
-      header: '響應時間',
+      header: t('business.responseTime'),
       cell: ({ row }) => 
         row.original.response_time_hours 
-          ? `${row.original.response_time_hours} 小時`
+          ? `${row.original.response_time_hours} ${t('business.hours')}`
           : '-',
     },
     {
@@ -238,7 +240,7 @@ export default function ClientPerformancePage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -246,7 +248,7 @@ export default function ClientPerformancePage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -254,7 +256,7 @@ export default function ClientPerformancePage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -277,8 +279,8 @@ export default function ClientPerformancePage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='客戶績效'
-            description='追蹤客戶季度績效表現'
+            title={t('business.clientPerformanceManagement')}
+            description={t('business.clientPerformanceDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -302,7 +304,7 @@ export default function ClientPerformancePage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增記錄
+              {t('business.newPerformanceRecord')}
             </Link>
           </div>
         </div>
@@ -320,14 +322,14 @@ export default function ClientPerformancePage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此客戶績效記錄嗎？此操作無法撤銷。
+              {t('business.confirmDeletePerformanceRecord')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -26,15 +27,6 @@ import { businessPartnersApi, BusinessPartner } from '@/features/business/servic
 import { useDataTable } from '@/hooks/use-data-table';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 
-// Partner type labels in Chinese
-const partnerTypeLabels: Record<string, string> = {
-  kol: 'KOL',
-  provider: '服務供應商',
-  vendor: '供應商',
-  media: '媒體合作',
-  consultant: '顧問',
-};
-
 // Partner type icons and colors
 const partnerTypeConfig: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline' }> = {
   kol: { variant: 'default' },
@@ -42,14 +34,6 @@ const partnerTypeConfig: Record<string, { variant: 'default' | 'secondary' | 'de
   vendor: { variant: 'outline' },
   media: { variant: 'default' },
   consultant: { variant: 'success' },
-};
-
-// Status configuration
-const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline' }> = {
-  active: { label: '活躍', variant: 'success' },
-  inactive: { label: '非活躍', variant: 'secondary' },
-  pending: { label: '待定', variant: 'outline' },
-  terminated: { label: '已終止', variant: 'destructive' },
 };
 
 // Format number to currency
@@ -163,8 +147,26 @@ const mockData: BusinessPartner[] = [
 ];
 
 export default function BusinessPartnersPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<BusinessPartner[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Partner type labels with i18n
+  const partnerTypeLabels: Record<string, string> = {
+    kol: t('business.kol'),
+    provider: t('business.vendor'),
+    vendor: t('business.vendor'),
+    media: t('business.media'),
+    consultant: t('business.consultant'),
+  };
+
+  // Status configuration with i18n
+  const statusConfig: Record<string, { label: string; variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline' }> = {
+    active: { label: t('business.active'), variant: 'success' },
+    inactive: { label: t('business.inactive'), variant: 'secondary' },
+    pending: { label: t('business.pending'), variant: 'outline' },
+    terminated: { label: t('business.terminated'), variant: 'destructive' },
+  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -177,7 +179,7 @@ export default function BusinessPartnersPage() {
         setData(items);
       } catch (error) {
         console.error('Failed to fetch business partners:', error);
-        toast.error('無法載入合作夥伴資料，使用模擬數據');
+        toast.error(t('business.loadPartnersError'));
         setData(mockData);
       } finally {
         setIsLoading(false);
@@ -191,16 +193,16 @@ export default function BusinessPartnersPage() {
     try {
       await businessPartnersApi.delete(id);
       setData((prev) => prev.filter((item) => item.id !== id));
-      toast.success('記錄已刪除');
+      toast.success(t('common.recordDeleted'));
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
   };
 
   const columns: ColumnDef<BusinessPartner>[] = useMemo(() => [
     {
       accessorKey: 'name',
-      header: '合作夥伴',
+      header: t('common.name'),
       cell: ({ row }) => (
         <div className='flex items-center gap-3'>
           <Avatar className='size-8'>
@@ -220,7 +222,7 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'partner_type',
-      header: '類型',
+      header: t('business.partnerType'),
       cell: ({ row }) => {
         const config = partnerTypeConfig[row.original.partner_type];
         return (
@@ -232,7 +234,7 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => {
         const config = statusConfig[row.original.status];
         return (
@@ -244,7 +246,7 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'service_description',
-      header: '服務描述',
+      header: t('business.serviceDescription'),
       cell: ({ row }) => (
         <span className='text-sm text-muted-foreground max-w-[200px] truncate block'>
           {row.original.service_description || '-'}
@@ -253,7 +255,7 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'contract_value',
-      header: '合約金額',
+      header: t('business.contractValue'),
       cell: ({ row }) => (
         <span className='font-mono font-medium'>
           {formatCurrency(row.original.contract_value)}
@@ -262,7 +264,7 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'rating',
-      header: '評分',
+      header: t('business.rating'),
       cell: ({ row }) => (
         <div className='flex items-center gap-1'>
           <IconStar className='size-4 text-yellow-500 fill-yellow-500' />
@@ -274,12 +276,12 @@ export default function BusinessPartnersPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '所屬公司',
+      header: t('business.company'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       id: 'actions',
-      header: '操作',
+      header: t('common.actions'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Link
@@ -304,7 +306,7 @@ export default function BusinessPartnersPage() {
         </div>
       ),
     },
-  ], []);
+  ], [t, partnerTypeLabels, statusConfig]);
 
   const { table } = useDataTable({
     data,
@@ -319,15 +321,15 @@ export default function BusinessPartnersPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='合作夥伴'
-            description='管理所有合作夥伴、KOL、供應商和顧問'
+            title={t('business.partnersManagement')}
+            description={t('business.partnersDescription')}
           />
           <Link
             href='/dashboard/business/partners/new/edit'
             className={cn(buttonVariants())}
           >
             <IconPlus className='mr-2 size-4' />
-            新增夥伴
+            {t('business.newPartner')}
           </Link>
         </div>
         <Separator />

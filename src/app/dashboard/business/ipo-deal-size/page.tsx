@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -22,14 +23,6 @@ import {
 } from '@tabler/icons-react';
 import { ipoDealSizeApi, IPODealSize } from '@/features/business/services';
 import { useDataTable } from '@/hooks/use-data-table';
-
-// Size category labels in Chinese
-const sizeLabels: Record<string, string> = {
-  mega: '超大型 (>$1B)',
-  large: '大型 ($500M-1B)',
-  mid: '中型 ($100M-500M)',
-  small: '小型 (<$100M)',
-};
 
 // Size category colors
 const sizeConfig: Record<string, { variant: 'default' | 'secondary' | 'destructive' | 'success' | 'outline'; color: string }> = {
@@ -113,8 +106,17 @@ const mockData: IPODealSize[] = [
 ];
 
 export default function IPODealSizePage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<IPODealSize[]>([]);
   const [isLoading, setIsLoading] = useState(true);
+
+  // Size category labels with i18n
+  const sizeLabels: Record<string, string> = useMemo(() => ({
+    mega: t('business.mega'),
+    large: t('business.large'),
+    mid: t('business.mid'),
+    small: t('business.small'),
+  }), [t]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -127,7 +129,7 @@ export default function IPODealSizePage() {
         setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO deal size:', error);
-        toast.error('無法載入交易規模資料，使用模擬數據');
+        toast.error(t('business.loadDealSizeError'));
         setData(mockData);
       } finally {
         setIsLoading(false);
@@ -141,23 +143,23 @@ export default function IPODealSizePage() {
     try {
       await ipoDealSizeApi.delete(id);
       setData((prev) => prev.filter((item) => item.id !== id));
-      toast.success('記錄已刪除');
+      toast.success(t('business.recordDeleted'));
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('business.deleteFailed'));
     }
   };
 
   const columns: ColumnDef<IPODealSize>[] = useMemo(() => [
     {
       accessorKey: 'period_date',
-      header: '期間',
+      header: t('business.period'),
       cell: ({ row }) => (
         <span className='font-medium'>{row.original.period_date}</span>
       ),
     },
     {
       accessorKey: 'size_category',
-      header: '規模類別',
+      header: t('business.sizeCategory'),
       cell: ({ row }) => {
         const config = sizeConfig[row.original.size_category];
         return (
@@ -172,7 +174,7 @@ export default function IPODealSizePage() {
     },
     {
       accessorKey: 'deal_count',
-      header: '交易數量',
+      header: t('business.dealCount'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <IconChartPie className='size-4 text-muted-foreground' />
@@ -184,7 +186,7 @@ export default function IPODealSizePage() {
     },
     {
       accessorKey: 'total_amount',
-      header: '總金額',
+      header: t('business.totalValue'),
       cell: ({ row }) => (
         <span className='font-mono font-medium'>
           {formatCurrency(row.original.total_amount)}
@@ -193,7 +195,7 @@ export default function IPODealSizePage() {
     },
     {
       accessorKey: 'avg_deal_size',
-      header: '平均交易規模',
+      header: t('business.avgDealSize'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <IconCash className='size-4 text-muted-foreground' />
@@ -205,12 +207,12 @@ export default function IPODealSizePage() {
     },
     {
       accessorKey: 'company_name',
-      header: '公司',
+      header: t('business.company'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       id: 'actions',
-      header: '操作',
+      header: t('business.actions'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Link
@@ -235,7 +237,7 @@ export default function IPODealSizePage() {
         </div>
       ),
     },
-  ], []);
+  ], [t, sizeLabels]);
 
   const { table } = useDataTable({
     data,
@@ -250,15 +252,15 @@ export default function IPODealSizePage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='IPO 交易規模分佈'
-            description='分析不同規模的IPO交易分佈情況'
+            title={t('business.ipoDealSizeManagement')}
+            description={t('business.ipoDealSizeDescription')}
           />
           <Link
             href='/dashboard/business/ipo-deal-size/new/edit'
             className={cn(buttonVariants())}
           >
             <IconPlus className='mr-2 size-4' />
-            新增記錄
+            {t('business.newDealSizeRecord')}
           </Link>
         </div>
         <Separator />

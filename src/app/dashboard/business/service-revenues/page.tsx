@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/provider';
 import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { DataTable } from '@/components/ui/table/data-table';
@@ -44,21 +45,6 @@ import {
 } from '@/components/ui/alert-dialog';
 import { serviceRevenuesApi, ServiceRevenue } from '@/features/business/services';
 
-// Service type label mapping
-const getServiceTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    'RETAINER': '常規服務費',
-    'PROJECT': '項目收費',
-    'ANNOUNCEMENT': '公告服務',
-    'IPO': 'IPO 顧問',
-    'IR': '投資者關係',
-    'MEDIA': '媒體關係',
-    'CRISIS': '危機公關',
-    'OTHER': '其他',
-  };
-  return labels[type] || type;
-};
-
 // Format currency for display
 const formatCurrency = (value?: number) => {
   if (!value) return '-';
@@ -73,8 +59,24 @@ const formatPeriod = (year: number, month: number) => {
 };
 
 export default function ServiceRevenuesPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<ServiceRevenue[]>([]);
+
+  // Service type label mapping with translations
+  const getServiceTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      'RETAINER': t('business.retainerService'),
+      'PROJECT': t('business.projectFee'),
+      'ANNOUNCEMENT': t('business.announcementService'),
+      'IPO': t('business.ipoAdvisory'),
+      'IR': t('business.investorRelations'),
+      'MEDIA': t('business.mediaRelations'),
+      'CRISIS': t('business.crisisManagement'),
+      'OTHER': t('business.other'),
+    };
+    return labels[type] || type;
+  };
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
@@ -156,10 +158,10 @@ export default function ServiceRevenuesPage() {
     if (!deleteId) return;
     try {
       await serviceRevenuesApi.delete(deleteId);
-      toast.success('服務收入記錄已刪除');
+      toast.success(t('common.deleteSuccess'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -167,7 +169,7 @@ export default function ServiceRevenuesPage() {
   const columns: ColumnDef<ServiceRevenue>[] = [
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.client'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/service-revenues/${row.original.id}`}
@@ -179,12 +181,12 @@ export default function ServiceRevenuesPage() {
     },
     {
       id: 'period',
-      header: '期間',
+      header: t('business.period'),
       cell: ({ row }) => formatPeriod(row.original.period_year, row.original.period_month),
     },
     {
       accessorKey: 'service_type',
-      header: '服務類型',
+      header: t('business.serviceType'),
       cell: ({ row }) => (
         <Badge variant='outline'>
           {getServiceTypeLabel(row.original.service_type)}
@@ -193,7 +195,7 @@ export default function ServiceRevenuesPage() {
     },
     {
       accessorKey: 'amount',
-      header: '金額',
+      header: t('common.amount'),
       cell: ({ row }) => (
         <span className='font-semibold text-green-600'>
           {formatCurrency(row.original.amount)}
@@ -202,15 +204,15 @@ export default function ServiceRevenuesPage() {
     },
     {
       accessorKey: 'billable_hours',
-      header: '計費小時',
+      header: t('business.billableHoursAmount'),
       cell: ({ row }) => 
         row.original.billable_hours 
-          ? `${row.original.billable_hours} 小時`
+          ? `${row.original.billable_hours} ${t('common.hours')}`
           : '-',
     },
     {
       accessorKey: 'notes',
-      header: '備註',
+      header: t('common.remarks'),
       cell: ({ row }) => (
         <span className='line-clamp-1 max-w-[200px]'>
           {row.original.notes || '-'}
@@ -233,7 +235,7 @@ export default function ServiceRevenuesPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -241,7 +243,7 @@ export default function ServiceRevenuesPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -249,7 +251,7 @@ export default function ServiceRevenuesPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -272,8 +274,8 @@ export default function ServiceRevenuesPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='服務收入'
-            description='管理各項服務收入記錄'
+            title={t('business.serviceRevenuesManagement')}
+            description={t('business.serviceRevenuesDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -297,7 +299,7 @@ export default function ServiceRevenuesPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增收入
+              {t('business.newServiceRevenue')}
             </Link>
           </div>
         </div>
@@ -315,14 +317,14 @@ export default function ServiceRevenuesPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此服務收入記錄嗎？此操作無法撤銷。
+              {t('business.confirmDeleteServiceRevenue')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

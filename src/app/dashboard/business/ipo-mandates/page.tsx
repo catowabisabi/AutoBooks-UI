@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -57,19 +58,6 @@ const getStageColor = (stage: string) => {
   return colors[stage] || 'secondary';
 };
 
-const getStageLabel = (stage: string) => {
-  const labels: Record<string, string> = {
-    PITCH: '提案階段',
-    MANDATE: '獲得委託',
-    PREPARATION: '準備階段',
-    FILING: '遞交申請',
-    LISTING: '上市階段',
-    COMPLETED: '已完成',
-    WITHDRAWN: '已撤回',
-  };
-  return labels[stage] || stage;
-};
-
 const formatDealSize = (value?: number) => {
   if (!value) return '-';
   if (value >= 1000000000) return `$${(value / 1000000000).toFixed(1)}B`;
@@ -79,6 +67,20 @@ const formatDealSize = (value?: number) => {
 
 export default function IPOMandatesPage() {
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const getStageLabel = (stage: string) => {
+    const labels: Record<string, string> = {
+      PITCH: t('business.pitch'),
+      MANDATE: t('business.mandate'),
+      PREPARATION: t('business.preparation'),
+      FILING: t('business.filing'),
+      LISTING: t('business.listing'),
+      COMPLETED: t('business.completed'),
+      WITHDRAWN: t('business.withdrawn'),
+    };
+    return labels[stage] || stage;
+  };
   const [data, setData] = useState<IPOMandate[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
@@ -191,10 +193,10 @@ export default function IPOMandatesPage() {
     if (!deleteId) return;
     try {
       await ipoMandatesApi.delete(deleteId);
-      toast.success('IPO項目已刪除');
+      toast.success(t('business.ipoMandateDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -202,7 +204,7 @@ export default function IPOMandatesPage() {
   const columns: ColumnDef<IPOMandate>[] = [
     {
       accessorKey: 'project_name',
-      header: '項目名稱',
+      header: t('business.projectName'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/ipo-mandates/${row.original.id}`}
@@ -214,12 +216,12 @@ export default function IPOMandatesPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '公司',
+      header: t('business.clientCompany'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       accessorKey: 'stage',
-      header: '階段',
+      header: t('business.stage'),
       cell: ({ row }) => (
         <Badge variant={getStageColor(row.original.stage) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getStageLabel(row.original.stage)}
@@ -228,7 +230,7 @@ export default function IPOMandatesPage() {
     },
     {
       accessorKey: 'target_exchange',
-      header: '目標交易所',
+      header: t('business.targetExchange'),
       cell: ({ row }) => (
         <div className='flex flex-col'>
           <span>{row.original.target_exchange}</span>
@@ -240,12 +242,12 @@ export default function IPOMandatesPage() {
     },
     {
       accessorKey: 'deal_size',
-      header: '交易規模',
+      header: t('business.dealSize'),
       cell: ({ row }) => formatDealSize(row.original.deal_size),
     },
     {
       accessorKey: 'probability',
-      header: '成功率',
+      header: t('business.probability'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <div className='h-2 w-16 rounded-full bg-muted'>
@@ -262,7 +264,7 @@ export default function IPOMandatesPage() {
     },
     {
       accessorKey: 'target_listing_date',
-      header: '目標上市日期',
+      header: t('business.targetListingDate'),
       cell: ({ row }) =>
         row.original.target_listing_date
           ? new Date(row.original.target_listing_date).toLocaleDateString('zh-TW')
@@ -270,7 +272,7 @@ export default function IPOMandatesPage() {
     },
     {
       accessorKey: 'lead_partner_name',
-      header: '負責合夥人',
+      header: t('business.leadPartner'),
       cell: ({ row }) => row.original.lead_partner_name || '-',
     },
     {
@@ -289,7 +291,7 @@ export default function IPOMandatesPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -297,7 +299,7 @@ export default function IPOMandatesPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -305,7 +307,7 @@ export default function IPOMandatesPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -328,8 +330,8 @@ export default function IPOMandatesPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='IPO 項目管理'
-            description='管理上市保薦及財務顧問項目'
+            title={t('business.ipoMandatesManagement')}
+            description={t('business.ipoMandatesDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -353,7 +355,7 @@ export default function IPOMandatesPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增項目
+              {t('business.newIPOMandate')}
             </Link>
           </div>
         </div>
@@ -371,14 +373,14 @@ export default function IPOMandatesPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此IPO項目嗎？此操作無法撤銷。
+              {t('business.deleteIPOMandateConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

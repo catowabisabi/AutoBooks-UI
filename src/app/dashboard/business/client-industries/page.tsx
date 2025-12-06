@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
+import { useTranslation } from '@/lib/i18n/provider';
 import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { DataTable } from '@/components/ui/table/data-table';
@@ -52,6 +53,7 @@ const formatCurrency = (value?: number) => {
 };
 
 export default function ClientIndustriesPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<ClientIndustry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -141,10 +143,10 @@ export default function ClientIndustriesPage() {
     if (!deleteId) return;
     try {
       await clientIndustriesApi.delete(deleteId);
-      toast.success('客戶行業已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -152,7 +154,7 @@ export default function ClientIndustriesPage() {
   const columns: ColumnDef<ClientIndustry>[] = [
     {
       accessorKey: 'name',
-      header: '行業名稱',
+      header: t('common.name'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <div
@@ -170,7 +172,7 @@ export default function ClientIndustriesPage() {
     },
     {
       accessorKey: 'code',
-      header: '代碼',
+      header: t('business.industryCode'),
       cell: ({ row }) => (
         <Badge variant='outline' className='font-mono'>
           {row.original.code}
@@ -179,7 +181,7 @@ export default function ClientIndustriesPage() {
     },
     {
       accessorKey: 'description',
-      header: '描述',
+      header: t('common.description'),
       cell: ({ row }) => (
         <span className='line-clamp-1 max-w-[200px]'>
           {row.original.description || '-'}
@@ -188,14 +190,14 @@ export default function ClientIndustriesPage() {
     },
     {
       accessorKey: 'client_count',
-      header: '客戶數',
+      header: t('business.clientCount'),
       cell: ({ row }) => (
         <span className='font-semibold'>{row.original.client_count || 0}</span>
       ),
     },
     {
       accessorKey: 'total_revenue',
-      header: '總收入',
+      header: t('business.totalRevenueAmount'),
       cell: ({ row }) => (
         <span className='font-semibold text-green-600'>
           {formatCurrency(row.original.total_revenue)}
@@ -204,10 +206,10 @@ export default function ClientIndustriesPage() {
     },
     {
       accessorKey: 'is_active',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={row.original.is_active ? 'success' : 'secondary'}>
-          {row.original.is_active ? '啟用' : '停用'}
+          {row.original.is_active ? t('common.active') : t('common.inactive')}
         </Badge>
       ),
     },
@@ -227,7 +229,7 @@ export default function ClientIndustriesPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -235,7 +237,7 @@ export default function ClientIndustriesPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -243,7 +245,7 @@ export default function ClientIndustriesPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -266,8 +268,8 @@ export default function ClientIndustriesPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='客戶行業'
-            description='管理客戶行業分類'
+            title={t('business.clientIndustriesManagement')}
+            description={t('business.clientIndustriesDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -291,7 +293,7 @@ export default function ClientIndustriesPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增行業
+              {t('business.newIndustry')}
             </Link>
           </div>
         </div>
@@ -309,14 +311,14 @@ export default function ClientIndustriesPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此客戶行業嗎？此操作無法撤銷。
+              {t('business.confirmDeleteIndustry')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

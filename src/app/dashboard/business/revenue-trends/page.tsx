@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -27,13 +28,13 @@ import { useDataTable } from '@/hooks/use-data-table';
 const mockData: RevenueTrend[] = [
   {
     id: '1',
-    period: '2024-Q4',
+    period_year: 2024,
+    period_month: 12,
     total_revenue: 5800000,
     recurring_revenue: 3200000,
     project_revenue: 2600000,
-    client_count: 45,
-    avg_revenue_per_client: 128889,
-    growth_rate: 15.5,
+    new_clients: 8,
+    churned_clients: 2,
     notes: '季度收入創新高',
     is_active: true,
     created_at: '2024-12-01T00:00:00Z',
@@ -41,31 +42,31 @@ const mockData: RevenueTrend[] = [
   },
   {
     id: '2',
-    period: '2024-Q3',
+    period_year: 2024,
+    period_month: 11,
     total_revenue: 5020000,
     recurring_revenue: 3000000,
     project_revenue: 2020000,
-    client_count: 42,
-    avg_revenue_per_client: 119524,
-    growth_rate: 8.2,
+    new_clients: 5,
+    churned_clients: 1,
     notes: '穩定增長',
     is_active: true,
-    created_at: '2024-09-01T00:00:00Z',
-    updated_at: '2024-09-01T00:00:00Z',
+    created_at: '2024-11-01T00:00:00Z',
+    updated_at: '2024-11-01T00:00:00Z',
   },
   {
     id: '3',
-    period: '2024-Q2',
+    period_year: 2024,
+    period_month: 10,
     total_revenue: 4640000,
     recurring_revenue: 2800000,
     project_revenue: 1840000,
-    client_count: 40,
-    avg_revenue_per_client: 116000,
-    growth_rate: -2.1,
+    new_clients: 4,
+    churned_clients: 3,
     notes: '季節性調整',
     is_active: true,
-    created_at: '2024-06-01T00:00:00Z',
-    updated_at: '2024-06-01T00:00:00Z',
+    created_at: '2024-10-01T00:00:00Z',
+    updated_at: '2024-10-01T00:00:00Z',
   },
 ];
 
@@ -96,6 +97,7 @@ const getGrowthBadge = (rate?: number) => {
 };
 
 export default function RevenueTrendsPage() {
+  const { t } = useTranslation();
   const [data, setData] = useState<RevenueTrend[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -129,15 +131,15 @@ export default function RevenueTrendsPage() {
 
   const columns: ColumnDef<RevenueTrend>[] = useMemo(() => [
     {
-      accessorKey: 'period',
-      header: '期間',
+      accessorKey: 'period_year',
+      header: t('business.period'),
       cell: ({ row }) => (
-        <span className='font-medium'>{row.original.period}</span>
+        <span className='font-medium'>{row.original.period_year}/{String(row.original.period_month).padStart(2, '0')}</span>
       ),
     },
     {
       accessorKey: 'total_revenue',
-      header: '總收入',
+      header: t('business.totalRevenueAmount'),
       cell: ({ row }) => (
         <span className='font-mono font-medium'>
           {formatCurrency(row.original.total_revenue)}
@@ -146,7 +148,7 @@ export default function RevenueTrendsPage() {
     },
     {
       accessorKey: 'recurring_revenue',
-      header: '經常性收入',
+      header: t('business.recurringRevenue'),
       cell: ({ row }) => (
         <span className='font-mono'>
           {formatCurrency(row.original.recurring_revenue)}
@@ -155,7 +157,7 @@ export default function RevenueTrendsPage() {
     },
     {
       accessorKey: 'project_revenue',
-      header: '項目收入',
+      header: t('business.projectRevenue'),
       cell: ({ row }) => (
         <span className='font-mono'>
           {formatCurrency(row.original.project_revenue)}
@@ -163,27 +165,26 @@ export default function RevenueTrendsPage() {
       ),
     },
     {
-      accessorKey: 'client_count',
-      header: '客戶數',
-      cell: ({ row }) => row.original.client_count,
+      accessorKey: 'new_clients',
+      header: t('business.newClients'),
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-green-600">
+          +{row.original.new_clients || 0}
+        </Badge>
+      ),
     },
     {
-      accessorKey: 'growth_rate',
-      header: '增長率',
-      cell: ({ row }) => {
-        const growth = getGrowthBadge(row.original.growth_rate);
-        const Icon = growth.icon;
-        return (
-          <Badge variant={growth.variant as any} className='gap-1'>
-            {Icon && <Icon className='size-3' />}
-            {growth.label}
-          </Badge>
-        );
-      },
+      accessorKey: 'churned_clients',
+      header: t('business.churnedClients'),
+      cell: ({ row }) => (
+        <Badge variant="outline" className="text-red-600">
+          -{row.original.churned_clients || 0}
+        </Badge>
+      ),
     },
     {
       id: 'actions',
-      header: '操作',
+      header: t('common.actions'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <Link
@@ -208,7 +209,7 @@ export default function RevenueTrendsPage() {
         </div>
       ),
     },
-  ], []);
+  ], [t]);
 
   const { table } = useDataTable({
     data,
@@ -223,15 +224,15 @@ export default function RevenueTrendsPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='收入趨勢'
-            description='追蹤和分析公司收入變化趨勢'
+            title={t('business.revenueTrendsManagement')}
+            description={t('business.revenueTrendsDescription')}
           />
           <Link
             href='/dashboard/business/revenue-trends/new/edit'
             className={cn(buttonVariants())}
           >
             <IconPlus className='mr-2 size-4' />
-            新增記錄
+            {t('business.newTrendRecord')}
           </Link>
         </div>
         <Separator />
