@@ -29,6 +29,10 @@ import {
 } from 'recharts';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import {
+  AIAttritionRisk,
+  AIBottleneckDetection
+} from '@/components/ai/dashboard-ai-cards';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -384,6 +388,35 @@ export default function HRMSHomePage() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* AI-Powered HR Insights */}
+      <div className='mt-6'>
+        <h3 className='text-lg font-semibold mb-4'>🤖 AI-Powered HR Insights</h3>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+          <AIAttritionRisk
+            employees={[
+              { id: '1', name: 'John Smith', department: 'Engineering', tenure: 3.5, performanceScore: 4.2, salaryCompetitiveness: 0.85, recentPromotion: true, leaveBalance: 10, overtimeHours: 5 },
+              { id: '2', name: 'Sarah Johnson', department: 'Design', tenure: 1.2, performanceScore: 3.8, salaryCompetitiveness: 0.70, recentPromotion: false, leaveBalance: 5, overtimeHours: 20 },
+              { id: '3', name: 'Mike Chen', department: 'Sales', tenure: 4.8, performanceScore: 4.5, salaryCompetitiveness: 0.90, recentPromotion: true, leaveBalance: 15, overtimeHours: 2 },
+              { id: '4', name: 'Emily Davis', department: 'HR', tenure: 0.8, performanceScore: 3.2, salaryCompetitiveness: 0.60, recentPromotion: false, leaveBalance: 2, overtimeHours: 25 },
+            ]}
+          />
+          <AIBottleneckDetection
+            project={{
+              id: 'team-capacity',
+              name: 'Team Capacity Analysis',
+              tasks: [
+                { id: 't1', name: 'Recruitment Pipeline', status: 'in_progress', assignee: 'HR Team', priority: 'high', daysStalled: 3 },
+                { id: 't2', name: 'Training Program', status: 'blocked', assignee: 'L&D Team', priority: 'medium', daysStalled: 7 },
+                { id: 't3', name: 'Performance Reviews', status: 'completed', assignee: 'Managers', priority: 'high', daysStalled: 0 },
+              ],
+              dependencies: [
+                { from: 't2', to: 't1' }
+              ]
+            }}
+          />
+        </div>
       </div>
     </div>
   );

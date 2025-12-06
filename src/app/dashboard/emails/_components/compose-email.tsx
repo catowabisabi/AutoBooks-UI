@@ -1,7 +1,7 @@
 'use client';
 
 import type React from 'react';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import {
   X,
   Paperclip,
@@ -35,7 +35,8 @@ import {
   PopoverContent,
   PopoverTrigger
 } from '@/components/ui/popover';
-import { mockAccounts } from '@/lib/mock-data';
+import { useEmailAccounts, useSendEmail } from '@/features/ai-assistants/hooks';
+import { Skeleton } from '@/components/ui/skeleton';
 
 interface ComposeEmailProps {
   open: boolean;
@@ -66,7 +67,21 @@ export default function ComposeEmail({
   const [sending, setSending] = useState(false);
   const [showCcBcc, setShowCcBcc] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
-  const [selectedAccount, setSelectedAccount] = useState(mockAccounts[0]);
+  
+  // Use real API hooks
+  const { data: accounts = [], isLoading: accountsLoading } = useEmailAccounts();
+  const sendEmailMutation = useSendEmail();
+  
+  // Get first account or create default
+  const defaultAccount = accounts[0] || { id: 'default', name: 'Me', email: 'user@example.com', color: '#3b82f6' };
+  const [selectedAccount, setSelectedAccount] = useState(defaultAccount);
+  
+  // Update selected account when accounts load
+  useEffect(() => {
+    if (accounts.length > 0 && selectedAccount.id === 'default') {
+      setSelectedAccount(accounts[0]);
+    }
+  }, [accounts, selectedAccount.id]);
 
   const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -233,24 +248,37 @@ export default function ComposeEmail({
                   </PopoverTrigger>
                   <PopoverContent className='w-80 p-0'>
                     <div className='p-2'>
-                      {mockAccounts.map((account) => (
-                        <div
-                          key={account.id}
-                          className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md p-2'
-                          onClick={() => setSelectedAccount(account)}
-                        >
+                      {accountsLoading ? (
+                        <div className='space-y-2 p-2'>
+                          <Skeleton className='h-10 w-full' />
+                          <Skeleton className='h-10 w-full' />
+                        </div>
+                      ) : accounts.length === 0 ? (
+                        <div className='p-4 text-center text-sm text-muted-foreground'>
+                          No email accounts configured.
+                          <br />
+                          <a href='/dashboard/settings/email' className='text-primary underline'>Add an account</a>
+                        </div>
+                      ) : (
+                        accounts.map((account: any) => (
                           <div
-                            className='h-5 w-5 rounded-full'
-                            style={{ backgroundColor: account.color }}
-                          />
-                          <div>
-                            <div className='font-medium'>{account.name}</div>
-                            <div className='text-muted-foreground text-sm'>
-                              {account.email}
+                            key={account.id}
+                            className='hover:bg-muted flex cursor-pointer items-center gap-2 rounded-md p-2'
+                            onClick={() => setSelectedAccount(account)}
+                          >
+                            <div
+                              className='h-5 w-5 rounded-full'
+                              style={{ backgroundColor: account.color || '#3b82f6' }}
+                            />
+                            <div>
+                              <div className='font-medium'>{account.name}</div>
+                              <div className='text-muted-foreground text-sm'>
+                                {account.email}
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      ))}
+                        ))
+                      )}
                     </div>
                   </PopoverContent>
                 </Popover>

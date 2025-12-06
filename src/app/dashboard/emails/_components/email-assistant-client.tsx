@@ -5,7 +5,7 @@ import Sidebar from './sidebar';
 import EmailList from './email-list';
 import EmailDetail from './email-detail';
 import type { Email, EmailAccount, EmailFolder } from '@/types/email';
-import { mockAccounts } from '@/lib/mock-data';
+import { useEmails, useEmailAccounts, useSendEmail } from '@/features/ai-assistants/hooks';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -71,12 +71,18 @@ const initialMessages: ChatMessageProps['message'][] = [
 export default function EmailAssistantClient() {
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('unified');
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
-  const [emails, setEmails] = useState<Email[]>([]);
-  const [accounts] = useState<EmailAccount[]>(mockAccounts);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const isMobile = useIsMobile();
   const { toast } = useToast();
+
+  // Use real API hooks
+  const { data: emailsData = [], isLoading: emailsLoading, refetch: refetchEmails } = useEmails();
+  const { data: accountsData = [], isLoading: accountsLoading } = useEmailAccounts();
+  const sendEmailMutation = useSendEmail();
+  
+  const [emails, setEmails] = useState<Email[]>([]);
+  const accounts = accountsData;
 
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [messages, setMessages] = useState(initialMessages);
@@ -88,16 +94,21 @@ export default function EmailAssistantClient() {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
 
+  // Sync API data to local state
   useEffect(() => {
-    const fetchEmails = async () => {
-      try {
-        const res = await fetch('http://localhost:8000/email-assistant/emails');
-        const data = await res.json();
-        setEmails(data);
-      } catch (error) {
-        toast({
-          title: 'Error loading emails',
-          description: 'Unable to fetch emails from the server'
+    if (emailsData.length > 0) {
+      setEmails(emailsData);
+    } else if (!emailsLoading) {
+      // Fallback: try legacy endpoint if new API returns empty
+      const fetchEmails = async () => {
+        try {
+          const res = await fetch('http://localhost:8000/email-assistant/emails');
+          const data = await res.json();
+          setEmails(data);
+        } catch (error) {
+          toast({
+            title: 'Error loading emails',
+            description: 'Unable to fetch emails from the server'
         });
       }
     };

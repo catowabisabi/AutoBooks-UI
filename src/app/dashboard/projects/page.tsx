@@ -29,6 +29,10 @@ import {
 } from 'recharts';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import {
+  AIBottleneckDetection,
+  AITaskPrioritization
+} from '@/components/ai/dashboard-ai-cards';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -397,6 +401,38 @@ export default function ProjectsHomePage() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* AI-Powered Project Insights */}
+      <div className='mt-6'>
+        <h3 className='text-lg font-semibold mb-4'>🤖 AI-Powered Project Insights</h3>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
+          <AIBottleneckDetection
+            project={{
+              id: '1',
+              name: 'Website Redesign',
+              tasks: [
+                { id: 't1', name: 'Design Review', status: 'blocked', assignee: 'John', priority: 'high', daysStalled: 5 },
+                { id: 't2', name: 'Client Approval', status: 'in_progress', assignee: 'Sarah', priority: 'high', daysStalled: 8 },
+                { id: 't3', name: 'Development', status: 'todo', assignee: 'Mike', priority: 'medium', daysStalled: 0 },
+                { id: 't4', name: 'Testing', status: 'todo', assignee: 'Emily', priority: 'low', daysStalled: 0 },
+              ],
+              dependencies: [
+                { from: 't1', to: 't2' },
+                { from: 't3', to: 't1' },
+                { from: 't4', to: 't3' }
+              ]
+            }}
+          />
+          <AITaskPrioritization
+            tasks={[
+              { id: 't1', name: 'Fix Critical Bug', deadline: new Date(Date.now() + 86400000).toISOString(), importance: 'critical', effort: 2, dependencies: [], status: 'todo' },
+              { id: 't2', name: 'Update Documentation', deadline: new Date(Date.now() + 604800000).toISOString(), importance: 'low', effort: 4, dependencies: [], status: 'todo' },
+              { id: 't3', name: 'Review Pull Requests', deadline: new Date(Date.now() + 172800000).toISOString(), importance: 'high', effort: 1, dependencies: [], status: 'todo' },
+              { id: 't4', name: 'Deploy to Staging', deadline: new Date(Date.now() + 259200000).toISOString(), importance: 'high', effort: 2, dependencies: ['t1'], status: 'todo' },
+            ]}
+          />
+        </div>
       </div>
     </div>
   );

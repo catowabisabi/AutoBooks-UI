@@ -60,11 +60,16 @@ export const navItems: NavItem[] = [
   {
     title: 'AI Assistants',
     titleKey: 'nav.aiAssistants',
-    url: '/dashboard/accounting-assistant',
+    url: '/dashboard/accounting-workspace',
     icon: 'bot',
     shortcut: ['a', 'i'],
     isActive: false,
     items: [
+      {
+        title: 'Accounting Workspace',
+        titleKey: 'nav.accountingWorkspace',
+        url: '/dashboard/accounting-workspace'
+      },
       {
         title: 'Accounting',
         titleKey: 'nav.accountingAssistant',

@@ -30,6 +30,12 @@ import {
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
 import { useTranslation } from '@/lib/i18n/provider';
+import {
+  AICashFlowAnalysis,
+  AIAnomalyDetection,
+  AIPaymentPrediction,
+  AIComplianceAlerts
+} from '@/components/ai/finance-ai-cards';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -400,6 +406,41 @@ export default function FinanceHomePage() {
             ))}
           </CardContent>
         </Card>
+      </div>
+
+      {/* AI-Powered Insights Section */}
+      <div className='mt-6'>
+        <h3 className='text-lg font-semibold mb-4'>🤖 {t('finance.aiInsights') || 'AI-Powered Insights'}</h3>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
+          <AICashFlowAnalysis
+            transactions={[
+              { date: new Date().toISOString(), amount: 45000, type: 'IN', category: 'Revenue' },
+              { date: new Date().toISOString(), amount: 38000, type: 'OUT', category: 'Operations' },
+              { date: new Date(Date.now() - 86400000).toISOString(), amount: 50000, type: 'IN', category: 'Sales' },
+              { date: new Date(Date.now() - 86400000).toISOString(), amount: 42000, type: 'OUT', category: 'Payroll' },
+            ]}
+            region="HK"
+          />
+          <AIAnomalyDetection
+            transactions={[
+              { id: '1', date: new Date().toISOString(), amount: 5000, description: 'Normal expense', category: 'Operations' },
+              { id: '2', date: new Date().toISOString(), amount: 25000, description: 'Large purchase', category: 'Equipment' },
+              { id: '3', date: new Date().toISOString(), amount: 3500, description: 'Regular payment', category: 'Utilities' },
+            ]}
+            region="HK"
+          />
+          <AIPaymentPrediction
+            invoices={[
+              { id: '1', customer: 'Acme Corp', amount: 12500, dueDate: new Date(Date.now() + 604800000).toISOString(), historyScore: 0.95 },
+              { id: '2', customer: 'Tech Solutions', amount: 8900, dueDate: new Date(Date.now() + 1209600000).toISOString(), historyScore: 0.80 },
+              { id: '3', customer: 'Global Inc', amount: 15000, dueDate: new Date(Date.now() + 259200000).toISOString(), historyScore: 0.65 },
+            ]}
+            region="HK"
+          />
+        </div>
+        <div className='mt-4'>
+          <AIComplianceAlerts region="HK" />
+        </div>
       </div>
     </div>
   );

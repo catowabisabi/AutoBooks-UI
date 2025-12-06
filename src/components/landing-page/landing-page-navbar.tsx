@@ -88,9 +88,7 @@ export default function LandingPageNavbar() {
           ) : (
             <>
               <Link
-                href='https://cal.com/bitmap-super-admin'
-                passHref
-                target='_blank'
+                href='/book-demo'
               >
                 <Button className='border-black-600 bg-primary text-primary-foreground transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
                   {t('landing.nav.bookDemo')}
@@ -161,8 +159,8 @@ export default function LandingPageNavbar() {
                 ) : (
                   <>
                     <Link
-                      href='https://cal.com/bitmap-super-admin'
-                      target='_blank'
+                      href='/book-demo'
+                      onClick={() => setOpen(false)}
                     >
                       <Button className='border-black-600 bg-primary text-primary-foreground w-full transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
                         {t('landing.nav.bookDemo')}

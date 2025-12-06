@@ -5,7 +5,7 @@ import Sidebar from './sidebar';
 import EmailList from './email-list';
 import EmailDetail from './email-detail';
 import type { Email, EmailAccount, EmailFolder } from '@/types/email';
-import { mockEmails, mockAccounts } from '@/lib/mock-data';
+import { useEmails, useEmailAccounts, useSendEmail, useMarkEmailRead, useArchiveEmail, useDeleteEmail } from '@/features/ai-assistants/hooks';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -13,15 +13,36 @@ import {
   ResizablePanel,
   ResizableHandle
 } from '@/components/ui/resizable';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function EmailClient() {
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('unified');
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
-  const [emails, setEmails] = useState<Email[]>(mockEmails);
-  const [accounts] = useState<EmailAccount[]>(mockAccounts);
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [detailOpen, setDetailOpen] = useState(false);
   const isMobile = useIsMobile();
+  const { toast } = useToast();
+  
+  // Use real API hooks
+  const { data: emailsData = [], isLoading: emailsLoading, refetch: refetchEmails } = useEmails();
+  const { data: accountsData = [], isLoading: accountsLoading } = useEmailAccounts();
+  const sendEmailMutation = useSendEmail();
+  const markReadMutation = useMarkEmailRead();
+  const archiveEmailMutation = useArchiveEmail();
+  const deleteEmailMutation = useDeleteEmail();
+  
+  // Local state for optimistic updates
+  const [localEmails, setLocalEmails] = useState<Email[]>([]);
+  
+  // Sync API data to local state
+  useEffect(() => {
+    if (emailsData.length > 0) {
+      setLocalEmails(emailsData);
+    }
+  }, [emailsData]);
+  
+  const emails = localEmails.length > 0 ? localEmails : emailsData;
+  const accounts = accountsData;
   // Filter emails based on selected folder
   const filteredEmails = useMemo(() => {
     return emails.filter((email) => {
@@ -62,10 +83,13 @@ export default function EmailClient() {
   const handleEmailSelect = (email: Email) => {
     setSelectedEmail(email);
 
-    // Mark as read
-    setEmails(
-      emails.map((e) => (e.id === email.id ? { ...e, read: true } : e))
-    );
+    // Mark as read via API
+    if (!email.read) {
+      markReadMutation.mutate(email.id);
+      setLocalEmails(
+        localEmails.map((e) => (e.id === email.id ? { ...e, read: true } : e))
+      );
+    }
 
     // Open detail view on mobile
     if (isMobile) {
@@ -75,8 +99,8 @@ export default function EmailClient() {
 
   // Handle email snooze
   const handleSnoozeEmail = (emailId: string, snoozeUntil: Date) => {
-    setEmails(
-      emails.map((email) =>
+    setLocalEmails(
+      localEmails.map((email) =>
         email.id === emailId ? { ...email, snoozed: true, snoozeUntil } : email
       )
     );
@@ -84,8 +108,9 @@ export default function EmailClient() {
 
   // Handle email archive
   const handleArchiveEmail = (emailId: string) => {
-    setEmails(
-      emails.map((email) =>
+    archiveEmailMutation.mutate(emailId);
+    setLocalEmails(
+      localEmails.map((email) =>
         email.id === emailId ? { ...email, archived: true } : email
       )
     );
@@ -97,8 +122,9 @@ export default function EmailClient() {
 
   // Handle email delete
   const handleDeleteEmail = (emailId: string) => {
-    setEmails(
-      emails.map((email) =>
+    deleteEmailMutation.mutate(emailId);
+    setLocalEmails(
+      localEmails.map((email) =>
         email.id === emailId ? { ...email, deleted: true } : email
       )
     );
@@ -108,19 +134,22 @@ export default function EmailClient() {
     }
   };
 
-  // Handle sending email
+  // Handle sending email via API
   const handleSendEmail = async (email: Email) => {
     try {
-      const res = await fetch('http://localhost:8000/email-assistant/send', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(email)
+      await sendEmailMutation.mutateAsync(email);
+      toast({
+        title: 'Email sent',
+        description: 'Your email has been sent successfully.',
       });
-
-      const result = await res.json();
-      console.log('✅ Email sent:', result.message);
+      refetchEmails();
     } catch (err) {
       console.error('❌ Failed to send email:', err);
+      toast({
+        title: 'Failed to send',
+        description: 'There was an error sending your email.',
+        variant: 'destructive',
+      });
     }
   };
 
@@ -131,15 +160,30 @@ export default function EmailClient() {
       if (firstVisibleEmail) {
         setSelectedEmail(firstVisibleEmail);
 
-        // Mark as read
-        setEmails(
-          emails.map((e) =>
-            e.id === firstVisibleEmail.id ? { ...e, read: true } : e
-          )
-        );
+        // Mark as read via API
+        if (!firstVisibleEmail.read) {
+          markReadMutation.mutate(firstVisibleEmail.id);
+          setLocalEmails(
+            localEmails.map((e) =>
+              e.id === firstVisibleEmail.id ? { ...e, read: true } : e
+            )
+          );
+        }
       }
     }
   }, [emails, filteredEmails, selectedEmail]);
+  
+  // Show loading state
+  if (emailsLoading) {
+    return (
+      <div className='flex h-screen w-full items-center justify-center'>
+        <div className='space-y-4 text-center'>
+          <Skeleton className='h-8 w-48 mx-auto' />
+          <Skeleton className='h-4 w-32 mx-auto' />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className='flex h-screen w-full'>

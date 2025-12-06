@@ -1,0 +1,163 @@
+================================================================================
+                    AUTOBOOKS ERP - ACCOUNTING APP TODO LIST
+                              Version 1.0
+                              2025-12-06
+================================================================================
+
+【目標】
+將 Document Assistant + Accounting Assistant 整合為完整的會計入數工作流程
+主要用戶：會計公司，取代會計文員做 double entry、校對、找出問題資料
+
+================================================================================
+                           第一迭代 (MVP)
+================================================================================
+
+Phase 1: Project 管理模組
+-------------------------
+[x] 1.1 建立 Project 列表頁面路由
+    - 路徑: /dashboard/accounting-workspace
+    - 檔案: src/app/dashboard/accounting-workspace/page.tsx
+
+[x] 1.2 建立 Project 列表 UI 元件
+    - 顯示：公司名稱、年度、季度、類型、狀態、建立日期
+    - 支援：搜尋、篩選、卡片/列表視圖切換
+    - 檔案: src/features/accounting-workspace/components/project-list.tsx
+
+[x] 1.3 建立新增/編輯 Project 表單
+    - 欄位：公司名稱、年度、季度、類型
+    - 檔案: src/features/accounting-workspace/components/project-form.tsx
+
+[x] 1.4 建立 Project 詳情頁面
+    - 路徑: /dashboard/accounting-workspace/[projectId]
+    - Tabs: Documents | Data & Entries | Reports
+    - 檔案: src/app/dashboard/accounting-workspace/[projectId]/page.tsx
+
+Phase 2: Document Assistant 模組
+--------------------------------
+[ ] 2.1 建立文件上傳區域
+    - 支援：PDF, JPG, PNG, Word
+    - 支援：拖拽上傳、批量上傳
+    - 顯示：上傳進度
+    - 檔案: src/features/accounting-workspace/components/document-uploader.tsx
+
+[ ] 2.2 建立文件列表與狀態管理
+    - 狀態：待處理、審核中、已完成、錯誤、未分類
+    - 顯示：文件名、類型、置信度、上傳日期
+    - 檔案: src/features/accounting-workspace/components/document-list.tsx
+
+[ ] 2.3 建立文件預覽抽屜
+    - 支援：PDF、圖片預覽
+    - 顯示：LLM 提取的數據高亮
+    - 檔案: src/features/accounting-workspace/components/document-preview.tsx
+
+[ ] 2.4 建立「無法識別文件」區域
+    - 顯示低置信度或未分類的文件
+    - 支援手動分類
+    - 檔案: src/features/accounting-workspace/components/unidentified-documents.tsx
+
+[ ] 2.5 整合 LLM 文件分類 API
+    - 功能：自動識別發票、收據、銀行月結單等
+    - 欄位提取：日期、金額、供應商、發票號碼等
+    - 檔案: src/lib/api/document-assistant.ts
+
+Phase 3: Accounting Assistant 模組
+----------------------------------
+[ ] 3.1 建立擬議分錄列表
+    - 顯示：借方/貸方科目、金額、狀態
+    - 操作：批准、拒絕、修正
+    - 檔案: src/features/accounting-workspace/components/proposed-entries.tsx
+
+[ ] 3.2 建立分錄驗證面板
+    - 左側：原始文件預覽
+    - 右側：分錄表單 + 科目建議
+    - 檔案: src/features/accounting-workspace/components/entry-validation.tsx
+
+[ ] 3.3 建立異常/問題列表
+    - 顯示：金額不符、日期異常、重複發票等
+    - 操作：查看詳情、修正、忽略
+    - 檔案: src/features/accounting-workspace/components/anomaly-list.tsx
+
+[ ] 3.4 整合 LLM 會計科目建議 API
+    - 功能：建議借貸科目、驗證 double entry
+    - 檔案: src/lib/api/accounting-assistant.ts
+
+================================================================================
+                           第二迭代
+================================================================================
+
+Phase 4: 報告生成模組
+---------------------
+[ ] 4.1 建立報告類型選擇器
+    - 類型：損益表、資產負債表、總帳、明細帳
+    - 期間選擇
+
+[ ] 4.2 Excel 報告生成
+    - 使用 xlsx 庫生成
+    
+[ ] 4.3 Word 報告生成
+    - 使用 docx 庫生成
+
+[ ] 4.4 報告更新功能
+    - 上傳舊報告 + 新單據
+    - LLM 智能整合
+
+================================================================================
+                           第三迭代
+================================================================================
+
+Phase 5: 進階功能
+-----------------
+[ ] 5.1 審計追蹤日誌
+[ ] 5.2 多用戶協作
+[ ] 5.3 與 Analyst 工具整合（財務指標分析）
+[ ] 5.4 與 Planner 工具整合（工作計劃）
+[ ] 5.5 通知系統
+
+================================================================================
+                           i18n Keys 規劃
+================================================================================
+
+需要新增的 i18n keys:
+- accountingWorkspace.title
+- accountingWorkspace.projects
+- accountingWorkspace.newProject
+- accountingWorkspace.documents
+- accountingWorkspace.entries
+- accountingWorkspace.reports
+- documentAssistant.upload
+- documentAssistant.classify
+- documentAssistant.extract
+- accountingAssistant.propose
+- accountingAssistant.validate
+- accountingAssistant.approve
+
+================================================================================
+                           API Endpoints 規劃
+================================================================================
+
+Projects:
+- GET    /api/accounting-projects
+- POST   /api/accounting-projects
+- GET    /api/accounting-projects/:id
+- PUT    /api/accounting-projects/:id
+- DELETE /api/accounting-projects/:id
+
+Documents:
+- POST   /api/accounting-projects/:id/documents (upload)
+- GET    /api/accounting-projects/:id/documents
+- PUT    /api/accounting-projects/:id/documents/:docId
+- POST   /api/documents/:id/classify (LLM)
+- POST   /api/documents/:id/extract (LLM)
+
+Entries:
+- GET    /api/accounting-projects/:id/proposed-entries
+- POST   /api/accounting-projects/:id/entries/propose (LLM)
+- PUT    /api/proposed-entries/:id/approve
+- PUT    /api/proposed-entries/:id/reject
+- PUT    /api/proposed-entries/:id/correct
+
+Reports:
+- POST   /api/accounting-projects/:id/reports/generate
+- POST   /api/accounting-projects/:id/reports/update
+
+================================================================================
