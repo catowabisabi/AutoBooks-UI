@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -57,30 +58,9 @@ import { revenueApi, Revenue } from '@/features/business/services';
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 
-const getStatusColor = (status: string): BadgeVariant => {
-  const colors: Record<string, BadgeVariant> = {
-    PENDING: 'secondary',
-    PARTIAL: 'outline',
-    RECEIVED: 'success',
-    OVERDUE: 'destructive',
-    WRITTEN_OFF: 'secondary',
-  };
-  return colors[status] || 'secondary';
-};
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    PENDING: '待收款',
-    PARTIAL: '部分收款',
-    RECEIVED: '已收款',
-    OVERDUE: '逾期',
-    WRITTEN_OFF: '已核銷',
-  };
-  return labels[status] || status;
-};
-
 export default function RevenueListPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data, setData] = useState<Revenue[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
@@ -90,6 +70,28 @@ export default function RevenueListPage() {
     revenue: null,
   });
   const [paymentAmount, setPaymentAmount] = useState('');
+
+  const getStatusColor = (status: string): BadgeVariant => {
+    const colors: Record<string, BadgeVariant> = {
+      PENDING: 'secondary',
+      PARTIAL: 'outline',
+      RECEIVED: 'success',
+      OVERDUE: 'destructive',
+      WRITTEN_OFF: 'secondary',
+    };
+    return colors[status] || 'secondary';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: t('business.pendingPayment'),
+      PARTIAL: t('business.partialPayment'),
+      RECEIVED: t('business.received'),
+      OVERDUE: t('business.overdue'),
+      WRITTEN_OFF: t('business.writtenOff'),
+    };
+    return labels[status] || status;
+  };
 
   // Mock data for demo
   const mockData: Revenue[] = [
@@ -204,10 +206,10 @@ export default function RevenueListPage() {
     if (!deleteId) return;
     try {
       await revenueApi.delete(deleteId);
-      toast.success('收入記錄已刪除');
+      toast.success(t('common.deleteSuccess'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -216,19 +218,19 @@ export default function RevenueListPage() {
     if (!paymentDialog.revenue || !paymentAmount) return;
     try {
       await revenueApi.recordPayment(paymentDialog.revenue.id, parseFloat(paymentAmount));
-      toast.success('付款已記錄');
+      toast.success(t('business.paymentRecorded'));
       setPaymentDialog({ open: false, revenue: null });
       setPaymentAmount('');
       fetchData();
     } catch (error) {
-      toast.error('記錄付款失敗');
+      toast.error(t('business.paymentFailed'));
     }
   };
 
   const columns: ColumnDef<Revenue>[] = [
     {
       accessorKey: 'invoice_number',
-      header: '發票編號',
+      header: t('business.invoiceNumber'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/revenue/${row.original.id}`}
@@ -240,12 +242,12 @@ export default function RevenueListPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.clientCompany'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       accessorKey: 'description',
-      header: '描述',
+      header: t('common.description'),
       cell: ({ row }) => (
         <span className='line-clamp-1 max-w-[200px]'>
           {row.original.description || '-'}
@@ -254,17 +256,17 @@ export default function RevenueListPage() {
     },
     {
       accessorKey: 'total_amount',
-      header: '總金額',
+      header: t('business.totalAmount'),
       cell: ({ row }) => `HK$${row.original.total_amount.toLocaleString()}`,
     },
     {
       accessorKey: 'received_amount',
-      header: '已收金額',
+      header: t('business.receivedAmount'),
       cell: ({ row }) => `HK$${row.original.received_amount.toLocaleString()}`,
     },
     {
       accessorKey: 'pending_amount',
-      header: '待收金額',
+      header: t('business.pendingAmount'),
       cell: ({ row }) =>
         row.original.pending_amount
           ? `HK$${row.original.pending_amount.toLocaleString()}`
@@ -272,7 +274,7 @@ export default function RevenueListPage() {
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status)}>
           {getStatusLabel(row.original.status)}
@@ -281,7 +283,7 @@ export default function RevenueListPage() {
     },
     {
       accessorKey: 'due_date',
-      header: '到期日',
+      header: t('business.dueDate'),
       cell: ({ row }) =>
         row.original.due_date
           ? new Date(row.original.due_date).toLocaleDateString('zh-TW')
@@ -303,7 +305,7 @@ export default function RevenueListPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -311,14 +313,14 @@ export default function RevenueListPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             {row.original.status !== 'RECEIVED' && (
               <DropdownMenuItem
                 onClick={() => setPaymentDialog({ open: true, revenue: row.original })}
               >
                 <IconCash className='mr-2 size-4' />
-                記錄付款
+                {t('business.recordPayment')}
               </DropdownMenuItem>
             )}
             <DropdownMenuSeparator />
@@ -327,7 +329,7 @@ export default function RevenueListPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -350,8 +352,8 @@ export default function RevenueListPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='收入管理'
-            description='管理所有收入記錄、追蹤應收帳款'
+            title={t('business.revenueManagement')}
+            description={t('business.revenueDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -375,7 +377,7 @@ export default function RevenueListPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增收入
+              {t('business.newRevenue')}
             </Link>
           </div>
         </div>
@@ -394,14 +396,14 @@ export default function RevenueListPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此收入記錄嗎？此操作無法撤銷。
+              {t('business.deleteRevenueConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
@@ -413,20 +415,20 @@ export default function RevenueListPage() {
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>記錄付款</DialogTitle>
+            <DialogTitle>{t('business.recordPayment')}</DialogTitle>
             <DialogDescription>
               {paymentDialog.revenue && (
                 <>
-                  發票編號：{paymentDialog.revenue.invoice_number}
+                  {t('business.invoiceNumber')}：{paymentDialog.revenue.invoice_number}
                   <br />
-                  待收金額：HK${paymentDialog.revenue.pending_amount?.toLocaleString()}
+                  {t('business.pendingAmount')}：HK${paymentDialog.revenue.pending_amount?.toLocaleString()}
                 </>
               )}
             </DialogDescription>
           </DialogHeader>
           <div className='space-y-4 py-4'>
             <div className='space-y-2'>
-              <Label htmlFor='payment_amount'>付款金額 (HK$)</Label>
+              <Label htmlFor='payment_amount'>{t('business.paymentAmount')} (HK$)</Label>
               <Input
                 id='payment_amount'
                 type='number'
@@ -434,15 +436,15 @@ export default function RevenueListPage() {
                 max={paymentDialog.revenue?.pending_amount}
                 value={paymentAmount}
                 onChange={(e) => setPaymentAmount(e.target.value)}
-                placeholder='輸入付款金額'
+                placeholder={t('business.enterPaymentAmount')}
               />
             </div>
           </div>
           <DialogFooter>
             <Button variant='outline' onClick={() => setPaymentDialog({ open: false, revenue: null })}>
-              取消
+              {t('common.cancel')}
             </Button>
-            <Button onClick={handleRecordPayment}>確認付款</Button>
+            <Button onClick={handleRecordPayment}>{t('business.confirmPayment')}</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

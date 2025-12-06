@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -48,34 +49,35 @@ import { billableHoursApi, BillableHour } from '@/features/business/services';
 
 type BadgeVariant = 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning';
 
-const getRoleLabel = (role: string) => {
-  const labels: Record<string, string> = {
-    CLERK: '文員',
-    ACCOUNTANT: '會計師',
-    MANAGER: '經理',
-    DIRECTOR: '總監',
-    PARTNER: '合夥人',
-  };
-  return labels[role] || role;
-};
-
-const getRoleBadgeColor = (role: string): BadgeVariant => {
-  const colors: Record<string, BadgeVariant> = {
-    CLERK: 'secondary',
-    ACCOUNTANT: 'outline',
-    MANAGER: 'default',
-    DIRECTOR: 'default',
-    PARTNER: 'success',
-  };
-  return colors[role] || 'secondary';
-};
-
 export default function BillableHoursListPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data, setData] = useState<BillableHour[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const getRoleLabel = (role: string) => {
+    const labels: Record<string, string> = {
+      CLERK: t('business.clerk'),
+      ACCOUNTANT: t('business.accountant'),
+      MANAGER: t('business.manager'),
+      DIRECTOR: t('business.director'),
+      PARTNER: t('business.partner'),
+    };
+    return labels[role] || role;
+  };
+
+  const getRoleBadgeColor = (role: string): BadgeVariant => {
+    const colors: Record<string, BadgeVariant> = {
+      CLERK: 'secondary',
+      ACCOUNTANT: 'outline',
+      MANAGER: 'default',
+      DIRECTOR: 'default',
+      PARTNER: 'success',
+    };
+    return colors[role] || 'secondary';
+  };
 
   // Mock data for demo
   const mockData: BillableHour[] = [
@@ -197,10 +199,10 @@ export default function BillableHoursListPage() {
     if (!deleteId) return;
     try {
       await billableHoursApi.delete(deleteId);
-      toast.success('工時記錄已刪除');
+      toast.success(t('common.deleteSuccess'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -208,12 +210,12 @@ export default function BillableHoursListPage() {
   const columns: ColumnDef<BillableHour>[] = [
     {
       accessorKey: 'date',
-      header: '日期',
+      header: t('common.date'),
       cell: ({ row }) => new Date(row.original.date).toLocaleDateString('zh-TW'),
     },
     {
       accessorKey: 'employee_name',
-      header: '員工',
+      header: t('business.employee'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/billable-hours/${row.original.id}`}
@@ -225,12 +227,12 @@ export default function BillableHoursListPage() {
     },
     {
       accessorKey: 'company_name',
-      header: '客戶',
+      header: t('business.client'),
       cell: ({ row }) => row.original.company_name || '-',
     },
     {
       accessorKey: 'role',
-      header: '職級',
+      header: t('business.role'),
       cell: ({ row }) => (
         <Badge variant={getRoleBadgeColor(row.original.role)}>
           {getRoleLabel(row.original.role)}
@@ -239,12 +241,12 @@ export default function BillableHoursListPage() {
     },
     {
       accessorKey: 'actual_hours',
-      header: '工時',
-      cell: ({ row }) => `${row.original.actual_hours} 小時`,
+      header: t('business.hours'),
+      cell: ({ row }) => `${row.original.actual_hours} ${t('business.hoursUnit')}`,
     },
     {
       accessorKey: 'effective_rate',
-      header: '時薪',
+      header: t('business.hourlyRate'),
       cell: ({ row }) =>
         row.original.effective_rate
           ? `HK$${row.original.effective_rate.toLocaleString()}`
@@ -252,7 +254,7 @@ export default function BillableHoursListPage() {
     },
     {
       accessorKey: 'total_cost',
-      header: '總費用',
+      header: t('business.totalCost'),
       cell: ({ row }) =>
         row.original.total_cost
           ? `HK$${row.original.total_cost.toLocaleString()}`
@@ -260,7 +262,7 @@ export default function BillableHoursListPage() {
     },
     {
       accessorKey: 'is_billable',
-      header: '可收費',
+      header: t('business.billable'),
       cell: ({ row }) =>
         row.original.is_billable ? (
           <IconCheck className='size-4 text-green-600' />
@@ -270,12 +272,12 @@ export default function BillableHoursListPage() {
     },
     {
       accessorKey: 'is_invoiced',
-      header: '已開票',
+      header: t('business.invoiced'),
       cell: ({ row }) =>
         row.original.is_invoiced ? (
-          <Badge variant='success'>已開票</Badge>
+          <Badge variant='success'>{t('business.invoiced')}</Badge>
         ) : (
-          <Badge variant='outline'>未開票</Badge>
+          <Badge variant='outline'>{t('business.notInvoiced')}</Badge>
         ),
     },
     {
@@ -294,7 +296,7 @@ export default function BillableHoursListPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -302,7 +304,7 @@ export default function BillableHoursListPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -310,7 +312,7 @@ export default function BillableHoursListPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -333,8 +335,8 @@ export default function BillableHoursListPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='工時記錄管理'
-            description='管理員工計費工時、追蹤專案成本'
+            title={t('business.billableHoursManagement')}
+            description={t('business.billableHoursDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -358,7 +360,7 @@ export default function BillableHoursListPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增工時
+              {t('business.newTimeEntry')}
             </Link>
           </div>
         </div>
@@ -376,14 +378,14 @@ export default function BillableHoursListPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此工時記錄嗎？此操作無法撤銷。
+              {t('business.deleteBillableHoursConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

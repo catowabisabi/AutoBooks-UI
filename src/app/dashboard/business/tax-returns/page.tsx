@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -44,38 +45,39 @@ import {
 } from '@/components/ui/alert-dialog';
 import { taxReturnsApi, TaxReturnCase } from '@/features/business/services';
 
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    PENDING: 'secondary',
-    IN_PROGRESS: 'default',
-    UNDER_REVIEW: 'outline',
-    SUBMITTED: 'default',
-    ACCEPTED: 'success',
-    REJECTED: 'destructive',
-    AMENDED: 'outline',
-  };
-  return colors[status] || 'secondary';
-};
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    PENDING: '待處理',
-    IN_PROGRESS: '處理中',
-    UNDER_REVIEW: '審核中',
-    SUBMITTED: '已提交',
-    ACCEPTED: '已接受',
-    REJECTED: '已退回',
-    AMENDED: '已修正',
-  };
-  return labels[status] || status;
-};
-
 export default function TaxReturnsListPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data, setData] = useState<TaxReturnCase[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      PENDING: 'secondary',
+      IN_PROGRESS: 'default',
+      UNDER_REVIEW: 'outline',
+      SUBMITTED: 'default',
+      ACCEPTED: 'success',
+      REJECTED: 'destructive',
+      AMENDED: 'outline',
+    };
+    return colors[status] || 'secondary';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      PENDING: t('business.pending'),
+      IN_PROGRESS: t('business.inProgress'),
+      UNDER_REVIEW: t('business.underReview'),
+      SUBMITTED: t('business.submitted'),
+      ACCEPTED: t('business.accepted'),
+      REJECTED: t('business.rejected'),
+      AMENDED: t('business.amended'),
+    };
+    return labels[status] || status;
+  };
 
   // Mock data for demo
   const mockData: TaxReturnCase[] = [
@@ -182,10 +184,10 @@ export default function TaxReturnsListPage() {
     if (!deleteId) return;
     try {
       await taxReturnsApi.delete(deleteId);
-      toast.success('稅務申報已刪除');
+      toast.success(t('common.deleteSuccess'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -193,7 +195,7 @@ export default function TaxReturnsListPage() {
   const columns: ColumnDef<TaxReturnCase>[] = [
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.clientCompany'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/tax-returns/${row.original.id}`}
@@ -205,15 +207,15 @@ export default function TaxReturnsListPage() {
     },
     {
       accessorKey: 'tax_year',
-      header: '課稅年度',
+      header: t('business.taxYear'),
     },
     {
       accessorKey: 'tax_type',
-      header: '稅種',
+      header: t('business.taxType'),
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getStatusLabel(row.original.status)}
@@ -222,7 +224,7 @@ export default function TaxReturnsListPage() {
     },
     {
       accessorKey: 'progress',
-      header: '進度',
+      header: t('common.progress'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <div className='h-2 w-20 rounded-full bg-muted'>
@@ -239,7 +241,7 @@ export default function TaxReturnsListPage() {
     },
     {
       accessorKey: 'deadline',
-      header: '截止日期',
+      header: t('business.deadline'),
       cell: ({ row }) =>
         row.original.deadline
           ? new Date(row.original.deadline).toLocaleDateString('zh-TW')
@@ -247,7 +249,7 @@ export default function TaxReturnsListPage() {
     },
     {
       accessorKey: 'tax_amount',
-      header: '稅額',
+      header: t('business.taxAmount'),
       cell: ({ row }) =>
         row.original.tax_amount
           ? `HK$${row.original.tax_amount.toLocaleString()}`
@@ -255,7 +257,7 @@ export default function TaxReturnsListPage() {
     },
     {
       accessorKey: 'handler_name',
-      header: '負責人',
+      header: t('business.handler'),
       cell: ({ row }) => row.original.handler_name || '-',
     },
     {
@@ -274,7 +276,7 @@ export default function TaxReturnsListPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -282,7 +284,7 @@ export default function TaxReturnsListPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -290,7 +292,7 @@ export default function TaxReturnsListPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -313,8 +315,8 @@ export default function TaxReturnsListPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='稅務申報管理'
-            description='管理所有稅務申報案件、追蹤進度與狀態'
+            title={t('business.taxReturnManagement')}
+            description={t('business.taxReturnDescription')}
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -338,7 +340,7 @@ export default function TaxReturnsListPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增案件
+              {t('business.newCase')}
             </Link>
           </div>
         </div>
@@ -356,14 +358,14 @@ export default function TaxReturnsListPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此稅務申報案件嗎？此操作無法撤銷。
+              {t('business.deleteTaxReturnConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

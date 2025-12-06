@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -44,39 +45,40 @@ import {
 } from '@/components/ui/alert-dialog';
 import { auditsApi, AuditProject } from '@/features/business/services';
 
-// Status badge color mapping
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    NOT_STARTED: 'secondary',
-    PLANNING: 'outline',
-    FIELDWORK: 'default',
-    REVIEW: 'default',
-    REPORTING: 'default',
-    COMPLETED: 'success',
-    ON_HOLD: 'destructive',
-  };
-  return colors[status] || 'secondary';
-};
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    NOT_STARTED: '未開始',
-    PLANNING: '規劃中',
-    FIELDWORK: '現場工作',
-    REVIEW: '審閱中',
-    REPORTING: '報告編製',
-    COMPLETED: '已完成',
-    ON_HOLD: '暫停',
-  };
-  return labels[status] || status;
-};
-
 export default function AuditsListPage() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data, setData] = useState<AuditProject[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  // Status badge color mapping
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      NOT_STARTED: 'secondary',
+      PLANNING: 'outline',
+      FIELDWORK: 'default',
+      REVIEW: 'default',
+      REPORTING: 'default',
+      COMPLETED: 'success',
+      ON_HOLD: 'destructive',
+    };
+    return colors[status] || 'secondary';
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      NOT_STARTED: t('business.notStarted'),
+      PLANNING: t('business.planning'),
+      FIELDWORK: t('business.fieldwork'),
+      REVIEW: t('business.review'),
+      REPORTING: t('business.reporting'),
+      COMPLETED: t('business.completed'),
+      ON_HOLD: t('business.onHold'),
+    };
+    return labels[status] || status;
+  };
 
   // Mock data for demo
   const mockData: AuditProject[] = [
@@ -188,10 +190,10 @@ export default function AuditsListPage() {
     if (!deleteId) return;
     try {
       await auditsApi.delete(deleteId);
-      toast.success('審計專案已刪除');
+      toast.success(t('common.deleteSuccess'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -199,7 +201,7 @@ export default function AuditsListPage() {
   const columns: ColumnDef<AuditProject>[] = [
     {
       accessorKey: 'company_name',
-      header: '客戶公司',
+      header: t('business.clientCompany'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/audits/${row.original.id}`}
@@ -211,15 +213,15 @@ export default function AuditsListPage() {
     },
     {
       accessorKey: 'fiscal_year',
-      header: '會計年度',
+      header: t('business.fiscalYear'),
     },
     {
       accessorKey: 'audit_type',
-      header: '審計類型',
+      header: t('business.auditType'),
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getStatusLabel(row.original.status)}
@@ -228,7 +230,7 @@ export default function AuditsListPage() {
     },
     {
       accessorKey: 'progress',
-      header: '進度',
+      header: t('common.progress'),
       cell: ({ row }) => (
         <div className='flex items-center gap-2'>
           <div className='h-2 w-20 rounded-full bg-muted'>
@@ -245,7 +247,7 @@ export default function AuditsListPage() {
     },
     {
       accessorKey: 'deadline',
-      header: '截止日期',
+      header: t('business.deadline'),
       cell: ({ row }) =>
         row.original.deadline
           ? new Date(row.original.deadline).toLocaleDateString('zh-TW')
@@ -253,7 +255,7 @@ export default function AuditsListPage() {
     },
     {
       accessorKey: 'assigned_to_name',
-      header: '負責人',
+      header: t('business.assignedTo'),
       cell: ({ row }) => row.original.assigned_to_name || '-',
     },
     {
@@ -272,7 +274,7 @@ export default function AuditsListPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -280,7 +282,7 @@ export default function AuditsListPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -288,7 +290,7 @@ export default function AuditsListPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -311,8 +313,8 @@ export default function AuditsListPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='審計專案管理'
-            description='管理所有審計專案、追蹤進度與狀態'
+            title={t('business.auditManagement')}
+            description={t('business.auditDescription')}
           />
           <div className='flex items-center gap-2'>
             {/* Data source indicator */}
@@ -337,7 +339,7 @@ export default function AuditsListPage() {
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增專案
+              {t('business.newProject')}
             </Link>
           </div>
         </div>
@@ -356,14 +358,14 @@ export default function AuditsListPage() {
       <AlertDialog open={!!deleteId} onOpenChange={() => setDeleteId(null)}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>確認刪除</AlertDialogTitle>
+            <AlertDialogTitle>{t('common.confirmDelete')}</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此審計專案嗎？此操作無法撤銷。
+              {t('business.deleteAuditConfirm')}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel>取消</AlertDialogCancel>
-            <AlertDialogAction onClick={handleDelete}>刪除</AlertDialogAction>
+            <AlertDialogCancel>{t('common.cancel')}</AlertDialogCancel>
+            <AlertDialogAction onClick={handleDelete}>{t('common.delete')}</AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

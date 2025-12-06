@@ -29,6 +29,7 @@ import {
 } from 'recharts';
 import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -52,6 +53,7 @@ const expenseDistribution = [
 const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#06b6d4', '#8b5cf6'];
 
 export default function FinanceHomePage() {
+  const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ export default function FinanceHomePage() {
     <div className='flex flex-1 flex-col space-y-2'>
       <div className='flex items-center justify-between space-y-2'>
         <h2 className='text-2xl font-bold tracking-tight'>
-          Finance Overview 💰
+          {t('finance.overview')} 💰
         </h2>
       </div>
 
@@ -76,7 +78,7 @@ export default function FinanceHomePage() {
       <div className='*:data-[slot=card]:from-primary/5 *:data-[slot=card]:to-card dark:*:data-[slot=card]:bg-card grid grid-cols-1 gap-4 *:data-[slot=card]:bg-gradient-to-t *:data-[slot=card]:shadow-xs md:grid-cols-2 lg:grid-cols-4'>
         <Card className='@container/card'>
           <CardHeader>
-            <CardDescription>Total Revenue</CardDescription>
+            <CardDescription>{t('finance.totalRevenue')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
               $325,890
             </CardTitle>
@@ -89,15 +91,15 @@ export default function FinanceHomePage() {
           </CardHeader>
           <CardFooter className='flex-col items-start gap-1.5 text-sm'>
             <div className='line-clamp-1 flex gap-2 font-medium'>
-              Higher than last month <IconTrendingUp className='size-4' />
+              {t('finance.higherThanLastMonth')} <IconTrendingUp className='size-4' />
             </div>
-            <div className='text-muted-foreground'>Strong revenue growth</div>
+            <div className='text-muted-foreground'>{t('finance.strongRevenueGrowth')}</div>
           </CardFooter>
         </Card>
 
         <Card className='@container/card'>
           <CardHeader>
-            <CardDescription>Total Expenses</CardDescription>
+            <CardDescription>{t('finance.totalExpenses')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
               $231,450
             </CardTitle>
@@ -110,17 +112,17 @@ export default function FinanceHomePage() {
           </CardHeader>
           <CardFooter className='flex-col items-start gap-1.5 text-sm'>
             <div className='line-clamp-1 flex gap-2 font-medium'>
-              Lower than last month <IconTrendingDown className='size-4' />
+              {t('finance.lowerThanLastMonth')} <IconTrendingDown className='size-4' />
             </div>
             <div className='text-muted-foreground'>
-              Improved cost management
+              {t('finance.improvedCostManagement')}
             </div>
           </CardFooter>
         </Card>
 
         <Card className='@container/card'>
           <CardHeader>
-            <CardDescription>Pending Invoices</CardDescription>
+            <CardDescription>{t('finance.pendingInvoices')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
               24
             </CardTitle>
@@ -133,15 +135,15 @@ export default function FinanceHomePage() {
           </CardHeader>
           <CardFooter className='flex-col items-start gap-1.5 text-sm'>
             <div className='line-clamp-1 flex gap-2 font-medium'>
-              Two more than yesterday <IconTrendingUp className='size-4' />
+              {t('finance.twoMoreThanYesterday')} <IconTrendingUp className='size-4' />
             </div>
-            <div className='text-muted-foreground'>Needs attention</div>
+            <div className='text-muted-foreground'>{t('finance.needsAttention')}</div>
           </CardFooter>
         </Card>
 
         <Card className='@container/card'>
           <CardHeader>
-            <CardDescription>Cash Flow</CardDescription>
+            <CardDescription>{t('finance.cashFlow')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
               $94,440
             </CardTitle>
@@ -154,9 +156,9 @@ export default function FinanceHomePage() {
           </CardHeader>
           <CardFooter className='flex-col items-start gap-1.5 text-sm'>
             <div className='line-clamp-1 flex gap-2 font-medium'>
-              Increased this quarter <IconTrendingUp className='size-4' />
+              {t('finance.increasedThisQuarter')} <IconTrendingUp className='size-4' />
             </div>
-            <div className='text-muted-foreground'>Healthy cash position</div>
+            <div className='text-muted-foreground'>{t('finance.healthyCashPosition')}</div>
           </CardFooter>
         </Card>
       </div>
@@ -166,12 +168,12 @@ export default function FinanceHomePage() {
         <Card className='@container/card col-span-4'>
           <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
             <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
-              <CardTitle>Revenue vs Expenses</CardTitle>
+              <CardTitle>{t('finance.revenueVsExpenses')}</CardTitle>
               <CardDescription>
                 <span className='hidden @[540px]/card:block'>
-                  Financial performance for the last 6 months
+                  {t('finance.financialPerformanceLast6Months')}
                 </span>
-                <span className='@[540px]/card:hidden'>Last 6 months</span>
+                <span className='@[540px]/card:hidden'>{t('finance.last6Months')}</span>
               </CardDescription>
             </div>
           </CardHeader>
@@ -224,9 +226,9 @@ export default function FinanceHomePage() {
         <Card className='@container/card col-span-3'>
           <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
             <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
-              <CardTitle>Expense Distribution</CardTitle>
+              <CardTitle>{t('finance.expenseDistribution')}</CardTitle>
               <CardDescription>
-                <span>By category</span>
+                <span>{t('finance.byCategory')}</span>
               </CardDescription>
             </div>
           </CardHeader>
@@ -260,9 +262,9 @@ export default function FinanceHomePage() {
         <Card className='@container/card col-span-2'>
           <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
             <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
-              <CardTitle>Recent Transactions</CardTitle>
+              <CardTitle>{t('finance.recentTransactions')}</CardTitle>
               <CardDescription>
-                <span>Latest financial activities</span>
+                <span>{t('finance.latestFinancialActivities')}</span>
               </CardDescription>
             </div>
           </CardHeader>
@@ -316,13 +318,13 @@ export default function FinanceHomePage() {
         <Card className='@container/card col-span-2'>
           <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
             <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
-              <CardTitle>Upcoming Payments</CardTitle>
+              <CardTitle>{t('finance.upcomingPayments')}</CardTitle>
               <CardDescription>
-                <span>Due this week</span>
+                <span>{t('finance.dueThisWeek')}</span>
               </CardDescription>
             </div>
             <div className='flex items-center px-6 py-4'>
-              <Button size='sm'>+ Add</Button>
+              <Button size='sm'>+ {t('common.add')}</Button>
             </div>
           </CardHeader>
           <CardContent className='space-y-3 px-6 pt-4'>
@@ -359,9 +361,9 @@ export default function FinanceHomePage() {
         <Card className='@container/card col-span-3'>
           <CardHeader className='flex flex-col items-stretch space-y-0 border-b !p-0 sm:flex-row'>
             <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
-              <CardTitle>Financial Insights</CardTitle>
+              <CardTitle>{t('finance.financialInsights')}</CardTitle>
               <CardDescription>
-                <span>Key performance indicators</span>
+                <span>{t('finance.keyPerformanceIndicators')}</span>
               </CardDescription>
             </div>
           </CardHeader>

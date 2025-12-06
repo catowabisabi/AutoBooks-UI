@@ -15,6 +15,7 @@ import { cn } from '@/lib/utils';
 import { buttonVariants } from '@/components/ui/button';
 import { toast } from 'sonner';
 import { useDataTable } from '@/hooks/use-data-table';
+import { useTranslation } from '@/lib/i18n/provider';
 import {
   IconPlus,
   IconDotsVertical,
@@ -44,58 +45,59 @@ import {
 } from '@/components/ui/alert-dialog';
 import { announcementsApi, Announcement } from '@/features/business/services';
 
-const getTypeColor = (type: string) => {
-  const colors: Record<string, string> = {
-    RESULTS: 'default',
-    CIRCULAR: 'secondary',
-    ANNOUNCEMENT: 'outline',
-    PRESS_RELEASE: 'success',
-    REGULATORY: 'warning',
-    OTHER: 'secondary',
-  };
-  return colors[type] || 'secondary';
-};
-
-const getTypeLabel = (type: string) => {
-  const labels: Record<string, string> = {
-    RESULTS: '業績公告',
-    CIRCULAR: '通函',
-    ANNOUNCEMENT: '公告',
-    PRESS_RELEASE: '新聞稿',
-    REGULATORY: '監管公告',
-    OTHER: '其他',
-  };
-  return labels[type] || type;
-};
-
-const getStatusLabel = (status: string) => {
-  const labels: Record<string, string> = {
-    DRAFT: '草稿',
-    IN_PROGRESS: '進行中',
-    REVIEW: '審核中',
-    APPROVED: '已批准',
-    PUBLISHED: '已發布',
-  };
-  return labels[status] || status;
-};
-
-const getStatusColor = (status: string) => {
-  const colors: Record<string, string> = {
-    DRAFT: 'secondary',
-    IN_PROGRESS: 'warning',
-    REVIEW: 'outline',
-    APPROVED: 'default',
-    PUBLISHED: 'success',
-  };
-  return colors[status] || 'secondary';
-};
-
 export default function AnnouncementsPage() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [data, setData] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
+
+  const getTypeColor = (type: string) => {
+    const colors: Record<string, string> = {
+      RESULTS: 'default',
+      CIRCULAR: 'secondary',
+      ANNOUNCEMENT: 'outline',
+      PRESS_RELEASE: 'success',
+      REGULATORY: 'warning',
+      OTHER: 'secondary',
+    };
+    return colors[type] || 'secondary';
+  };
+
+  const getTypeLabel = (type: string) => {
+    const labels: Record<string, string> = {
+      RESULTS: t('business.results'),
+      CIRCULAR: t('business.circular'),
+      ANNOUNCEMENT: t('business.announcement'),
+      PRESS_RELEASE: t('business.pressRelease'),
+      REGULATORY: t('business.regulatory'),
+      OTHER: t('business.other'),
+    };
+    return labels[type] || type;
+  };
+
+  const getStatusLabel = (status: string) => {
+    const labels: Record<string, string> = {
+      DRAFT: t('business.draft'),
+      IN_PROGRESS: t('business.inProgress'),
+      REVIEW: t('business.underReview'),
+      APPROVED: t('business.approved'),
+      PUBLISHED: t('business.published'),
+    };
+    return labels[status] || status;
+  };
+
+  const getStatusColor = (status: string) => {
+    const colors: Record<string, string> = {
+      DRAFT: 'secondary',
+      IN_PROGRESS: 'warning',
+      REVIEW: 'outline',
+      APPROVED: 'default',
+      PUBLISHED: 'success',
+    };
+    return colors[status] || 'secondary';
+  };
 
   const mockData: Announcement[] = [
     {
@@ -184,10 +186,10 @@ export default function AnnouncementsPage() {
     if (!deleteId) return;
     try {
       await announcementsApi.delete(deleteId);
-      toast.success('公告已刪除');
+      toast.success(t('business.recordDeleted'));
       fetchData();
     } catch (error) {
-      toast.error('刪除失敗');
+      toast.error(t('common.deleteFailed'));
     }
     setDeleteId(null);
   };
@@ -195,7 +197,7 @@ export default function AnnouncementsPage() {
   const columns: ColumnDef<Announcement>[] = [
     {
       accessorKey: 'title',
-      header: '標題',
+      header: t('common.name'),
       cell: ({ row }) => (
         <Link
           href={`/dashboard/business/announcements/${row.original.id}`}
@@ -207,7 +209,7 @@ export default function AnnouncementsPage() {
     },
     {
       accessorKey: 'listed_client_name',
-      header: '上市公司',
+      header: t('business.listedClients'),
       cell: ({ row }) => (
         <div className='flex flex-col'>
           <span>{row.original.listed_client_name}</span>
@@ -219,7 +221,7 @@ export default function AnnouncementsPage() {
     },
     {
       accessorKey: 'announcement_type',
-      header: '類型',
+      header: t('business.announcementType'),
       cell: ({ row }) => (
         <Badge variant={getTypeColor(row.original.announcement_type) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getTypeLabel(row.original.announcement_type)}
@@ -228,7 +230,7 @@ export default function AnnouncementsPage() {
     },
     {
       accessorKey: 'status',
-      header: '狀態',
+      header: t('common.status'),
       cell: ({ row }) => (
         <Badge variant={getStatusColor(row.original.status) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
           {getStatusLabel(row.original.status)}
@@ -237,7 +239,7 @@ export default function AnnouncementsPage() {
     },
     {
       accessorKey: 'publish_date',
-      header: '發布日期',
+      header: t('business.publishDate'),
       cell: ({ row }) =>
         row.original.publish_date
           ? new Date(row.original.publish_date).toLocaleDateString('zh-TW')
@@ -245,7 +247,7 @@ export default function AnnouncementsPage() {
     },
     {
       accessorKey: 'handler_name',
-      header: '負責人',
+      header: t('business.handler'),
       cell: ({ row }) => row.original.handler_name || '-',
     },
     {
@@ -264,7 +266,7 @@ export default function AnnouncementsPage() {
               }
             >
               <IconEye className='mr-2 size-4' />
-              查看詳情
+              {t('common.viewDetails')}
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
@@ -272,7 +274,7 @@ export default function AnnouncementsPage() {
               }
             >
               <IconEdit className='mr-2 size-4' />
-              編輯
+              {t('common.edit')}
             </DropdownMenuItem>
             <DropdownMenuSeparator />
             <DropdownMenuItem
@@ -280,7 +282,7 @@ export default function AnnouncementsPage() {
               onClick={() => setDeleteId(row.original.id)}
             >
               <IconTrash className='mr-2 size-4' />
-              刪除
+              {t('common.delete')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
