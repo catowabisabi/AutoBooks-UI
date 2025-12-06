@@ -32,14 +32,15 @@ import {
 import { useDashboardData } from '@/hooks/use-dashboard-data';
 import { useRouter } from 'next/navigation';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 import type { TablerIcon } from '@tabler/icons-react';
 
 // 統一的卡片配置類型
 interface CardConfig {
   key: string;           // 數據鍵值
-  label: string;         // 卡片標題
+  labelKey: string;      // i18n key for 卡片標題
   href: string;          // 連結到的 CRUD 頁面
-  linkText: string;      // 連結文字
+  linkTextKey: string;   // i18n key for 連結文字
   icon: TablerIcon;      // 圖標
   badgeKey?: string;     // 用於 badge 的數據鍵值
   trendKey?: string;     // 用於趨勢的數據鍵值
@@ -53,36 +54,36 @@ const cardConfigsByType: Record<string, CardConfig[]> = {
   accounting: [
     {
       key: 'auditsInProgress',
-      label: '審計專案',
+      labelKey: 'dashboard.statsCards.accounting.auditProjects',
       href: '/dashboard/business/audits',
-      linkText: '查看審計專案',
+      linkTextKey: 'dashboard.statsCards.accounting.viewAuditProjects',
       icon: IconClipboardList,
       trendKey: 'auditsTotal',
       footerKey: 'clientCount'
     },
     {
       key: 'taxReturnsPending',
-      label: '稅務申報',
+      labelKey: 'dashboard.statsCards.accounting.taxReturns',
       href: '/dashboard/business/tax-returns',
-      linkText: '查看稅務申報',
+      linkTextKey: 'dashboard.statsCards.accounting.viewTaxReturns',
       icon: IconReceipt,
       trendKey: 'taxReturnsTotal',
       footerKey: 'pendingTasks'
     },
     {
       key: 'billableHoursMTD',
-      label: '可計費工時 (MTD)',
+      labelKey: 'dashboard.statsCards.accounting.billableHoursMTD',
       href: '/dashboard/business/billable-hours',
-      linkText: '查看工時記錄',
+      linkTextKey: 'dashboard.statsCards.accounting.viewBillableHours',
       icon: IconClock,
       trendKey: 'utilizationRate',
       footerKey: 'complianceScore'
     },
     {
       key: 'revenueYTD',
-      label: '年度收入',
+      labelKey: 'dashboard.statsCards.accounting.annualRevenue',
       href: '/dashboard/business/revenue',
-      linkText: '查看收入管理',
+      linkTextKey: 'dashboard.statsCards.accounting.viewRevenueManagement',
       icon: IconCurrencyDollar,
       trendKey: 'revenuePending',
       footerKey: 'revenueGrowth'
@@ -93,36 +94,36 @@ const cardConfigsByType: Record<string, CardConfig[]> = {
   'financial-pr': [
     {
       key: 'listedClients',
-      label: '上市公司客戶',
+      labelKey: 'dashboard.statsCards.financialPR.listedClients',
       href: '/dashboard/business/listed-clients',
-      linkText: '查看上市客戶',
+      linkTextKey: 'dashboard.statsCards.financialPR.viewListedClients',
       icon: IconBuilding,
       trendKey: 'activeContracts',
       footerKey: 'clientCount'
     },
     {
       key: 'announcementsThisMonth',
-      label: '本月公告',
+      labelKey: 'dashboard.statsCards.financialPR.monthlyAnnouncements',
       href: '/dashboard/business/announcements',
-      linkText: '查看公告管理',
+      linkTextKey: 'dashboard.statsCards.financialPR.viewAnnouncements',
       icon: IconSpeakerphone,
       trendKey: 'pendingAnnouncements',
       footerKey: 'announcementsTotal'
     },
     {
       key: 'mediaCoverage',
-      label: '媒體報導',
+      labelKey: 'dashboard.statsCards.financialPR.mediaCoverage',
       href: '/dashboard/business/media-coverage',
-      linkText: '查看媒體報導',
+      linkTextKey: 'dashboard.statsCards.financialPR.viewMediaCoverage',
       icon: IconNews,
       trendKey: 'positiveRate',
       footerKey: 'totalReach'
     },
     {
       key: 'activeEngagements',
-      label: '活躍委託',
+      labelKey: 'dashboard.statsCards.financialPR.activeEngagements',
       href: '/dashboard/business/engagements',
-      linkText: '查看委託合約',
+      linkTextKey: 'dashboard.statsCards.financialPR.viewEngagements',
       icon: IconBriefcase,
       trendKey: 'engagementValue',
       footerKey: 'completedEngagements'
@@ -133,36 +134,36 @@ const cardConfigsByType: Record<string, CardConfig[]> = {
   'ipo-advisory': [
     {
       key: 'ipoMandates',
-      label: 'IPO 項目',
+      labelKey: 'dashboard.statsCards.ipoAdvisory.ipoMandates',
       href: '/dashboard/business/ipo-mandates',
-      linkText: '查看 IPO 項目',
+      linkTextKey: 'dashboard.statsCards.ipoAdvisory.viewIPOMandates',
       icon: IconChartLine,
       trendKey: 'pipelineValue',
       footerKey: 'sfcApproved'
     },
     {
       key: 'activeEngagements',
-      label: '委託合約',
+      labelKey: 'dashboard.statsCards.ipoAdvisory.engagements',
       href: '/dashboard/business/engagements',
-      linkText: '查看委託合約',
+      linkTextKey: 'dashboard.statsCards.ipoAdvisory.viewEngagements',
       icon: IconFileCheck,
       trendKey: 'engagementValue',
       footerKey: 'pendingTasks'
     },
     {
       key: 'clientPerformance',
-      label: '客戶表現',
+      labelKey: 'dashboard.statsCards.ipoAdvisory.clientPerformance',
       href: '/dashboard/business/client-performance',
-      linkText: '查看客戶表現',
+      linkTextKey: 'dashboard.statsCards.ipoAdvisory.viewClientPerformance',
       icon: IconCertificate,
       trendKey: 'satisfactionScore',
       footerKey: 'projectsCompleted'
     },
     {
       key: 'revenueYTD',
-      label: '收入管理',
+      labelKey: 'dashboard.statsCards.ipoAdvisory.revenueManagement',
       href: '/dashboard/business/revenue',
-      linkText: '查看收入管理',
+      linkTextKey: 'dashboard.statsCards.ipoAdvisory.viewRevenueManagement',
       icon: IconCurrencyDollar,
       trendKey: 'revenuePending',
       footerKey: 'revenueGrowth'
@@ -171,6 +172,7 @@ const cardConfigsByType: Record<string, CardConfig[]> = {
 };
 
 export function StatsCards() {
+  const { t } = useTranslation();
   const { dashboardData, isLoading, isUsingMockData, refetch } = useDashboardData();
   const { currentCompany } = useApp();
   const router = useRouter();
@@ -240,13 +242,13 @@ export function StatsCards() {
     return String(value);
   };
 
-  const getBadge = (config: CardConfig): string => {
+  const getBadgeText = (config: CardConfig): string => {
     // 根據數據類型返回適當的 badge
     const key = config.key;
-    if (key.includes('Pending') || key.includes('Progress')) return 'Active';
-    if (key.includes('Revenue')) return '+Growth';
-    if (key.includes('Clients') || key.includes('Coverage')) return 'Total';
-    return 'Active';
+    if (key.includes('Pending') || key.includes('Progress')) return t('dashboard.statsCards.active');
+    if (key.includes('Revenue')) return t('dashboard.statsCards.growth');
+    if (key.includes('Clients') || key.includes('Coverage')) return t('dashboard.statsCards.active');
+    return t('dashboard.statsCards.active');
   };
 
   return (
@@ -256,12 +258,12 @@ export function StatsCards() {
         {isUsingMockData ? (
           <span className='flex items-center gap-1'>
             <IconCloudOff className='size-3' />
-            Demo Data
+            {t('dashboard.demoData')}
           </span>
         ) : (
           <span className='flex items-center gap-1 text-green-600'>
             <IconCloud className='size-3' />
-            Live API
+            {t('dashboard.liveAPI')}
           </span>
         )}
         <button onClick={refetch} className='p-1 hover:bg-muted rounded'>
@@ -275,7 +277,7 @@ export function StatsCards() {
           const value = getValue(config.key);
           const trend = getTrend(config.trendKey);
           const footer = getFooter(config.footerKey);
-          const badge = getBadge(config);
+          const badge = getBadgeText(config);
           
           const handleCardClick = () => {
             router.push(config.href);
@@ -286,7 +288,7 @@ export function StatsCards() {
               <Card className='@container/card h-full transition-all duration-200 hover:shadow-md hover:border-primary/50 cursor-pointer'>
                 <CardHeader>
                   <div className='flex items-center justify-between'>
-                    <CardDescription>{config.label}</CardDescription>
+                    <CardDescription>{t(config.labelKey)}</CardDescription>
                     {IconComponent && <IconComponent className='size-5 text-muted-foreground' />}
                   </div>
                   <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
@@ -312,7 +314,7 @@ export function StatsCards() {
                   )}
                   <div className='flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity'>
                     <IconExternalLink className='size-3' />
-                    {config.linkText}
+                    {t(config.linkTextKey)}
                   </div>
                 </CardFooter>
               </Card>

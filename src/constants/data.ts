@@ -98,7 +98,7 @@ export const navItems: NavItem[] = [
     ]
   },
   {
-    title: 'Finance',
+    title: 'Company Finance',
     titleKey: 'nav.finance',
     url: '/dashboard/finance',
     icon: 'kanban',
@@ -122,7 +122,7 @@ export const navItems: NavItem[] = [
       },
       {
         title: 'Accounts',
-        titleKey: 'nav.accounts',
+        titleKey: 'nav.accountingItems',
         url: '/dashboard/finance/accounts'
       }
     ]

@@ -9,6 +9,7 @@ import {
   CardDescription
 } from '@/components/ui/card';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Accounting - Recent client payments
 const accountingTransactions = [
@@ -127,38 +128,44 @@ const ipoTransactions = [
   }
 ];
 
-const configByType = {
-  accounting: {
-    title: 'Recent Payments',
-    description: 'You received 12 payments this month',
-    data: accountingTransactions
-  },
-  'financial-pr': {
-    title: 'Recent Activities',
-    description: '28 announcements handled this month',
-    data: prTransactions
-  },
-  'ipo-advisory': {
-    title: 'Recent Deal Fees',
-    description: '8 active mandates in progress',
-    data: ipoTransactions
-  }
+const dataByType = {
+  accounting: accountingTransactions,
+  'financial-pr': prTransactions,
+  'ipo-advisory': ipoTransactions
 };
 
 export function RecentSales() {
+  const { t } = useTranslation();
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+  
+  const configByType = {
+    accounting: {
+      titleKey: 'dashboard.recentPayments.accounting.title',
+      descriptionKey: 'dashboard.recentPayments.accounting.description'
+    },
+    'financial-pr': {
+      titleKey: 'dashboard.recentPayments.financialPR.title',
+      descriptionKey: 'dashboard.recentPayments.financialPR.description'
+    },
+    'ipo-advisory': {
+      titleKey: 'dashboard.recentPayments.ipoAdvisory.title',
+      descriptionKey: 'dashboard.recentPayments.ipoAdvisory.description'
+    }
+  };
+  
   const config = configByType[companyType];
+  const data = dataByType[companyType];
 
   return (
     <Card className='h-full'>
       <CardHeader>
-        <CardTitle>{config.title}</CardTitle>
-        <CardDescription>{config.description}</CardDescription>
+        <CardTitle>{t(config.titleKey)}</CardTitle>
+        <CardDescription>{t(config.descriptionKey)}</CardDescription>
       </CardHeader>
       <CardContent>
         <div className='space-y-8'>
-          {config.data.map((item, index) => (
+          {data.map((item, index) => (
             <div key={index} className='flex items-center'>
               <Avatar className='h-9 w-9'>
                 <AvatarImage src={item.avatar} alt='Avatar' />

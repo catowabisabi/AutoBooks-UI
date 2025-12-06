@@ -107,7 +107,7 @@
     "analyst": "分析師",
     "planner": "規劃師",
     "documentAssistant": "文件助手",
-    "finance": "財務",
+    "finance": "本公司財務",
     "settings": "設定",
     "business": "業務管理",
     "audits": "審計專案",
@@ -121,6 +121,7 @@
     "analystAssistant": "分析助手",
     "financeDashboard": "儀表板",
     "accounts": "科目",
+    "accountingItems": "會計項目",
     "general": "一般設定",
     "currencies": "貨幣",
     "taxRates": "稅率"
@@ -483,8 +484,8 @@
     "recordDeleted": "記錄已刪除"
   },
   "finance": {
-    "title": "財務",
-    "overview": "財務總覽",
+    "title": "本公司財務",
+    "overview": "本公司財務總覽",
     "totalRevenue": "總收入",
     "totalExpenses": "總支出",
     "pendingInvoices": "待處理發票",
@@ -510,10 +511,10 @@
     "keyPerformanceIndicators": "關鍵績效指標",
     "income": "收入",
     "expense": "支出",
-    "chartOfAccounts": "會計科目表",
-    "accountsDescription": "管理您的會計科目表和科目層級",
+    "chartOfAccounts": "會計項目表",
+    "accountsDescription": "管理您的會計項目表和項目層級",
     "refresh": "重新整理",
-    "addAccount": "新增科目",
+    "addAccount": "新增項目",
     "allTypes": "所有類型",
     "asset": "資產",
     "liability": "負債",
@@ -521,7 +522,7 @@
     "revenue": "收入",
     "treeView": "樹狀",
     "listView": "列表",
-    "allAccounts": "所有科目",
+    "allAccounts": "所有項目",
     "code": "代碼",
     "name": "名稱",
     "type": "類型",
@@ -898,6 +899,7 @@
   },
   "dashboard": {
     "welcome": "嗨，歡迎回來",
+    "welcomeBack": "您好，歡迎回來",
     "download": "下載",
     "overview": "概覽",
     "analytics": "分析",
@@ -920,7 +922,114 @@
     "areaChart": "面積圖",
     "showingTotalVisitors": "顯示過去 6 個月的訪客總數",
     "pieChart": "瀏覽器分佈",
-    "visitorsByBrowser": "2024 年 1 月 - 6 月"
+    "visitorsByBrowser": "2024 年 1 月 - 6 月",
+    "demoData": "示範數據",
+    "liveAPI": "即時 API",
+    "statsCards": {
+      "accounting": {
+        "auditProjects": "審計專案",
+        "viewAuditProjects": "查看審計專案",
+        "taxReturns": "稅務申報",
+        "viewTaxReturns": "查看稅務申報",
+        "billableHoursMTD": "可計費工時 (MTD)",
+        "viewBillableHours": "查看工時記錄",
+        "annualRevenue": "年度收入",
+        "viewRevenueManagement": "查看收入管理"
+      },
+      "financialPR": {
+        "listedClients": "上市公司客戶",
+        "viewListedClients": "查看上市客戶",
+        "monthlyAnnouncements": "本月公告",
+        "viewAnnouncements": "查看公告管理",
+        "mediaCoverage": "媒體報導",
+        "viewMediaCoverage": "查看媒體報導",
+        "activeEngagements": "活躍委託",
+        "viewEngagements": "查看委託合約"
+      },
+      "ipoAdvisory": {
+        "ipoMandates": "IPO 項目",
+        "viewIPOMandates": "查看 IPO 項目",
+        "engagements": "委託合約",
+        "viewEngagements": "查看委託合約",
+        "clientPerformance": "客戶表現",
+        "viewClientPerformance": "查看客戶表現",
+        "revenueManagement": "收入管理",
+        "viewRevenueManagement": "查看收入管理"
+      },
+      "active": "活躍",
+      "growth": "+增長"
+    },
+    "recentPayments": {
+      "accounting": {
+        "title": "近期收款",
+        "description": "本月收到 12 筆付款"
+      },
+      "financialPR": {
+        "title": "近期活動",
+        "description": "本月處理 28 份公告"
+      },
+      "ipoAdvisory": {
+        "title": "近期交易費用",
+        "description": "8 個活躍委託進行中"
+      }
+    },
+    "charts": {
+      "accounting": {
+        "barTitle": "按服務類別計費工時",
+        "barDescription": "每月計費工時細分",
+        "audit": "審計",
+        "tax": "稅務",
+        "advisory": "諮詢",
+        "areaTitle": "現金流趨勢",
+        "areaDescription": "費用收入與營運成本（港幣千元）",
+        "feeIncome": "費用收入（港幣千元）",
+        "operatingCosts": "營運成本（港幣千元）",
+        "areaTrend": "淨利潤率改善 18.5%",
+        "areaPeriod": "2024年7月至12月",
+        "pieTitle": "按服務類別收入",
+        "pieDescription": "按服務線細分費用收入",
+        "pieCenterLabel": "總收入",
+        "pieTrend": "審計業務領先，佔",
+        "piePeriod": "2024 會計年度至今"
+      },
+      "financialPR": {
+        "barTitle": "客戶參與活動",
+        "barDescription": "每月公關活動",
+        "announcements": "公告",
+        "meetings": "投資者會議",
+        "events": "活動",
+        "areaTitle": "媒體報導分析",
+        "areaDescription": "客戶正面與負面媒體提及",
+        "positiveCoverage": "正面報導",
+        "negativeCoverage": "負面報導",
+        "areaTrend": "正面情緒上升 24.3%",
+        "areaPeriod": "2024年7月至12月",
+        "pieTitle": "按服務類別收入",
+        "pieDescription": "按公關服務類型細分收入",
+        "pieCenterLabel": "總收入",
+        "pieTrend": "投資者關係長約領先，佔",
+        "piePeriod": "2024 會計年度至今"
+      },
+      "ipoAdvisory": {
+        "barTitle": "交易管道價值",
+        "barDescription": "按階段劃分的交易價值（港幣百萬）",
+        "preparation": "準備",
+        "filing": "遞交",
+        "listing": "上市",
+        "areaTitle": "交易管道進展",
+        "areaDescription": "活躍委託與已完成上市",
+        "activeDeals": "活躍交易",
+        "completedDeals": "已完成交易",
+        "areaTrend": "年初至今成功上市 11 宗",
+        "areaPeriod": "2024年7月至12月",
+        "pieTitle": "按交易類型收入",
+        "pieDescription": "按交易類別細分費用收入",
+        "pieCenterLabel": "總收入",
+        "pieTrend": "主板 IPO 領先，佔",
+        "piePeriod": "2024 會計年度至今"
+      },
+      "last6Months": "最近 6 個月"
+    }
   },
   "businessOverview": {
     "title": "業務管理",
@@ -1209,7 +1318,37 @@
     "overdue": "逾期",
     "generating": "正在生成 PDF...",
     "exported": "發票已匯出",
-    "selectToExport": "請先選取要匯出的發票"
+    "selectToExport": "請先選取要匯出的發票",
+    "newInvoice": "新增發票",
+    "newInvoiceDescription": "建立新的發票記錄",
+    "invoiceInfo": "發票資訊",
+    "invoiceInfoDescription": "設定發票基本資訊",
+    "clientInfo": "客戶資訊",
+    "clientInfoDescription": "填寫客戶詳細資料",
+    "clientEmail": "客戶電郵",
+    "clientAddress": "客戶地址",
+    "clientPlaceholder": "輸入客戶名稱",
+    "clientAddressPlaceholder": "輸入客戶地址",
+    "clientRequired": "請輸入客戶名稱",
+    "statusPending": "待付款",
+    "statusPaid": "已付款",
+    "statusOverdue": "逾期",
+    "invoiceItems": "發票項目",
+    "invoiceItemsDescription": "新增發票明細項目",
+    "itemDescription": "項目描述",
+    "itemDescriptionPlaceholder": "輸入項目描述",
+    "itemDescriptionRequired": "請輸入所有項目的描述",
+    "quantity": "數量",
+    "unitPrice": "單價",
+    "addItem": "新增項目",
+    "atLeastOneItem": "發票至少需要一個項目",
+    "subtotal": "小計",
+    "tax": "稅額",
+    "total": "總計",
+    "notes": "備註",
+    "notesPlaceholder": "輸入發票備註或條款...",
+    "created": "發票已建立",
+    "createFailed": "建立發票失敗"
   },
   "expenses": {
     "title": "費用列表",
@@ -1233,15 +1372,15 @@
     "showing": "顯示 {count} / {total} 筆費用"
   },
   "chartOfAccounts": {
-    "title": "會計科目表",
-    "description": "管理組織的帳戶結構",
-    "addAccount": "新增科目",
-    "editAccount": "編輯科目",
-    "accountCode": "科目代碼",
-    "accountName": "科目名稱",
-    "accountNameZh": "科目名稱（中文）",
-    "accountType": "科目類型",
-    "parentAccount": "上級科目",
+    "title": "會計項目表",
+    "description": "管理組織的會計項目結構",
+    "addAccount": "新增項目",
+    "editAccount": "編輯項目",
+    "accountCode": "項目代碼",
+    "accountName": "項目名稱",
+    "accountNameZh": "項目名稱（中文）",
+    "accountType": "項目類型",
+    "parentAccount": "上級項目",
     "currentBalance": "目前餘額",
     "isActive": "啟用",
     "treeView": "樹狀檢視",
@@ -1255,7 +1394,7 @@
       "revenue": "收入",
       "expense": "費用"
     },
-    "noAccounts": "找不到科目"
+    "noAccounts": "找不到項目"
   }
 }
 

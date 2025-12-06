@@ -107,7 +107,7 @@
     "analyst": "Analyst",
     "planner": "Planner",
     "documentAssistant": "Document Assistant",
-    "finance": "Finance",
+    "finance": "Company Finance",
     "settings": "Settings",
     "business": "Business",
     "audits": "Audits",
@@ -121,6 +121,7 @@
     "analystAssistant": "Analyst",
     "financeDashboard": "Dashboard",
     "accounts": "Accounts",
+    "accountingItems": "Accounting Items",
     "general": "General",
     "currencies": "Currencies",
     "taxRates": "Tax Rates"
@@ -483,8 +484,8 @@
     "recordDeleted": "Record deleted successfully"
   },
   "finance": {
-    "title": "Finance",
-    "overview": "Finance Overview",
+    "title": "Company Finance",
+    "overview": "Company Finance Overview",
     "totalRevenue": "Total Revenue",
     "totalExpenses": "Total Expenses",
     "pendingInvoices": "Pending Invoices",
@@ -510,10 +511,10 @@
     "keyPerformanceIndicators": "Key performance indicators",
     "income": "Income",
     "expense": "Expense",
-    "chartOfAccounts": "Chart of Accounts",
-    "accountsDescription": "Manage your chart of accounts and account hierarchy",
+    "chartOfAccounts": "Accounting Items",
+    "accountsDescription": "Manage your accounting items and item hierarchy",
     "refresh": "Refresh",
-    "addAccount": "Add Account",
+    "addAccount": "Add Item",
     "allTypes": "All Types",
     "asset": "Asset",
     "liability": "Liability",
@@ -521,7 +522,7 @@
     "revenue": "Revenue",
     "treeView": "Tree",
     "listView": "List",
-    "allAccounts": "All Accounts",
+    "allAccounts": "All Items",
     "code": "Code",
     "name": "Name",
     "type": "Type",
@@ -898,6 +899,7 @@
   },
   "dashboard": {
     "welcome": "Hi, Welcome back",
+    "welcomeBack": "Hi, Welcome back",
     "download": "Download",
     "overview": "Overview",
     "analytics": "Analytics",
@@ -920,7 +922,114 @@
     "areaChart": "Area Chart",
     "showingTotalVisitors": "Showing total visitors for the last 6 months",
     "pieChart": "Browser Distribution",
-    "visitorsByBrowser": "January - June 2024"
+    "visitorsByBrowser": "January - June 2024",
+    "demoData": "Demo Data",
+    "liveAPI": "Live API",
+    "statsCards": {
+      "accounting": {
+        "auditProjects": "Audit Projects",
+        "viewAuditProjects": "View Audit Projects",
+        "taxReturns": "Tax Returns",
+        "viewTaxReturns": "View Tax Returns",
+        "billableHoursMTD": "Billable Hours (MTD)",
+        "viewBillableHours": "View Billable Hours",
+        "annualRevenue": "Annual Revenue",
+        "viewRevenueManagement": "View Revenue Management"
+      },
+      "financialPR": {
+        "listedClients": "Listed Company Clients",
+        "viewListedClients": "View Listed Clients",
+        "monthlyAnnouncements": "Monthly Announcements",
+        "viewAnnouncements": "View Announcements",
+        "mediaCoverage": "Media Coverage",
+        "viewMediaCoverage": "View Media Coverage",
+        "activeEngagements": "Active Engagements",
+        "viewEngagements": "View Engagements"
+      },
+      "ipoAdvisory": {
+        "ipoMandates": "IPO Mandates",
+        "viewIPOMandates": "View IPO Mandates",
+        "engagements": "Engagements",
+        "viewEngagements": "View Engagements",
+        "clientPerformance": "Client Performance",
+        "viewClientPerformance": "View Client Performance",
+        "revenueManagement": "Revenue Management",
+        "viewRevenueManagement": "View Revenue Management"
+      },
+      "active": "Active",
+      "growth": "+Growth"
+    },
+    "recentPayments": {
+      "accounting": {
+        "title": "Recent Payments",
+        "description": "You received 12 payments this month"
+      },
+      "financialPR": {
+        "title": "Recent Activities",
+        "description": "28 announcements handled this month"
+      },
+      "ipoAdvisory": {
+        "title": "Recent Deal Fees",
+        "description": "8 active mandates in progress"
+      }
+    },
+    "charts": {
+      "accounting": {
+        "barTitle": "Billable Hours by Service",
+        "barDescription": "Monthly breakdown of billable hours",
+        "audit": "Audit",
+        "tax": "Tax",
+        "advisory": "Advisory",
+        "areaTitle": "Cash Flow Trend",
+        "areaDescription": "Fee income vs operating costs (HK$ thousands)",
+        "feeIncome": "Fee Income (HK$K)",
+        "operatingCosts": "Operating Costs (HK$K)",
+        "areaTrend": "Net margin improved by 18.5%",
+        "areaPeriod": "July - December 2024",
+        "pieTitle": "Revenue by Service",
+        "pieDescription": "Fee income breakdown by service line",
+        "pieCenterLabel": "Total Revenue",
+        "pieTrend": "Audit leads with",
+        "piePeriod": "FY 2024 Year-to-Date"
+      },
+      "financialPR": {
+        "barTitle": "Client Engagement Activities",
+        "barDescription": "Monthly PR activities performed",
+        "announcements": "Announcements",
+        "meetings": "Investor Meetings",
+        "events": "Events",
+        "areaTitle": "Media Coverage Analysis",
+        "areaDescription": "Positive vs negative media mentions for clients",
+        "positiveCoverage": "Positive Coverage",
+        "negativeCoverage": "Negative Coverage",
+        "areaTrend": "Positive sentiment up 24.3%",
+        "areaPeriod": "July - December 2024",
+        "pieTitle": "Revenue by Service",
+        "pieDescription": "Income breakdown by PR service type",
+        "pieCenterLabel": "Total Revenue",
+        "pieTrend": "IR Retainer leads with",
+        "piePeriod": "FY 2024 Year-to-Date"
+      },
+      "ipoAdvisory": {
+        "barTitle": "Deal Pipeline Value",
+        "barDescription": "Deal value by stage (HK$ millions)",
+        "preparation": "Preparation",
+        "filing": "Filing",
+        "listing": "Listed",
+        "areaTitle": "Deal Pipeline Progress",
+        "areaDescription": "Active mandates vs completed listings",
+        "activeDeals": "Active Deals",
+        "completedDeals": "Completed Deals",
+        "areaTrend": "11 successful listings YTD",
+        "areaPeriod": "July - December 2024",
+        "pieTitle": "Revenue by Deal Type",
+        "pieDescription": "Fee income by transaction category",
+        "pieCenterLabel": "Total Revenue",
+        "pieTrend": "Main Board IPO leads with",
+        "piePeriod": "FY 2024 Year-to-Date"
+      },
+      "last6Months": "Last 6 months"
+    }
   },
   "businessOverview": {
     "title": "Business Management",
@@ -1209,7 +1318,37 @@
     "overdue": "Overdue",
     "generating": "Generating PDF...",
     "exported": "Invoice exported",
-    "selectToExport": "Please select invoices to export"
+    "selectToExport": "Please select invoices to export",
+    "newInvoice": "New Invoice",
+    "newInvoiceDescription": "Create a new invoice record",
+    "invoiceInfo": "Invoice Information",
+    "invoiceInfoDescription": "Set invoice basic information",
+    "clientInfo": "Client Information",
+    "clientInfoDescription": "Fill in client details",
+    "clientEmail": "Client Email",
+    "clientAddress": "Client Address",
+    "clientPlaceholder": "Enter client name",
+    "clientAddressPlaceholder": "Enter client address",
+    "clientRequired": "Client name is required",
+    "statusPending": "Pending",
+    "statusPaid": "Paid",
+    "statusOverdue": "Overdue",
+    "invoiceItems": "Invoice Items",
+    "invoiceItemsDescription": "Add invoice line items",
+    "itemDescription": "Description",
+    "itemDescriptionPlaceholder": "Enter item description",
+    "itemDescriptionRequired": "Please enter description for all items",
+    "quantity": "Quantity",
+    "unitPrice": "Unit Price",
+    "addItem": "Add Item",
+    "atLeastOneItem": "Invoice must have at least one item",
+    "subtotal": "Subtotal",
+    "tax": "Tax",
+    "total": "Total",
+    "notes": "Notes",
+    "notesPlaceholder": "Enter invoice notes or terms...",
+    "created": "Invoice created",
+    "createFailed": "Failed to create invoice"
   },
   "expenses": {
     "title": "Expense List",
@@ -1233,15 +1372,15 @@
     "showing": "Showing {count} of {total} expenses"
   },
   "chartOfAccounts": {
-    "title": "Chart of Accounts",
-    "description": "Manage your organization's account structure",
-    "addAccount": "Add Account",
-    "editAccount": "Edit Account",
-    "accountCode": "Account Code",
-    "accountName": "Account Name",
-    "accountNameZh": "Account Name (Chinese)",
-    "accountType": "Account Type",
-    "parentAccount": "Parent Account",
+    "title": "Accounting Items",
+    "description": "Manage your organization's accounting item structure",
+    "addAccount": "Add Item",
+    "editAccount": "Edit Item",
+    "accountCode": "Item Code",
+    "accountName": "Item Name",
+    "accountNameZh": "Item Name (Chinese)",
+    "accountType": "Item Type",
+    "parentAccount": "Parent Item",
     "currentBalance": "Current Balance",
     "isActive": "Active",
     "treeView": "Tree View",
@@ -1255,7 +1394,7 @@
       "revenue": "Revenue",
       "expense": "Expense"
     },
-    "noAccounts": "No accounts found"
+    "noAccounts": "No items found"
   }
 }
 
