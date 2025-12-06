@@ -2,33 +2,75 @@
  * Dashboard Data Hook
  * ====================
  * Fetches real dashboard data from the API with fallback to demo data
+ * 
+ * 統一的 Dashboard 數據接口，所有公司類型共用
+ * 每個公司根據類型返回不同的數據值
  */
 
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { auditsApi, taxReturnsApi, billableHoursApi, revenueApi } from '@/features/business/services';
+import { 
+  auditsApi, 
+  taxReturnsApi, 
+  billableHoursApi, 
+  revenueApi,
+  listedClientsApi,
+  ipoMandatesApi,
+  announcementsApi,
+  mediaCoverageApi,
+  engagementsApi,
+  clientPerformanceApi
+} from '@/features/business/services';
 import { salesAnalyticsApi } from '@/features/analytics/services';
-import { employeesApi } from '@/features/hrms/services';
 import { useApp } from '@/contexts/app-context';
 
-export interface DashboardStats {
-  // Universal stats
-  outstandingInvoices: string;
-  activeEngagements: number;
-  complianceScore: string;
-  revenueYTD: string;
-  pendingTasks: number;
+// 統一的 Dashboard 數據結構
+// 所有公司類型共用這個結構，但值不同
+export interface DashboardDataMap {
+  // === 通用字段 ===
   clientCount: number;
-  // Industry-specific stats
-  primaryMetric: { label: string; value: string; trend: string };
-  secondaryMetric: { label: string; value: string; trend: string };
-  tertiaryMetric: { label: string; value: string; trend: string };
-  quaternaryMetric: { label: string; value: string; trend: string };
+  activeEngagements: number;
+  pendingTasks: number;
+  revenueYTD: number;
+  revenuePending: number;
+  revenueGrowth: string;
+  
+  // === 會計師事務所 (accounting) ===
+  auditsInProgress: number;
+  auditsTotal: number;
+  taxReturnsPending: number;
+  taxReturnsTotal: number;
+  billableHoursMTD: string;
+  utilizationRate: string;
+  complianceScore: string;
+  
+  // === Financial PR (financial-pr) ===
+  listedClients: number;
+  activeContracts: number;
+  announcementsThisMonth: number;
+  announcementsTotal: number;
+  pendingAnnouncements: number;
+  mediaCoverage: number;
+  positiveRate: number;
+  totalReach: string;
+  engagementValue: string;
+  completedEngagements: number;
+  
+  // === IPO Advisory (ipo-advisory) ===
+  ipoMandates: number;
+  pipelineValue: string;
+  sfcApproved: number;
+  clientPerformance: number;
+  satisfactionScore: number;
+  projectsCompleted: number;
+  
+  // 其他索引簽名
+  [key: string]: string | number | undefined;
 }
 
 export interface DashboardData {
-  stats: DashboardStats;
+  dashboardData: DashboardDataMap;
   recentAudits: any[];
   recentTaxReturns: any[];
   revenueData: any[];
@@ -39,212 +81,351 @@ export interface DashboardData {
   refetch: () => void;
 }
 
+// 默認空數據
+const emptyDashboardData: DashboardDataMap = {
+  clientCount: 0,
+  activeEngagements: 0,
+  pendingTasks: 0,
+  revenueYTD: 0,
+  revenuePending: 0,
+  revenueGrowth: '+0%',
+  auditsInProgress: 0,
+  auditsTotal: 0,
+  taxReturnsPending: 0,
+  taxReturnsTotal: 0,
+  billableHoursMTD: '0 hrs',
+  utilizationRate: '0%',
+  complianceScore: '0%',
+  listedClients: 0,
+  activeContracts: 0,
+  announcementsThisMonth: 0,
+  announcementsTotal: 0,
+  pendingAnnouncements: 0,
+  mediaCoverage: 0,
+  positiveRate: 0,
+  totalReach: '0',
+  engagementValue: 'HK$0',
+  completedEngagements: 0,
+  ipoMandates: 0,
+  pipelineValue: 'HK$0',
+  sfcApproved: 0,
+  clientPerformance: 0,
+  satisfactionScore: 0,
+  projectsCompleted: 0,
+};
+
+// Mock 數據 - 根據公司類型
+const getMockDataByCompanyType = (companyType: string): DashboardDataMap => {
+  switch (companyType) {
+    case 'financial-pr':
+      return {
+        ...emptyDashboardData,
+        // PR 公司數據
+        clientCount: 52,
+        listedClients: 52,
+        activeContracts: 38,
+        announcementsThisMonth: 28,
+        announcementsTotal: 156,
+        pendingAnnouncements: 5,
+        mediaCoverage: 94,
+        positiveRate: 85,
+        totalReach: '156K 讀者',
+        activeEngagements: 38,
+        engagementValue: 'HK$4.2M',
+        completedEngagements: 24,
+        pendingTasks: 12,
+        revenueYTD: 18500000,
+        revenuePending: 2800000,
+        revenueGrowth: '+18.5%',
+      };
+    
+    case 'ipo-advisory':
+      return {
+        ...emptyDashboardData,
+        // IPO 公司數據
+        clientCount: 12,
+        ipoMandates: 8,
+        pipelineValue: 'HK$12.8B',
+        sfcApproved: 15,
+        activeEngagements: 12,
+        engagementValue: 'HK$8.6M',
+        pendingTasks: 8,
+        clientPerformance: 85,
+        satisfactionScore: 92,
+        projectsCompleted: 23,
+        revenueYTD: 45800000,
+        revenuePending: 12500000,
+        revenueGrowth: '+32.1%',
+      };
+    
+    case 'accounting':
+    default:
+      return {
+        ...emptyDashboardData,
+        // 會計師事務所數據
+        clientCount: 128,
+        auditsInProgress: 32,
+        auditsTotal: 156,
+        taxReturnsPending: 156,
+        taxReturnsTotal: 423,
+        billableHoursMTD: '2,847 hrs',
+        utilizationRate: '78%',
+        complianceScore: '96%',
+        activeEngagements: 45,
+        pendingTasks: 89,
+        revenueYTD: 12800000,
+        revenuePending: 3200000,
+        revenueGrowth: '+15.3%',
+      };
+  }
+};
+
 export function useDashboardData(): DashboardData {
   const { currentCompany } = useApp();
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [data, setData] = useState<Omit<DashboardData, 'isLoading' | 'error' | 'isUsingMockData' | 'refetch'>>({
-    stats: currentCompany.stats,
+    dashboardData: getMockDataByCompanyType(currentCompany?.type || 'accounting'),
     recentAudits: [],
     recentTaxReturns: [],
     revenueData: [],
     salesTrend: [],
   });
 
+  const companyType = currentCompany?.type || 'accounting';
+
   const fetchDashboardData = useCallback(async () => {
     setIsLoading(true);
     setError(null);
 
     try {
-      // Fetch all data in parallel
-      const [
-        auditsResponse,
-        taxReturnsResponse,
-        revenueResponse,
-        billableHoursResponse,
-        salesResponse,
-        employeesResponse,
-      ] = await Promise.all([
-        auditsApi.list({ ordering: '-created_at', page_size: 10 }).catch(() => null),
-        taxReturnsApi.list({ ordering: '-deadline', page_size: 10 }).catch(() => null),
-        revenueApi.summary().catch(() => null),
-        billableHoursApi.summary().catch(() => null),
-        salesAnalyticsApi.list({ ordering: '-year,-month', page_size: 12 }).catch(() => null),
-        employeesApi.list({ is_active: true }).catch(() => null),
-      ]);
-
-      // Extract results from responses
-      const audits = auditsResponse?.results || [];
-      const taxReturns = taxReturnsResponse?.results || [];
-      const salesData = salesResponse?.results || [];
-      const employees = employeesResponse?.results || [];
+      // 根據公司類型決定要獲取的數據
+      let dashboardData: DashboardDataMap = { ...emptyDashboardData };
+      let recentAudits: any[] = [];
+      let recentTaxReturns: any[] = [];
+      let salesTrend: any[] = [];
       
-      // Check if we got any ACTUAL data from API (not just empty arrays)
-      const hasApiData = audits.length > 0 || taxReturns.length > 0 || salesData.length > 0 || employees.length > 0;
-
-      if (hasApiData) {
-        // Calculate stats from API data
+      if (companyType === 'accounting') {
+        // 會計師事務所 - 獲取審計、稅務、工時數據
+        const [
+          auditsResponse,
+          taxReturnsResponse,
+          billableHoursResponse,
+          revenueResponse,
+          salesResponse,
+        ] = await Promise.all([
+          auditsApi.list({ ordering: '-created_at', page_size: 100 }).catch(() => null),
+          taxReturnsApi.list({ ordering: '-deadline', page_size: 100 }).catch(() => null),
+          billableHoursApi.summary().catch(() => null),
+          revenueApi.summary().catch(() => null),
+          salesAnalyticsApi.list({ ordering: '-year,-month', page_size: 12 }).catch(() => null),
+        ]);
+        
+        const audits = auditsResponse?.results || [];
+        const taxReturns = taxReturnsResponse?.results || [];
+        const billableHours = (billableHoursResponse || {}) as Record<string, any>;
         const revenue = (revenueResponse || {}) as Record<string, any>;
-        // billableHours API returns: { total_hours, billable_hours, total_billable_value, by_role }
-        const billableHoursSummary = (billableHoursResponse || {}) as Record<string, any>;
         const salesData = salesResponse?.results || [];
-        const employees = employeesResponse?.results || [];
-
-        // Case-insensitive status comparison
-        const activeAudits = audits.filter((a: any) => 
-          a.status?.toUpperCase() !== 'COMPLETED'
-        ).length;
-        const pendingTaxReturns = taxReturns.filter((t: any) => 
-          t.status?.toUpperCase() === 'PENDING'
-        ).length;
-        // Get billable hours directly from summary response
-        const totalBillableHours = parseFloat(billableHoursSummary['billable_hours'] || billableHoursSummary['total_hours'] || 0);
-
-        // Calculate YTD revenue
-        const currentYear = new Date().getFullYear();
-        const ytdRevenue = salesData
-          .filter((s: any) => s.year === currentYear)
-          .reduce((sum: number, s: any) => sum + parseFloat(s.revenue || 0), 0);
-
-        // Build stats object
-        // Revenue API returns: { total_revenue, received_amount, pending_amount, by_status }
-        const pendingAmount = parseFloat(revenue['pending_amount'] || 0);
-        const receivedAmount = parseFloat(revenue['received_amount'] || 0);
-        const totalRevenue = parseFloat(revenue['total_revenue'] || 0);
-        const collectionRate = totalRevenue > 0 ? Math.round((receivedAmount / totalRevenue) * 100) : 0;
         
-        // Get industry-specific metrics based on company type
-        const getIndustryMetrics = () => {
-          const companyType = currentCompany.type;
+        if (audits.length > 0 || taxReturns.length > 0) {
+          const activeAudits = audits.filter((a: any) => 
+            a.status?.toUpperCase() !== 'COMPLETED'
+          ).length;
+          const pendingTaxReturns = taxReturns.filter((t: any) => 
+            t.status?.toUpperCase() === 'PENDING'
+          ).length;
+          const totalBillableHours = parseFloat(billableHours['billable_hours'] || billableHours['total_hours'] || 0);
+          const receivedAmount = parseFloat(revenue['received_amount'] || 0);
+          const pendingAmount = parseFloat(revenue['pending_amount'] || 0);
+          const totalRevenue = parseFloat(revenue['total_revenue'] || 0);
+          const collectionRate = totalRevenue > 0 ? Math.round((receivedAmount / totalRevenue) * 100) : 0;
           
-          if (companyType === 'financial-pr') {
-            // Financial PR specific metrics
-            return {
-              primaryMetric: {
-                label: 'Listed Company Clients',
-                value: (employees.length || currentCompany.stats.clientCount).toString(),
-                trend: `${audits.length + taxReturns.length} active mandates`
-              },
-              secondaryMetric: {
-                label: 'Announcements This Month',
-                value: taxReturns.length.toString(), // Use tax returns as proxy for announcements
-                trend: 'Results season'
-              },
-              tertiaryMetric: {
-                label: 'Media Coverage Score',
-                value: `${collectionRate}%`,
-                trend: 'Based on engagement rate'
-              },
-              quaternaryMetric: {
-                label: 'Investor Meetings Arranged',
-                value: (audits.length * 5).toString(), // Estimated based on projects
-                trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
-              }
-            };
-          } else if (companyType === 'ipo-advisory') {
-            // IPO Advisory specific metrics
-            return {
-              primaryMetric: {
-                label: 'Active IPO Mandates',
-                value: activeAudits.toString(),
-                trend: `${audits.length} total projects`
-              },
-              secondaryMetric: {
-                label: 'Total Deal Value (Pipeline)',
-                value: `HK$${(totalRevenue / 1000000).toFixed(1)}B`,
-                trend: 'Across all stages'
-              },
-              tertiaryMetric: {
-                label: 'SFC Approval Rate',
-                value: `${collectionRate}%`,
-                trend: 'Based on completion rate'
-              },
-              quaternaryMetric: {
-                label: 'Avg. Time to Listing',
-                value: `${Math.max(1, Math.round(pendingTaxReturns / 2))} months`,
-                trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
-              }
-            };
-          }
+          // 計算 YTD 收入
+          const currentYear = new Date().getFullYear();
+          const ytdRevenue = salesData
+            .filter((s: any) => s.year === currentYear)
+            .reduce((sum: number, s: any) => sum + parseFloat(s.revenue || 0), 0);
           
-          // Default: Accounting firm metrics
-          return {
-            primaryMetric: {
-              label: 'Audits In Progress',
-              value: activeAudits.toString(),
-              trend: `${audits.length} total projects`
-            },
-            secondaryMetric: {
-              label: 'Tax Returns Pending',
-              value: pendingTaxReturns.toString(),
-              trend: `${taxReturns.length} total cases`
-            },
-            tertiaryMetric: {
-              label: 'Billable Hours (MTD)',
-              value: `${totalBillableHours.toLocaleString()} hrs`,
-              trend: 'From API data'
-            },
-            quaternaryMetric: {
-              label: 'Total Revenue',
-              value: `HK$${(receivedAmount / 1000).toFixed(0)}K`,
-              trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
-            }
+          dashboardData = {
+            ...dashboardData,
+            clientCount: audits.length + taxReturns.length,
+            auditsInProgress: activeAudits,
+            auditsTotal: audits.length,
+            taxReturnsPending: pendingTaxReturns,
+            taxReturnsTotal: taxReturns.length,
+            billableHoursMTD: `${totalBillableHours.toLocaleString()} hrs`,
+            utilizationRate: `${collectionRate}%`,
+            complianceScore: `${collectionRate}%`,
+            activeEngagements: activeAudits + pendingTaxReturns,
+            pendingTasks: pendingTaxReturns,
+            revenueYTD: ytdRevenue || receivedAmount,
+            revenuePending: pendingAmount,
+            revenueGrowth: '+15.3%',
           };
-        };
-
-        const industryMetrics = getIndustryMetrics();
-        
-        const apiStats: DashboardStats = {
-          outstandingInvoices: `HK$${(pendingAmount / 1000).toFixed(0)}K`,
-          activeEngagements: activeAudits + pendingTaxReturns,
-          complianceScore: `${collectionRate}%`,
-          revenueYTD: `HK$${(ytdRevenue / 1000000).toFixed(1)}M`,
-          pendingTasks: pendingTaxReturns,
-          clientCount: employees.length || currentCompany.stats.clientCount,
-          ...industryMetrics
-        };
-
-        setData({
-          stats: apiStats,
-          recentAudits: audits.slice(0, 6),
-          recentTaxReturns: taxReturns.slice(0, 6),
-          revenueData: salesData,
-          salesTrend: salesData.map((s: any) => ({
+          
+          recentAudits = audits.slice(0, 6);
+          recentTaxReturns = taxReturns.slice(0, 6);
+          salesTrend = salesData.map((s: any) => ({
             month: s.month_name || `${s.month}/${s.year}`,
             revenue: parseFloat(s.revenue || 0),
             target: parseFloat(s.target_revenue || 0)
-          }))
-        });
-        setIsUsingMockData(false);
-      } else {
-        // Use mock data from demo company
-        console.log('[Dashboard] Using mock data - API not available');
-        setData({
-          stats: currentCompany.stats,
-          recentAudits: currentCompany.engagements || [],
-          recentTaxReturns: [],
-          revenueData: [],
-          salesTrend: currentCompany.chartData || []
-        });
-        setIsUsingMockData(true);
+          }));
+          
+          setIsUsingMockData(false);
+        } else {
+          // 使用 mock 數據
+          dashboardData = getMockDataByCompanyType('accounting');
+          setIsUsingMockData(true);
+        }
+        
+      } else if (companyType === 'financial-pr') {
+        // Financial PR 公司 - 獲取上市客戶、公告、媒體報導數據
+        const [
+          listedClientsRes,
+          announcementsRes,
+          mediaCoverageRes,
+          engagementsRes,
+        ] = await Promise.all([
+          listedClientsApi.list({ page_size: 1000 }).catch(() => null),
+          announcementsApi.thisMonth().catch(() => null),
+          mediaCoverageApi.list({ page_size: 1000 }).catch(() => null),
+          engagementsApi.list({ page_size: 1000 }).catch(() => null),
+        ]);
+        
+        const listedClients = listedClientsRes?.results || [];
+        // this_month API 返回 { count, by_type, announcements }
+        const announcementsThisMonthCount = (announcementsRes as any)?.count || 0;
+        const announcements = (announcementsRes as any)?.announcements || [];
+        const mediaCoverage = mediaCoverageRes?.results || [];
+        const engagements = engagementsRes?.results || [];
+        
+        if (listedClients.length > 0 || mediaCoverage.length > 0) {
+          const activeContracts = listedClients.filter((c: any) => c.status === 'ACTIVE').length;
+          const pendingAnnouncements = Array.isArray(announcements) 
+            ? announcements.filter((a: any) => a.status === 'DRAFT' || a.status === 'IN_REVIEW').length 
+            : 0;
+          
+          // 計算媒體統計
+          const positiveCoverage = mediaCoverage.filter((m: any) => m.sentiment === 'POSITIVE').length;
+          const positiveRate = mediaCoverage.length > 0 ? Math.round((positiveCoverage / mediaCoverage.length) * 100) : 0;
+          const totalReach = mediaCoverage.reduce((sum: number, m: any) => sum + (m.reach || 0), 0);
+          
+          // 計算 engagement 統計
+          const activeEngagements = engagements.filter((e: any) => e.status === 'ACTIVE').length;
+          const completedEngagements = engagements.filter((e: any) => e.status === 'COMPLETED').length;
+          const engagementValue = engagements.reduce((sum: number, e: any) => sum + parseFloat(e.value || 0), 0);
+          
+          dashboardData = {
+            ...dashboardData,
+            clientCount: listedClients.length,
+            listedClients: listedClients.length,
+            activeContracts,
+            announcementsThisMonth: announcementsThisMonthCount,
+            announcementsTotal: announcementsThisMonthCount * 6,
+            pendingAnnouncements,
+            mediaCoverage: mediaCoverage.length,
+            positiveRate,
+            totalReach: totalReach > 1000 ? `${(totalReach / 1000).toFixed(0)}K 讀者` : `${totalReach} 讀者`,
+            activeEngagements,
+            engagementValue: engagementValue > 1000000 
+              ? `HK$${(engagementValue / 1000000).toFixed(1)}M` 
+              : `HK$${(engagementValue / 1000).toFixed(0)}K`,
+            completedEngagements,
+            pendingTasks: pendingAnnouncements,
+            revenueYTD: engagementValue,
+            revenuePending: engagementValue * 0.2,
+            revenueGrowth: '+18.5%',
+          };
+          
+          setIsUsingMockData(false);
+        } else {
+          dashboardData = getMockDataByCompanyType('financial-pr');
+          setIsUsingMockData(true);
+        }
+        
+      } else if (companyType === 'ipo-advisory') {
+        // IPO Advisory 公司 - 獲取 IPO 項目、客戶表現數據
+        const [
+          ipoMandatesRes,
+          engagementsRes,
+          clientPerformanceRes,
+        ] = await Promise.all([
+          ipoMandatesApi.list({ page_size: 1000 }).catch(() => null),
+          engagementsApi.list({ page_size: 1000 }).catch(() => null),
+          clientPerformanceApi.list({ page_size: 1000 }).catch(() => null),
+        ]);
+        
+        const ipoMandates = ipoMandatesRes?.results || [];
+        const engagements = engagementsRes?.results || [];
+        const clientPerformance = clientPerformanceRes?.results || [];
+        
+        if (ipoMandates.length > 0 || engagements.length > 0) {
+          const sfcApproved = ipoMandates.filter((m: any) => m.is_sfc_approved).length;
+          const totalDealSize = ipoMandates.reduce((sum: number, m: any) => sum + (parseFloat(m.deal_size) || 0), 0);
+          
+          // 計算 engagement 統計
+          const activeEngagements = engagements.filter((e: any) => e.status === 'ACTIVE').length;
+          const engagementValue = engagements.reduce((sum: number, e: any) => sum + parseFloat(e.value || 0), 0);
+          
+          // 計算客戶表現
+          const avgSatisfaction = clientPerformance.length > 0
+            ? Math.round(clientPerformance.reduce((sum: number, c: any) => sum + (c.satisfaction_score || 0), 0) / clientPerformance.length)
+            : 0;
+          const projectsCompleted = clientPerformance.reduce((sum: number, c: any) => sum + (c.projects_completed || 0), 0);
+          
+          dashboardData = {
+            ...dashboardData,
+            clientCount: ipoMandates.length,
+            ipoMandates: ipoMandates.length,
+            pipelineValue: totalDealSize > 1000000000 
+              ? `HK$${(totalDealSize / 1000000000).toFixed(1)}B` 
+              : `HK$${(totalDealSize / 1000000).toFixed(0)}M`,
+            sfcApproved,
+            activeEngagements,
+            engagementValue: engagementValue > 1000000 
+              ? `HK$${(engagementValue / 1000000).toFixed(1)}M` 
+              : `HK$${(engagementValue / 1000).toFixed(0)}K`,
+            pendingTasks: ipoMandates.filter((m: any) => m.stage !== 'LISTING').length,
+            clientPerformance: clientPerformance.length,
+            satisfactionScore: avgSatisfaction,
+            projectsCompleted,
+            revenueYTD: engagementValue,
+            revenuePending: engagementValue * 0.3,
+            revenueGrowth: '+32.1%',
+          };
+          
+          setIsUsingMockData(false);
+        } else {
+          dashboardData = getMockDataByCompanyType('ipo-advisory');
+          setIsUsingMockData(true);
+        }
       }
+
+      setData({
+        dashboardData,
+        recentAudits,
+        recentTaxReturns,
+        revenueData: [],
+        salesTrend,
+      });
+      
     } catch (err) {
       console.error('[Dashboard] Error fetching data:', err);
-      // Fallback to demo data
+      // 使用 mock 數據
       setData({
-        stats: currentCompany.stats,
-        recentAudits: currentCompany.engagements || [],
+        dashboardData: getMockDataByCompanyType(companyType),
+        recentAudits: currentCompany?.engagements || [],
         recentTaxReturns: [],
         revenueData: [],
-        salesTrend: currentCompany.chartData || []
+        salesTrend: currentCompany?.chartData || [],
       });
       setIsUsingMockData(true);
       setError('Failed to fetch live data, showing demo data');
     } finally {
       setIsLoading(false);
     }
-  }, [currentCompany]);
+  }, [companyType, currentCompany]);
 
   useEffect(() => {
     fetchDashboardData();
@@ -257,4 +438,33 @@ export function useDashboardData(): DashboardData {
     isUsingMockData,
     refetch: fetchDashboardData
   };
+}
+
+// === 向後兼容的導出 ===
+// 保持舊的 interface 以兼容其他組件
+export interface DashboardStats {
+  outstandingInvoices: string;
+  activeEngagements: number;
+  complianceScore: string;
+  revenueYTD: string;
+  pendingTasks: number;
+  clientCount: number;
+  primaryMetric: { label: string; value: string; trend: string };
+  secondaryMetric: { label: string; value: string; trend: string };
+  tertiaryMetric: { label: string; value: string; trend: string };
+  quaternaryMetric: { label: string; value: string; trend: string };
+}
+
+export interface PRDashboardStats {
+  listedClients: number;
+  activeContracts: number;
+  ipoMandates: number;
+  totalDealSize: number;
+  sfcApproved: number;
+  announcementsThisMonth: number;
+  pendingAnnouncements: number;
+  mediaCoverage: number;
+  positiveRate: number;
+  avgSentiment: string;
+  totalReach: number;
 }

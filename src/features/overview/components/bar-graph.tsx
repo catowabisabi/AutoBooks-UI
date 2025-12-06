@@ -2,6 +2,7 @@
 
 import * as React from 'react';
 import { Bar, BarChart, CartesianGrid, XAxis, Line, LineChart, YAxis, RadialBar, RadialBarChart, PolarAngleAxis, Legend } from 'recharts';
+import { useRouter } from 'next/navigation';
 
 import {
   Card,
@@ -20,7 +21,7 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
-import { IconTrendingUp, IconClock, IconUsers, IconChartBar } from '@tabler/icons-react';
+import { IconTrendingUp, IconClock, IconUsers, IconChartBar, IconExternalLink } from '@tabler/icons-react';
 
 // Accounting - Monthly billable hours by service type (Bar Chart)
 const accountingBillableData = [
@@ -334,6 +335,7 @@ function IPORadialChart() {
 export function BarGraph() {
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+  const router = useRouter();
   
   const [isClient, setIsClient] = React.useState(false);
 
@@ -345,12 +347,47 @@ export function BarGraph() {
     return null;
   }
 
+  // 根據公司類型決定導航目標
+  const getHref = () => {
+    switch (companyType) {
+      case 'accounting':
+        return '/dashboard/business/billable-hours';
+      case 'financial-pr':
+        return '/dashboard/business/media-sentiment';
+      case 'ipo-advisory':
+        return '/dashboard/business/ipo-timeline-progress';
+      default:
+        return '/dashboard/business/billable-hours';
+    }
+  };
+
+  const handleClick = () => {
+    router.push(getHref());
+  };
+
   // Render different chart types based on company
-  if (companyType === 'accounting') {
-    return <AccountingBarChart />;
-  } else if (companyType === 'financial-pr') {
-    return <PRLineChart />;
-  } else {
-    return <IPORadialChart />;
-  }
+  const ChartComponent = () => {
+    if (companyType === 'accounting') {
+      return <AccountingBarChart />;
+    } else if (companyType === 'financial-pr') {
+      return <PRLineChart />;
+    } else {
+      return <IPORadialChart />;
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick} 
+      className='cursor-pointer group transition-all duration-200 hover:scale-[1.01]'
+    >
+      <div className='relative'>
+        <ChartComponent />
+        <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
+          <IconExternalLink className='size-3' />
+          查看詳情
+        </div>
+      </div>
+    </div>
+  );
 }

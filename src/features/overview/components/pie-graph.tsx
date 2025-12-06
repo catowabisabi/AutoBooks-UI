@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { IconTrendingUp, IconTrendingDown, IconChartPie, IconUsers, IconBuildingSkyscraper } from '@tabler/icons-react';
+import { IconTrendingUp, IconTrendingDown, IconChartPie, IconUsers, IconBuildingSkyscraper, IconExternalLink } from '@tabler/icons-react';
 import { Label, Pie, PieChart, Cell, Treemap, ResponsiveContainer } from 'recharts';
+import { useRouter } from 'next/navigation';
 
 import {
   Card,
@@ -301,13 +302,49 @@ function IPODealSizeChart() {
 export function PieGraph() {
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+  const router = useRouter();
+
+  // 根據公司類型決定導航目標
+  const getHref = () => {
+    switch (companyType) {
+      case 'accounting':
+        return '/dashboard/business/service-revenues';
+      case 'financial-pr':
+        return '/dashboard/business/client-industries';
+      case 'ipo-advisory':
+        return '/dashboard/business/ipo-deal-size';
+      default:
+        return '/dashboard/business/service-revenues';
+    }
+  };
+
+  const handleClick = () => {
+    router.push(getHref());
+  };
 
   // Render different chart types based on company
-  if (companyType === 'accounting') {
-    return <AccountingDonutChart />;
-  } else if (companyType === 'financial-pr') {
-    return <PRIndustryChart />;
-  } else {
-    return <IPODealSizeChart />;
-  }
+  const ChartComponent = () => {
+    if (companyType === 'accounting') {
+      return <AccountingDonutChart />;
+    } else if (companyType === 'financial-pr') {
+      return <PRIndustryChart />;
+    } else {
+      return <IPODealSizeChart />;
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick} 
+      className='cursor-pointer group transition-all duration-200 hover:scale-[1.01]'
+    >
+      <div className='relative'>
+        <ChartComponent />
+        <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
+          <IconExternalLink className='size-3' />
+          查看詳情
+        </div>
+      </div>
+    </div>
+  );
 }

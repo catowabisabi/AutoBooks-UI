@@ -633,6 +633,135 @@ export const revenueTrendsApi = {
   yearly: () => api.get(`${BASE_URL}/revenue-trends/yearly/`),
 };
 
+// =================================================================
+// IPO Timeline Progress Types & API
+// =================================================================
+export interface IPOTimelineProgress {
+  id: string;
+  company: string;
+  company_name?: string;
+  phase: 'due_diligence' | 'documentation' | 'regulatory' | 'marketing' | 'pricing';
+  progress_percentage: number;
+  target_date: string;
+  status: 'not_started' | 'in_progress' | 'completed' | 'delayed';
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const ipoTimelineProgressApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<IPOTimelineProgress[] | PaginatedResponse<IPOTimelineProgress>>(`${BASE_URL}/ipo-timeline-progress/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<IPOTimelineProgress>(`${BASE_URL}/ipo-timeline-progress/${id}/`),
+  create: (data: Partial<IPOTimelineProgress>) => api.post<IPOTimelineProgress>(`${BASE_URL}/ipo-timeline-progress/`, data),
+  update: (id: string, data: Partial<IPOTimelineProgress>) => api.patch<IPOTimelineProgress>(`${BASE_URL}/ipo-timeline-progress/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/ipo-timeline-progress/${id}/`),
+  byCompany: (companyId?: string) => api.get(`${BASE_URL}/ipo-timeline-progress/by_company/`, { params: { company_id: companyId } }),
+  summary: () => api.get(`${BASE_URL}/ipo-timeline-progress/summary/`),
+};
+
+// =================================================================
+// IPO Deal Funnel Types & API
+// =================================================================
+export interface IPODealFunnel {
+  id: string;
+  company: string;
+  company_name?: string;
+  period_date: string;
+  stage: 'leads' | 'qualified' | 'proposal' | 'negotiation' | 'closed_won';
+  deal_count: number;
+  conversion_rate: number;
+  total_value: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const ipoDealFunnelApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<IPODealFunnel[] | PaginatedResponse<IPODealFunnel>>(`${BASE_URL}/ipo-deal-funnel/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<IPODealFunnel>(`${BASE_URL}/ipo-deal-funnel/${id}/`),
+  create: (data: Partial<IPODealFunnel>) => api.post<IPODealFunnel>(`${BASE_URL}/ipo-deal-funnel/`, data),
+  update: (id: string, data: Partial<IPODealFunnel>) => api.patch<IPODealFunnel>(`${BASE_URL}/ipo-deal-funnel/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/ipo-deal-funnel/${id}/`),
+  currentFunnel: () => api.get(`${BASE_URL}/ipo-deal-funnel/current_funnel/`),
+  conversionRates: () => api.get(`${BASE_URL}/ipo-deal-funnel/conversion_rates/`),
+};
+
+// =================================================================
+// IPO Deal Size Types & API
+// =================================================================
+export interface IPODealSize {
+  id: string;
+  company: string;
+  company_name?: string;
+  period_date: string;
+  size_category: 'mega' | 'large' | 'mid' | 'small';
+  deal_count: number;
+  total_amount: number;
+  avg_deal_size: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const ipoDealSizeApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<IPODealSize[] | PaginatedResponse<IPODealSize>>(`${BASE_URL}/ipo-deal-size/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<IPODealSize>(`${BASE_URL}/ipo-deal-size/${id}/`),
+  create: (data: Partial<IPODealSize>) => api.post<IPODealSize>(`${BASE_URL}/ipo-deal-size/`, data),
+  update: (id: string, data: Partial<IPODealSize>) => api.patch<IPODealSize>(`${BASE_URL}/ipo-deal-size/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/ipo-deal-size/${id}/`),
+  distribution: () => api.get(`${BASE_URL}/ipo-deal-size/distribution/`),
+  trend: (months?: number) => api.get(`${BASE_URL}/ipo-deal-size/trend/`, { params: { months } }),
+};
+
+// =================================================================
+// Business Partner Types & API
+// =================================================================
+export interface BusinessPartner {
+  id: string;
+  company: string;
+  company_name?: string;
+  name: string;
+  partner_type: 'kol' | 'provider' | 'vendor' | 'media' | 'consultant';
+  status: 'active' | 'inactive' | 'pending' | 'terminated';
+  contact_person?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  service_description?: string;
+  contract_start_date?: string;
+  contract_end_date?: string;
+  contract_value?: number;
+  rating?: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export const businessPartnersApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<BusinessPartner[] | PaginatedResponse<BusinessPartner>>(`${BASE_URL}/partners/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<BusinessPartner>(`${BASE_URL}/partners/${id}/`),
+  create: (data: Partial<BusinessPartner>) => api.post<BusinessPartner>(`${BASE_URL}/partners/`, data),
+  update: (id: string, data: Partial<BusinessPartner>) => api.patch<BusinessPartner>(`${BASE_URL}/partners/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/partners/${id}/`),
+  byType: (type?: string) => api.get(`${BASE_URL}/partners/by_type/`, { params: { type } }),
+  active: () => api.get(`${BASE_URL}/partners/active/`),
+  summary: () => api.get(`${BASE_URL}/partners/summary/`),
+};
+
 // Dashboard API
 export const businessDashboardApi = {
   overview: () => 

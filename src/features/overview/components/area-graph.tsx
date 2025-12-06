@@ -1,8 +1,9 @@
 'use client';
 
 import * as React from 'react';
-import { IconTrendingUp, IconChartAreaLine, IconRadar2, IconFilter } from '@tabler/icons-react';
+import { IconTrendingUp, IconChartAreaLine, IconRadar2, IconFilter, IconExternalLink } from '@tabler/icons-react';
 import { Area, AreaChart, CartesianGrid, XAxis, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ComposedChart, Bar, Line, YAxis, Legend } from 'recharts';
+import { useRouter } from 'next/navigation';
 
 import {
   Card,
@@ -239,13 +240,49 @@ function IPOFunnelChart() {
 export function AreaGraph() {
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+  const router = useRouter();
+
+  // 根據公司類型決定導航目標
+  const getHref = () => {
+    switch (companyType) {
+      case 'accounting':
+        return '/dashboard/business/revenue-trends';
+      case 'financial-pr':
+        return '/dashboard/business/client-performance';
+      case 'ipo-advisory':
+        return '/dashboard/business/ipo-deal-funnel';
+      default:
+        return '/dashboard/business/revenue-trends';
+    }
+  };
+
+  const handleClick = () => {
+    router.push(getHref());
+  };
 
   // Render different chart types based on company
-  if (companyType === 'accounting') {
-    return <AccountingAreaChart />;
-  } else if (companyType === 'financial-pr') {
-    return <PRRadarChart />;
-  } else {
-    return <IPOFunnelChart />;
-  }
+  const ChartComponent = () => {
+    if (companyType === 'accounting') {
+      return <AccountingAreaChart />;
+    } else if (companyType === 'financial-pr') {
+      return <PRRadarChart />;
+    } else {
+      return <IPOFunnelChart />;
+    }
+  };
+
+  return (
+    <div 
+      onClick={handleClick} 
+      className='cursor-pointer group transition-all duration-200 hover:scale-[1.01]'
+    >
+      <div className='relative'>
+        <ChartComponent />
+        <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
+          <IconExternalLink className='size-3' />
+          查看詳情
+        </div>
+      </div>
+    </div>
+  );
 }
