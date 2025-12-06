@@ -1,10 +1,12 @@
 'use client';
 
 import { UserAuthForm } from './user-auth-form';
-
 import { FeatureCarousel } from './feature-carousel';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function SignInView() {
+  const { t } = useTranslation();
+  
   return (
     <div className='relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
       <div className='bg-muted relative flex h-full flex-col p-10 text-white lg:flex-none lg:justify-between dark:border-r'>
@@ -33,10 +35,9 @@ export default function SignInView() {
         <div className='relative z-20'>
           <blockquote className='space-y-2'>
             <p className='text-lg'>
-              &ldquo;Streamline your business operations with our comprehensive
-              ERP solution.&rdquo;
+              &ldquo;{t('auth.featureQuote')}&rdquo;
             </p>
-            <footer className='text-sm'>WiseMatic Team</footer>
+            <footer className='text-sm'>{t('auth.erpTeam')}</footer>
           </blockquote>
         </div>
       </div>
@@ -44,10 +45,10 @@ export default function SignInView() {
         <div className='mx-auto flex w-full flex-col justify-center space-y-6 sm:w-[350px] lg:w-[400px]'>
           <div className='flex flex-col space-y-2 text-center'>
             <h1 className='text-2xl font-semibold tracking-tight'>
-              Welcome Back
+              {t('auth.welcomeBack')}
             </h1>
             <p className='text-muted-foreground text-sm'>
-              Enter your credentials to sign in
+              {t('auth.enterCredentials')}
             </p>
           </div>
           <UserAuthForm />

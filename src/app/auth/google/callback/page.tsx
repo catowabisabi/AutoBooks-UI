@@ -6,10 +6,12 @@ import { authApi } from '@/lib/api';
 import { Loader2 } from 'lucide-react';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Button } from '@/components/ui/button';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function GoogleCallbackPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { t } = useTranslation();
   const [error, setError] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(true);
 
@@ -19,13 +21,13 @@ export default function GoogleCallbackPage() {
       const errorParam = searchParams.get('error');
 
       if (errorParam) {
-        setError(`Google authentication failed: ${errorParam}`);
+        setError(`${t('auth.googleAuthFailed')}: ${errorParam}`);
         setIsProcessing(false);
         return;
       }
 
       if (!code) {
-        setError('No authorization code received from Google');
+        setError(t('auth.noAuthCode'));
         setIsProcessing(false);
         return;
       }
@@ -45,13 +47,13 @@ export default function GoogleCallbackPage() {
         router.push('/dashboard/overview');
       } catch (err: any) {
         console.error('Google callback error:', err);
-        setError(err.message || 'Failed to complete Google authentication');
+        setError(err.message || t('auth.googleAuthFailed'));
         setIsProcessing(false);
       }
     };
 
     handleCallback();
-  }, [searchParams, router]);
+  }, [searchParams, router, t]);
 
   if (error) {
     return (
@@ -64,7 +66,7 @@ export default function GoogleCallbackPage() {
             onClick={() => router.push('/sign-in')} 
             className="w-full"
           >
-            Back to Sign In
+            {t('auth.backToSignIn')}
           </Button>
         </div>
       </div>
@@ -76,7 +78,7 @@ export default function GoogleCallbackPage() {
       <div className="flex flex-col items-center space-y-4">
         <Loader2 className="h-12 w-12 animate-spin text-primary" />
         <p className="text-lg text-muted-foreground">
-          Completing Google sign in...
+          {t('auth.completingGoogleSignIn')}
         </p>
       </div>
     </div>
