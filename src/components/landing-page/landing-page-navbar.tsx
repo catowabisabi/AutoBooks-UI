@@ -11,14 +11,23 @@ import {
   SheetTrigger
 } from '@/components/ui/sheet';
 import { Menu } from 'lucide-react';
-import { navMenuItems } from '@/constants/landing-page';
 import Logo from '@/components/logo';
 import { useAuth } from '@/contexts/auth-context';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export default function LandingPageNavbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
+  const { t } = useTranslation();
+
+  const navMenuItems = [
+    { title: t('landing.nav.home'), href: '/' },
+    { title: t('landing.nav.features'), href: '#features' },
+    { title: t('landing.nav.faqs'), href: '#faqs' },
+    { title: t('landing.nav.contactUs'), href: '#contact' }
+  ];
 
   const handleDashboardRedirect = () => {
     if (user?.role) {
@@ -38,7 +47,7 @@ export default function LandingPageNavbar() {
         <nav className='hidden flex-1 justify-center md:flex'>
           <ul className='flex space-x-14'>
             {navMenuItems.map((item) => (
-              <li key={item.title}>
+              <li key={item.href}>
                 <Link
                   href={item.href}
                   className='hover:text-primary text-lg font-medium transition-colors'
@@ -52,6 +61,7 @@ export default function LandingPageNavbar() {
 
         {/* Auth Buttons for Desktop */}
         <div className='mx-4 hidden items-center space-x-2 md:flex'>
+          <LanguageSwitcher />
           {user ? (
             <>
               <Button
@@ -59,13 +69,13 @@ export default function LandingPageNavbar() {
                 onClick={logout}
                 className='transform transition-transform hover:scale-105 hover:shadow-lg'
               >
-                Logout
+                {t('landing.nav.logout')}
               </Button>
               <Button
                 onClick={handleDashboardRedirect}
                 className='transform transition-transform hover:scale-105 hover:shadow-lg'
               >
-                Dashboard
+                {t('landing.nav.dashboard')}
               </Button>
             </>
           ) : (
@@ -76,7 +86,7 @@ export default function LandingPageNavbar() {
                 target='_blank'
               >
                 <Button className='border-black-600 bg-primary text-primary-foreground transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
-                  Book a Demo
+                  {t('landing.nav.bookDemo')}
                 </Button>
               </Link>
               <Link href='/auth/sign-in'>
@@ -84,14 +94,9 @@ export default function LandingPageNavbar() {
                   variant='outline'
                   className='transform transition-transform hover:scale-105 hover:shadow-lg'
                 >
-                  Log in
+                  {t('landing.nav.login')}
                 </Button>
               </Link>
-              {/*<Link href='/auth/signup'>*/}
-              {/*  <Button className='transform transition-transform hover:scale-105 hover:shadow-lg'>*/}
-              {/*    Sign up*/}
-              {/*  </Button>*/}
-              {/*</Link>*/}
             </>
           )}
         </div>
@@ -105,11 +110,11 @@ export default function LandingPageNavbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side='right' className='w-[300px] sm:w-[400px]'>
-            <SheetTitle className='sr-only'>Mobile Navigation</SheetTitle>
+            <SheetTitle className='sr-only'>{t('landing.nav.mobileNav')}</SheetTitle>
             <nav className='flex h-full flex-col'>
               <ul className='flex flex-col space-y-4 px-4 py-6'>
                 {navMenuItems.map((item) => (
-                  <li key={item.title}>
+                  <li key={item.href}>
                     <Link
                       href={item.href}
                       className='hover:text-primary text-lg font-medium transition-colors'
@@ -121,6 +126,9 @@ export default function LandingPageNavbar() {
                 ))}
               </ul>
               <div className='flex flex-col space-y-4 border-t p-4'>
+                <div className='flex justify-center'>
+                  <LanguageSwitcher showLabel />
+                </div>
                 {user ? (
                   <>
                     <Button
@@ -131,7 +139,7 @@ export default function LandingPageNavbar() {
                         setOpen(false);
                       }}
                     >
-                      Logout
+                      {t('landing.nav.logout')}
                     </Button>
                     <Button
                       className='w-full transform transition-transform hover:scale-105 hover:shadow-lg'
@@ -140,7 +148,7 @@ export default function LandingPageNavbar() {
                         setOpen(false);
                       }}
                     >
-                      Dashboard
+                      {t('landing.nav.dashboard')}
                     </Button>
                   </>
                 ) : (
@@ -150,7 +158,7 @@ export default function LandingPageNavbar() {
                       target='_blank'
                     >
                       <Button className='border-black-600 bg-primary text-primary-foreground w-full transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
-                        Book a Demo
+                        {t('landing.nav.bookDemo')}
                       </Button>
                     </Link>
                     <Link href='/auth/sign-in'>
@@ -159,7 +167,7 @@ export default function LandingPageNavbar() {
                         className='w-full transform transition-transform hover:scale-105 hover:shadow-lg'
                         onClick={() => setOpen(false)}
                       >
-                        Log in
+                        {t('landing.nav.login')}
                       </Button>
                     </Link>
                   </>

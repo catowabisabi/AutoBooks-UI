@@ -7,8 +7,10 @@ import {
   LANDING_SECTION_STYLES,
   LANDING_ANIMATIONS
 } from '@/lib/landing-page-styles';
+import { useTranslation } from '@/lib/i18n/provider';
 
 const ContactSection = () => {
+  const { t } = useTranslation();
   const [form, setForm] = useState({
     name: '',
     email: '',
@@ -49,9 +51,9 @@ const ContactSection = () => {
       if (response.ok) {
         setSubmitStatus({
           success: true,
-          message: data.message || 'Message sent successfully!'
+          message: data.message || t('landing.contact.successMessage', 'Message sent successfully!')
         });
-        toast.success(data.message || 'Message sent successfully!');
+        toast.success(data.message || t('landing.contact.successMessage', 'Message sent successfully!'));
         setForm({
           name: '',
           email: '',
@@ -61,19 +63,19 @@ const ContactSection = () => {
       } else {
         setSubmitStatus({
           success: false,
-          message: data.message || 'Failed to send message. Please try again.'
+          message: data.message || t('landing.contact.errorMessage', 'Failed to send message. Please try again.')
         });
-        toast.error('Error', {
-          description: 'Failed to send message. Please try again.'
+        toast.error(t('common.error', 'Error'), {
+          description: t('landing.contact.errorMessage', 'Failed to send message. Please try again.')
         });
       }
     } catch (error) {
       setSubmitStatus({
         success: false,
-        message: 'An error occurred. Please try again later.'
+        message: t('landing.contact.networkError', 'An error occurred. Please try again later.')
       });
-      toast.error('Error', {
-        description: 'An error occurred. Please try again later.'
+      toast.error(t('common.error', 'Error'), {
+        description: t('landing.contact.networkError', 'An error occurred. Please try again later.')
       });
       console.error('Error submitting contact form:', error);
     } finally {
@@ -99,14 +101,13 @@ const ContactSection = () => {
         className={LANDING_SECTION_STYLES.sectionHeader.wrapper}
       >
         <h2 className={LANDING_SECTION_STYLES.sectionHeader.title}>
-          Get in{' '}
+          {t('landing.contact.title', 'Get in')}{' '}
           <span className='from-primary to-primary/80 bg-gradient-to-r bg-clip-text text-transparent'>
-            Touch
+            {t('landing.contact.titleHighlight', 'Touch')}
           </span>
         </h2>
         <p className={LANDING_SECTION_STYLES.sectionHeader.subtitle}>
-          Have questions or want to know more? Drop us a message below and
-          we&#39;ll get back to you soon.
+          {t('landing.contact.subtitle', "Have questions or want to know more? Drop us a message below and we'll get back to you soon.")}
         </p>
       </motion.div>
 
@@ -135,7 +136,7 @@ const ContactSection = () => {
                   htmlFor='name'
                   className={LANDING_SECTION_STYLES.contact.label}
                 >
-                  Name
+                  {t('landing.contact.name', 'Name')}
                 </label>
                 <input
                   type='text'
@@ -159,7 +160,7 @@ const ContactSection = () => {
                   htmlFor='email'
                   className={LANDING_SECTION_STYLES.contact.label}
                 >
-                  Email
+                  {t('landing.contact.email', 'Email')}
                 </label>
                 <input
                   type='email'
@@ -185,7 +186,7 @@ const ContactSection = () => {
                 htmlFor='subject'
                 className={LANDING_SECTION_STYLES.contact.label}
               >
-                Subject
+                {t('landing.contact.subject', 'Subject')}
               </label>
               <input
                 type='text'
@@ -210,7 +211,7 @@ const ContactSection = () => {
                 htmlFor='message'
                 className={LANDING_SECTION_STYLES.contact.label}
               >
-                Message
+                {t('landing.contact.message', 'Message')}
               </label>
               <textarea
                 id='message'
@@ -238,7 +239,7 @@ const ContactSection = () => {
               }`}
               disabled={isLoading}
             >
-              {isLoading ? 'Submitting...' : 'Send Message'}
+              {isLoading ? t('landing.contact.submitting', 'Submitting...') : t('landing.contact.send', 'Send Message')}
             </motion.button>
           </div>
         </motion.form>

@@ -8,8 +8,11 @@ import {
   LANDING_SECTION_STYLES,
   LANDING_ANIMATIONS
 } from '@/lib/landing-page-styles';
+import { useTranslation } from '@/lib/i18n/provider';
 
 const LandingPageHeroSection = () => {
+  const { t } = useTranslation();
+
   return (
     <section className={LANDING_SECTION_STYLES.hero.section}>
       {/* Background decorations */}
@@ -41,7 +44,7 @@ const LandingPageHeroSection = () => {
             WiseMatic ERP
           </span>
           <br />
-          The Smartest Way to Run Your Enterprise
+          {t('landing.hero.tagline', 'The Smartest Way to Run Your Enterprise')}
         </motion.h1>
 
         {/* Hero Subtitle */}
@@ -52,14 +55,7 @@ const LandingPageHeroSection = () => {
           viewport={{ once: false }}
           className={LANDING_SECTION_STYLES.hero.subtitle}
         >
-          An AI-powered, all-in-one ERP platform designed to{' '}
-          <span className='font-semibold'>streamline operations</span>,{' '}
-          <span className='font-semibold'>automate workflows</span>, and{' '}
-          <span className='font-semibold'>empower organizations</span> with{' '}
-          <span className='text-primary font-semibold'>
-            actionable insights
-          </span>
-          .
+          {t('landing.hero.subtitle', 'An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.')}
         </motion.p>
 
         {/* Hero Buttons */}
@@ -75,7 +71,7 @@ const LandingPageHeroSection = () => {
               {...LANDING_ANIMATIONS.buttonHover}
               className={LANDING_SECTION_STYLES.hero.primaryButton}
             >
-              Explore Features
+              {t('landing.hero.exploreFeatures', 'Explore Features')}
             </motion.button>
           </Link>
           <Link href='/auth/signup' passHref>
@@ -83,7 +79,7 @@ const LandingPageHeroSection = () => {
               {...LANDING_ANIMATIONS.buttonHover}
               className={LANDING_SECTION_STYLES.hero.secondaryButton}
             >
-              Get Started
+              {t('landing.hero.getStarted', 'Get Started')}
             </motion.button>
           </Link>
         </motion.div>

@@ -13,45 +13,54 @@ import {
   LANDING_SECTION_STYLES,
   LANDING_ANIMATIONS
 } from '@/lib/landing-page-styles';
+import { useTranslation } from '@/lib/i18n/provider';
 
 const LandingPageFeatureSection = () => {
-  // Features List
+  const { t } = useTranslation();
+
+  // Features List with translation keys
   const features = [
     {
       icon: <Users size={20} />,
-      text: 'Human Resource Management',
-      description:
-        'Handle employee records, payroll, attendance, and leaves with complete visibility and automation.'
+      textKey: 'landing.features.hrm.title',
+      descKey: 'landing.features.hrm.description',
+      defaultText: 'Human Resource Management',
+      defaultDesc: 'Handle employee records, payroll, attendance, and leaves with complete visibility and automation.'
     },
     {
       icon: <BarChart size={20} />,
-      text: 'Smart Analytics',
-      description:
-        'Let our AI assistants convert data into dashboards, reports, and strategic insights – instantly.'
+      textKey: 'landing.features.analytics.title',
+      descKey: 'landing.features.analytics.description',
+      defaultText: 'Smart Analytics',
+      defaultDesc: 'Let our AI assistants convert data into dashboards, reports, and strategic insights – instantly.'
     },
     {
       icon: <Calendar size={20} />,
-      text: 'Project Management',
-      description:
-        'Plan, track, and manage projects with integrated timelines, resource allocation, and progress tracking.'
+      textKey: 'landing.features.project.title',
+      descKey: 'landing.features.project.description',
+      defaultText: 'Project Management',
+      defaultDesc: 'Plan, track, and manage projects with integrated timelines, resource allocation, and progress tracking.'
     },
     {
       icon: <DollarSign size={20} />,
-      text: 'Financial Management',
-      description:
-        'Streamline accounting, budgeting, invoicing, and financial reporting with automated workflows.'
+      textKey: 'landing.features.finance.title',
+      descKey: 'landing.features.finance.description',
+      defaultText: 'Financial Management',
+      defaultDesc: 'Streamline accounting, budgeting, invoicing, and financial reporting with automated workflows.'
     },
     {
       icon: <Bell size={20} />,
-      text: 'Notification System',
-      description:
-        'Stay informed with real-time alerts for tasks, approvals, deadlines, and important updates.'
+      textKey: 'landing.features.notification.title',
+      descKey: 'landing.features.notification.description',
+      defaultText: 'Notification System',
+      defaultDesc: 'Stay informed with real-time alerts for tasks, approvals, deadlines, and important updates.'
     },
     {
       icon: <FileText size={20} />,
-      text: 'Document Management',
-      description:
-        'Centralize, organize, and secure all your business documents with intelligent search and retrieval.'
+      textKey: 'landing.features.document.title',
+      descKey: 'landing.features.document.description',
+      defaultText: 'Document Management',
+      defaultDesc: 'Centralize, organize, and secure all your business documents with intelligent search and retrieval.'
     }
   ];
 
@@ -73,11 +82,10 @@ const LandingPageFeatureSection = () => {
         className={LANDING_SECTION_STYLES.sectionHeader.wrapper}
       >
         <h2 className={LANDING_SECTION_STYLES.sectionHeader.title}>
-          Key Features
+          {t('landing.features.title', 'Key Features')}
         </h2>
         <p className={LANDING_SECTION_STYLES.sectionHeader.subtitle}>
-          Comprehensive tools to streamline operations, automate workflows, and
-          drive business growth.
+          {t('landing.features.subtitle', 'Comprehensive tools to streamline operations, automate workflows, and drive business growth.')}
         </p>
       </motion.div>
 
@@ -101,10 +109,10 @@ const LandingPageFeatureSection = () => {
                 {/* Feature Details */}
                 <div>
                   <h5 className={LANDING_SECTION_STYLES.card.title}>
-                    {feature.text}
+                    {t(feature.textKey, feature.defaultText)}
                   </h5>
                   <p className={LANDING_SECTION_STYLES.card.description}>
-                    {feature.description}
+                    {t(feature.descKey, feature.defaultDesc)}
                   </p>
                 </div>
               </div>

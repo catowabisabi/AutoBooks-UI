@@ -197,5 +197,99 @@
       "Summarize IPO due diligence items",
       "Calculate accounts receivable aging"
     ]
+  },
+  "landing": {
+    "nav": {
+      "home": "Home",
+      "features": "Features",
+      "faqs": "FAQs",
+      "contactUs": "Contact Us",
+      "bookDemo": "Book a Demo",
+      "login": "Log in",
+      "logout": "Logout",
+      "dashboard": "Dashboard",
+      "mobileNav": "Mobile Navigation"
+    },
+    "hero": {
+      "title": "Transform Your Business with AI-Powered ERP",
+      "tagline": "The Smartest Way to Run Your Enterprise",
+      "subtitle": "An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.",
+      "getStarted": "Get Started",
+      "exploreFeatures": "Explore Features",
+      "learnMore": "Learn More"
+    },
+    "features": {
+      "title": "Key Features",
+      "subtitle": "Comprehensive tools to streamline operations, automate workflows, and drive business growth.",
+      "hrm": {
+        "title": "Human Resource Management",
+        "description": "Handle employee records, payroll, attendance, and leaves with complete visibility and automation."
+      },
+      "analytics": {
+        "title": "Smart Analytics",
+        "description": "Let our AI assistants convert data into dashboards, reports, and strategic insights – instantly."
+      },
+      "project": {
+        "title": "Project Management",
+        "description": "Plan, track, and manage projects with integrated timelines, resource allocation, and progress tracking."
+      },
+      "finance": {
+        "title": "Financial Management",
+        "description": "Streamline accounting, budgeting, invoicing, and financial reporting with automated workflows."
+      },
+      "notification": {
+        "title": "Notification System",
+        "description": "Stay informed with real-time alerts for tasks, approvals, deadlines, and important updates."
+      },
+      "document": {
+        "title": "Document Management",
+        "description": "Centralize, organize, and secure all your business documents with intelligent search and retrieval."
+      }
+    },
+    "faq": {
+      "title": "Frequently Asked",
+      "titleHighlight": "Questions",
+      "subtitle": "Got questions? We've got answers. Explore our most common inquiries about WiseMatic ERP.",
+      "q1": "What is WiseMatic ERP and who can use it?",
+      "a1": "WiseMatic ERP is a comprehensive enterprise management platform designed for businesses, educational institutions, and organizations of all sizes. It streamlines operations, facilitates communication, and provides insightful analytics for all stakeholders.",
+      "q2": "How secure is the WiseMatic platform?",
+      "a2": "We prioritize data security with end-to-end encryption, multi-factor authentication, and compliance with industry data protection regulations. Your information is always safe and protected with enterprise-grade security.",
+      "q3": "Can I customize WiseMatic for my specific organization?",
+      "a3": "Absolutely! WiseMatic offers flexible configuration options to adapt to different organizational environments, whether you're a small business or a large enterprise with complex workflows.",
+      "q4": "What kind of support do you offer?",
+      "a4": "We provide 24/7 customer support through multiple channels including live chat, email, and phone. Our dedicated support team is always ready to help you maximize your WiseMatic experience.",
+      "q5": "How does pricing work?",
+      "a5": "WiseMatic offers scalable pricing models based on the size of your organization and required features. We provide transparent, competitive pricing with no hidden costs and flexible payment options."
+    },
+    "contact": {
+      "title": "Get in",
+      "titleHighlight": "Touch",
+      "subtitle": "Have questions or want to know more? Drop us a message below and we'll get back to you soon.",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send Message",
+      "submitting": "Submitting...",
+      "successMessage": "Message sent successfully!",
+      "errorMessage": "Failed to send message. Please try again.",
+      "networkError": "An error occurred. Please try again later."
+    },
+    "footer": {
+      "description": "An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.",
+      "company": "Company",
+      "resources": "Resources",
+      "platform": "Platform",
+      "about": "About",
+      "team": "Team",
+      "careers": "Careers",
+      "docs": "Docs",
+      "api": "API",
+      "support": "Support",
+      "pricing": "Pricing",
+      "allRightsReserved": "All rights reserved.",
+      "privacy": "Privacy Policy",
+      "terms": "Terms of Service"
+    }
   }
 }

@@ -1,24 +1,27 @@
 'use client';
 
 import { Github, Twitter, Linkedin, ArrowUpRight } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/provider';
 
 const Footer = () => {
+  const { t } = useTranslation();
+
   const companyLinks = [
-    { text: 'About', href: '#' },
-    { text: 'Team', href: '#' },
-    { text: 'Careers', href: '#' }
+    { textKey: 'landing.footer.about', defaultText: 'About', href: '#' },
+    { textKey: 'landing.footer.team', defaultText: 'Team', href: '#' },
+    { textKey: 'landing.footer.careers', defaultText: 'Careers', href: '#' }
   ];
 
   const resourcesLinks = [
-    { text: 'Docs', href: '#' },
-    { text: 'API', href: '#' },
-    { text: 'Support', href: '#' }
+    { textKey: 'landing.footer.docs', defaultText: 'Docs', href: '#' },
+    { textKey: 'landing.footer.api', defaultText: 'API', href: '#' },
+    { textKey: 'landing.footer.support', defaultText: 'Support', href: '#' }
   ];
 
   const platformLinks = [
-    { text: 'Dashboard', href: '#' },
-    { text: 'Pricing', href: '#pricing' },
-    { text: 'Features', href: '#features' }
+    { textKey: 'landing.nav.dashboard', defaultText: 'Dashboard', href: '#' },
+    { textKey: 'landing.footer.pricing', defaultText: 'Pricing', href: '#pricing' },
+    { textKey: 'landing.nav.features', defaultText: 'Features', href: '#features' }
   ];
 
   return (
@@ -38,9 +41,7 @@ const Footer = () => {
               WiseMatic ERP
             </h2>
             <p className='max-w-xs text-sm leading-relaxed text-neutral-400'>
-              An AI-powered, all-in-one ERP platform designed to streamline
-              operations, automate workflows, and empower organizations with
-              actionable insights.
+              {t('landing.footer.description', 'An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.')}
             </p>
 
             {/* Social Links */}
@@ -77,21 +78,24 @@ const Footer = () => {
           <div className='grid grid-cols-3 gap-4 md:col-span-8'>
             {[
               {
-                title: 'Company',
+                titleKey: 'landing.footer.company',
+                defaultTitle: 'Company',
                 links: companyLinks
               },
               {
-                title: 'Resources',
+                titleKey: 'landing.footer.resources',
+                defaultTitle: 'Resources',
                 links: resourcesLinks
               },
               {
-                title: 'Platform',
+                titleKey: 'landing.footer.platform',
+                defaultTitle: 'Platform',
                 links: platformLinks
               }
             ].map((section, sectionIndex) => (
               <div key={sectionIndex}>
                 <h3 className='mb-3 text-xs font-semibold tracking-wider text-white uppercase'>
-                  {section.title}
+                  {t(section.titleKey, section.defaultTitle)}
                 </h3>
                 <ul className='space-y-2'>
                   {section.links.map((link, linkIndex) => (
@@ -100,7 +104,7 @@ const Footer = () => {
                         href={link.href}
                         className='group flex items-center text-xs text-neutral-400 transition-colors hover:text-white'
                       >
-                        {link.text}
+                        {t(link.textKey, link.defaultText)}
                         <ArrowUpRight
                           size={12}
                           className='ml-1 text-neutral-600 opacity-0 transition-all group-hover:translate-x-1 group-hover:text-white group-hover:opacity-100'
@@ -117,14 +121,14 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className='mt-8 flex flex-col items-center justify-between border-t border-neutral-800 pt-4 md:flex-row'>
           <p className='mb-2 text-xs text-neutral-500 md:mb-0'>
-            © {new Date().getFullYear()} WiseMatic Inc. All rights reserved.
+            © {new Date().getFullYear()} WiseMatic Inc. {t('landing.footer.allRightsReserved', 'All rights reserved.')}
           </p>
           <div className='flex space-x-4 text-xs text-neutral-500'>
             <a href='#' className='hover:text-white'>
-              Privacy Policy
+              {t('landing.footer.privacy', 'Privacy Policy')}
             </a>
             <a href='#' className='hover:text-white'>
-              Terms of Service
+              {t('landing.footer.terms', 'Terms of Service')}
             </a>
           </div>
         </div>

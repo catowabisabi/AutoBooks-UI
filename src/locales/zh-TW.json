@@ -197,5 +197,99 @@
       "摘要 IPO 盡職調查項目",
       "計算應收帳款賬齡"
     ]
+  },
+  "landing": {
+    "nav": {
+      "home": "首頁",
+      "features": "功能特色",
+      "faqs": "常見問題",
+      "contactUs": "聯絡我們",
+      "bookDemo": "預約示範",
+      "login": "登入",
+      "logout": "登出",
+      "dashboard": "控制台",
+      "mobileNav": "行動選單"
+    },
+    "hero": {
+      "title": "以 AI 驅動的 ERP 轉型您的業務",
+      "tagline": "經營企業的最智慧方式",
+      "subtitle": "AI 驅動的一體化 ERP 平台，專為簡化營運、自動化工作流程，並為組織提供可行的洞察而設計。",
+      "getStarted": "立即開始",
+      "exploreFeatures": "探索功能",
+      "learnMore": "了解更多"
+    },
+    "features": {
+      "title": "核心功能",
+      "subtitle": "全方位工具，簡化營運、自動化工作流程，並推動業務增長。",
+      "hrm": {
+        "title": "人力資源管理",
+        "description": "完整掌控員工記錄、薪資、出勤和請假管理，實現全面可視化和自動化。"
+      },
+      "analytics": {
+        "title": "智慧分析",
+        "description": "讓我們的 AI 助手即時將數據轉換為儀表板、報表和策略洞察。"
+      },
+      "project": {
+        "title": "專案管理",
+        "description": "透過整合的時間表、資源配置和進度追蹤來規劃、追蹤和管理專案。"
+      },
+      "finance": {
+        "title": "財務管理",
+        "description": "透過自動化工作流程簡化會計、預算、發票和財務報告。"
+      },
+      "notification": {
+        "title": "通知系統",
+        "description": "即時接收任務、審批、截止日期和重要更新的提醒。"
+      },
+      "document": {
+        "title": "文件管理",
+        "description": "集中管理、整理並保護所有業務文件，具備智慧搜尋和檢索功能。"
+      }
+    },
+    "faq": {
+      "title": "常見",
+      "titleHighlight": "問題",
+      "subtitle": "有疑問嗎？我們有答案。探索關於 WiseMatic ERP 最常見的問題。",
+      "q1": "什麼是 WiseMatic ERP？誰可以使用？",
+      "a1": "WiseMatic ERP 是一個全面的企業管理平台，專為各種規模的企業、教育機構和組織設計。它簡化營運、促進溝通，並為所有利害關係人提供深入分析。",
+      "q2": "WiseMatic 平台有多安全？",
+      "a2": "我們以端到端加密、多重身份驗證和符合行業數據保護法規為優先。您的資訊始終受到企業級安全保護。",
+      "q3": "我可以為我的組織客製化 WiseMatic 嗎？",
+      "a3": "當然可以！WiseMatic 提供靈活的配置選項，可適應不同的組織環境，無論您是小型企業還是具有複雜工作流程的大型企業。",
+      "q4": "你們提供什麼樣的支援？",
+      "a4": "我們透過多種管道提供 24/7 客戶支援，包括即時聊天、電子郵件和電話。我們專業的支援團隊隨時準備幫助您最大化 WiseMatic 體驗。",
+      "q5": "定價是如何運作的？",
+      "a5": "WiseMatic 根據您組織的規模和所需功能提供可擴展的定價模式。我們提供透明、具競爭力的定價，沒有隱藏費用，並有靈活的付款選項。"
+    },
+    "contact": {
+      "title": "與我們",
+      "titleHighlight": "聯絡",
+      "subtitle": "有疑問或想了解更多？請在下方留言，我們會盡快回覆您。",
+      "name": "姓名",
+      "email": "電子郵件",
+      "subject": "主旨",
+      "message": "訊息內容",
+      "send": "發送訊息",
+      "submitting": "提交中...",
+      "successMessage": "訊息發送成功！",
+      "errorMessage": "發送訊息失敗，請重試。",
+      "networkError": "發生錯誤，請稍後再試。"
+    },
+    "footer": {
+      "description": "AI 驅動的一體化 ERP 平台，專為簡化營運、自動化工作流程，並為組織提供可行的洞察而設計。",
+      "company": "公司",
+      "resources": "資源",
+      "platform": "平台",
+      "about": "關於我們",
+      "team": "團隊",
+      "careers": "職缺",
+      "docs": "文件",
+      "api": "API",
+      "support": "支援",
+      "pricing": "定價",
+      "allRightsReserved": "版權所有。",
+      "privacy": "隱私政策",
+      "terms": "服務條款"
+    }
   }
 }
