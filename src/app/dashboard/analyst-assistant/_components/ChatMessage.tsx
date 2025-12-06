@@ -12,6 +12,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ChartRenderer } from './chart-renderer';
 import { Loader2 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/provider';
 
 export type WidgetType = 'text' | 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
 
@@ -20,7 +21,6 @@ export interface ChatMessageProps {
     id: string;
     role: 'user' | 'assistant';
     content: string;
-    contentZh?: string;
     isLoading?: boolean;
     chart?: {
       type: WidgetType;
@@ -40,6 +40,8 @@ export default function ChatMessage({
   message,
   onAddToDashboard
 }: ChatMessageProps) {
+  const { t } = useTranslation();
+  
   return (
     <div
       className={cn(
@@ -61,14 +63,7 @@ export default function ChatMessage({
             <span>{message.content}</span>
           </div>
         ) : (
-          <>
-            <p className='whitespace-pre-line'>{message.content}</p>
-            {message.contentZh && (
-              <p className='whitespace-pre-line text-sm opacity-80 mt-2 border-t pt-2 border-current/20'>
-                {message.contentZh}
-              </p>
-            )}
-          </>
+          <p className='whitespace-pre-line'>{message.content}</p>
         )}
 
         {message.chart && !message.isLoading && (
@@ -106,7 +101,7 @@ export default function ChatMessage({
                   variant='outline'
                   onClick={() => onAddToDashboard(message.chart)}
                 >
-                  ➕ Add to Dashboard / 加入儀表板
+                  ➕ {t('analyst.addToDashboard')}
                 </Button>
               </CardFooter>
             </Card>

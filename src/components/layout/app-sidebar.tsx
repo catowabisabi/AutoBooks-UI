@@ -32,7 +32,6 @@ import {
 import { UserAvatarProfile } from '@/components/user-avatar-profile';
 import { navItems } from '@/constants/data';
 import { useMediaQuery } from '@/hooks/use-media-query';
-import { useApp } from '@/contexts/app-context';
 import {
   IconBell,
   IconChevronRight,
@@ -67,8 +66,6 @@ export default function AppSidebar() {
   const pathname = usePathname();
   const { isOpen } = useMediaQuery();
   const router = useRouter();
-  const { currentApp, getCurrentAppConfig } = useApp();
-  const currentAppConfig = getCurrentAppConfig();
   const { user, logout } = useAuth();
   const { t } = useTranslation();
 
@@ -154,28 +151,6 @@ export default function AppSidebar() {
             })}
           </SidebarMenu>
         </SidebarGroup>
-
-        {currentAppConfig && (
-          <SidebarGroup>
-            <SidebarGroupLabel>{currentAppConfig.name}</SidebarGroupLabel>
-            <SidebarMenu>
-              {currentAppConfig.menuItems.map((item) => (
-                <SidebarMenuItem key={item.id}>
-                  <SidebarMenuButton
-                    asChild
-                    tooltip={item.label}
-                    isActive={pathname === item.href}
-                  >
-                    <Link href={item.href}>
-                      <span className='mr-2'>{item.icon}</span>
-                      <span>{item.label}</span>
-                    </Link>
-                  </SidebarMenuButton>
-                </SidebarMenuItem>
-              ))}
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
       </SidebarContent>
 
       <SidebarFooter>

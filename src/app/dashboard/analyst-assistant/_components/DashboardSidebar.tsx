@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { IconPlus, IconEdit, IconX } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n/provider';
 
 interface Dashboard {
   id: string;
@@ -26,6 +27,7 @@ export default function DashboardSidebar({
   onCreateDashboard,
   onRenameDashboard
 }: DashboardSidebarProps) {
+  const { t } = useTranslation();
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editName, setEditName] = useState<string>('');
 
@@ -44,7 +46,7 @@ export default function DashboardSidebar({
   return (
     <div className='border-border mr-4 w-[250px] overflow-y-auto border-r pr-2'>
       <div className='mb-4 flex items-center justify-between'>
-        <h3 className='font-medium'>Dashboards</h3>
+        <h3 className='font-medium'>{t('analyst.dashboards.title')}</h3>
         <Button onClick={onCreateDashboard} size='sm' variant='ghost'>
           <IconPlus className='h-4 w-4' />
         </Button>

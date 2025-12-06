@@ -18,6 +18,7 @@ import {
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { sendAnalystQuery, startAnalystAssistant } from './services';
+import { useTranslation } from '@/lib/i18n/provider';
 
 import DashboardSidebar from './_components/DashboardSidebar';
 import DashboardGrid from './_components/DashboardGrid';
@@ -32,7 +33,6 @@ interface Message {
   id: string;
   role: MessageRole;
   content: string;
-  contentZh?: string; // 中文內容
   chart?: {
     type: WidgetType;
     title: string;
@@ -63,59 +63,52 @@ interface WidgetData {
 
 // Initial dashboards
 const initialDashboards = [
-  { id: 'sales', name: 'Sales Analytics / 銷售分析' },
-  { id: 'finance', name: 'Finance / 財務' },
-  { id: 'custom', name: 'Custom Dashboard / 自訂儀表板' }
+  { id: 'sales', nameKey: 'analyst.dashboards.salesAnalytics' },
+  { id: 'finance', nameKey: 'analyst.dashboards.finance' },
+  { id: 'marketing', nameKey: 'analyst.dashboards.marketing' },
+  { id: 'custom', nameKey: 'analyst.dashboards.custom' }
 ];
 
 // Initial widgets (empty - will be populated by AI)
 const initialWidgets: WidgetData[] = [];
 
-// Sample prompts for user guidance / 範例提示
-const samplePrompts = [
-  // Sales Analysis / 銷售分析
-  { en: 'Show me monthly sales trends', zh: '顯示每月銷售趨勢' },
-  { en: 'What are the top 10 products by revenue?', zh: '營收前 10 名的產品是什麼？' },
-  { en: 'Compare sales by customer', zh: '比較各客戶的銷售額' },
-  { en: 'Show sales distribution by country', zh: '顯示各國家的銷售分佈' },
-  { en: 'Create a pie chart of sales by category', zh: '建立各類別銷售的圓餅圖' },
-  
-  // Time-based Analysis / 時間分析
-  { en: 'Show quarterly revenue comparison', zh: '顯示季度營收比較' },
-  { en: 'What was the best performing month?', zh: '哪個月份表現最好？' },
-  { en: 'Show sales trend for the past 6 months', zh: '顯示過去 6 個月的銷售趨勢' },
-  
-  // Customer Analysis / 客戶分析
-  { en: 'Who are the top 5 customers by total purchases?', zh: '總購買額前 5 名的客戶是誰？' },
-  { en: 'Show customer purchase frequency', zh: '顯示客戶購買頻率' },
-  { en: 'Create a bar chart of revenue by customer', zh: '建立各客戶營收的長條圖' },
-  
-  // Product Analysis / 產品分析
-  { en: 'Which products have the highest quantity sold?', zh: '哪些產品銷售數量最高？' },
-  { en: 'Show average unit price by product', zh: '顯示各產品的平均單價' },
-  { en: 'Compare product performance', zh: '比較產品表現' },
-  
-  // Financial Analysis / 財務分析
-  { en: 'Calculate total revenue', zh: '計算總營收' },
-  { en: 'Show tax amount by month', zh: '顯示每月稅額' },
-  { en: 'What is the average order value?', zh: '平均訂單金額是多少？' },
-  { en: 'Show discount analysis', zh: '顯示折扣分析' },
-];
-
-// Welcome message
-const welcomeMessages: Message[] = [
-  {
-    id: 'welcome',
-    role: 'assistant',
-    content: '👋 Hello! I\'m your AI Analyst Assistant. I can help you analyze your sales data and create visualizations.\n\n**Try asking me questions like:**\n• "Show me monthly sales trends"\n• "What are the top 10 products by revenue?"\n• "Create a pie chart of sales by customer"\n• "Compare quarterly performance"\n\n💡 Click on the sample prompts below to get started!',
-    contentZh: '👋 你好！我是你的 AI 分析助手。我可以幫助你分析銷售數據並創建視覺化圖表。\n\n**你可以這樣問我：**\n• 「顯示每月銷售趨勢」\n• 「營收前 10 名產品是什麼？」\n• 「建立各客戶銷售圓餅圖」\n• 「比較季度表現」\n\n💡 點擊下方的範例提示開始使用！'
-  }
+// Sample prompts for user guidance
+const samplePromptKeys = [
+  'analyst.prompts.monthlySales',
+  'analyst.prompts.top10Products',
+  'analyst.prompts.compareSalesByCustomer',
+  'analyst.prompts.salesByCountry',
+  'analyst.prompts.pieChartCategory',
+  'analyst.prompts.quarterlyRevenue',
+  'analyst.prompts.bestMonth',
+  'analyst.prompts.salesTrend6Months',
+  'analyst.prompts.top5Customers',
+  'analyst.prompts.purchaseFrequency',
+  'analyst.prompts.barChartRevenue',
+  'analyst.prompts.highestQuantity',
+  'analyst.prompts.avgUnitPrice',
+  'analyst.prompts.compareProducts',
+  'analyst.prompts.totalRevenue',
+  'analyst.prompts.taxByMonth',
+  'analyst.prompts.avgOrderValue',
+  'analyst.prompts.discountAnalysis',
 ];
 
 export default function AnalystAssistantPage() {
+  const { t } = useTranslation();
+  
+  // Welcome message - created inside component to use translations
+  const getWelcomeMessages = (): Message[] => [
+    {
+      id: 'welcome',
+      role: 'assistant',
+      content: `👋 ${t('analyst.welcome')}\n\n**${t('analyst.tryAsking')}**\n• "${t('analyst.prompts.monthlySales')}"\n• "${t('analyst.prompts.top10Products')}"\n• "${t('analyst.prompts.pieChartCategory')}"\n• "${t('analyst.prompts.quarterlyRevenue')}"\n\n💡 ${t('analyst.clickPrompts')}`
+    }
+  ];
+
   const [dashboards, setDashboards] = useState(initialDashboards);
   const [widgets, setWidgets] = useState(initialWidgets);
-  const [messages, setMessages] = useState<Message[]>(welcomeMessages);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [currentDashboard, setCurrentDashboard] = useState('sales');
   const [newMessage, setNewMessage] = useState('');
   const [activeWidget, setActiveWidget] = useState<WidgetData | null>(null);
@@ -127,6 +120,11 @@ export default function AnalystAssistantPage() {
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
 
   const [isChatOpen, setIsChatOpen] = useState(true); // Default open
+  
+  // Initialize welcome messages
+  useEffect(() => {
+    setMessages(getWelcomeMessages());
+  }, []);
 
   // Load data on mount
   const loadData = async () => {
@@ -137,20 +135,18 @@ export default function AnalystAssistantPage() {
       setDataLoaded(true);
       setDataInfo(data);
       
-      // Check if using demo mode / 檢查是否使用演示模式
+      // Check if using demo mode
       const demoMode = (data as any).isDemo || data.status === 'demo';
       setIsDemo(demoMode);
       
       // Add data loaded message
+      const rowCount = data.rows ? Object.values(data.rows).reduce((a, b) => a + b, 0) : 0;
       const dataLoadedMsg: Message = {
         id: `system-${Date.now()}`,
         role: 'assistant',
         content: demoMode 
-          ? `⚠️ Running in Demo Mode (backend unavailable). ${data.rows ? `Using ${Object.values(data.rows).reduce((a, b) => a + b, 0)} sample data rows.` : ''}\n\nYou can still explore the AI analyst features with sample data!`
-          : `✅ Data loaded successfully! ${data.rows ? `(${Object.values(data.rows).reduce((a, b) => a + b, 0)} rows)` : ''}\n\nYou can now ask me questions about your data.`,
-        contentZh: demoMode
-          ? `⚠️ 正在演示模式下運行（後端不可用）。${data.rows ? `使用 ${Object.values(data.rows).reduce((a, b) => a + b, 0)} 行範例數據。` : ''}\n\n您仍可以使用範例數據探索 AI 分析功能！`
-          : `✅ 數據載入成功！${data.rows ? `(共 ${Object.values(data.rows).reduce((a, b) => a + b, 0)} 行)` : ''}\n\n現在你可以向我提問有關數據的問題。`
+          ? `⚠️ ${t('analyst.runningDemo')} ${rowCount > 0 ? t('analyst.usingSampleData') : ''}\n\n${t('analyst.exploreDemoFeatures')}`
+          : `✅ ${t('analyst.dataLoaded')} ${rowCount > 0 ? `(${rowCount} rows)` : ''}\n\n${t('analyst.dataLoadedDesc')}`
       };
       setMessages(prev => [...prev, dataLoadedMsg]);
     } catch (error) {
@@ -185,8 +181,7 @@ export default function AnalystAssistantPage() {
     const loadingMessage: Message = {
       id: `loading-${Date.now()}`,
       role: 'assistant',
-      content: 'Analyzing your question...',
-      contentZh: '正在分析您的問題...',
+      content: t('analyst.analyzing'),
       isLoading: true
     };
 
@@ -208,16 +203,13 @@ export default function AnalystAssistantPage() {
           id: `ai-${Date.now()}`,
           role: 'assistant',
           content: response.type === 'invalid' 
-            ? (response.message || `I couldn't process that query. Please try rephrasing your question.`)
-            : (response.message || `Here's the analysis for "${currentQuery}":`),
-          contentZh: response.type === 'invalid'
-            ? '無法處理該查詢，請嘗試重新表述您的問題。'
-            : `以下是「${currentQuery}」的分析結果：`,
+            ? (response.message || t('analyst.couldntProcess'))
+            : (response.message || `${t('analyst.analysisFor')} "${currentQuery}":`),
           chart: response.type !== 'invalid' && response.type !== 'text' && response.data
             ? {
                 type: response.type as WidgetType,
                 title: response.title || `Analysis: ${currentQuery}`,
-                description: `Generated from your query / 根據您的查詢生成`,
+                description: t('analyst.generatedFromQuery'),
                 data: response.data,
                 xKey: response.xKey,
                 yKey: response.yKey,
@@ -238,8 +230,7 @@ export default function AnalystAssistantPage() {
         const errorResponse: Message = {
           id: `error-${Date.now()}`,
           role: 'assistant',
-          content: 'Sorry, I encountered an error processing your request. Please make sure the backend is running and try again.',
-          contentZh: '抱歉，處理您的請求時發生錯誤。請確保後端正在運行，然後重試。'
+          content: t('analyst.errorProcessing')
         };
         return [...filtered, errorResponse];
       });
@@ -291,7 +282,8 @@ export default function AnalystAssistantPage() {
   const handleCreateDashboard = () => {
     const newDashboard = {
       id: `dashboard-${Date.now()}`,
-      name: `New Dashboard ${dashboards.length + 1}`
+      nameKey: 'analyst.dashboards.newDashboard',
+      name: `${t('analyst.dashboards.newDashboard')} ${dashboards.length + 1}`
     };
 
     setDashboards([...dashboards, newDashboard]);
@@ -332,13 +324,13 @@ export default function AnalystAssistantPage() {
       <div className='flex h-[calc(100vh-10rem)] w-full'>
         {/* Dashboard List Sidebar */}
         <DashboardSidebar
-          dashboards={dashboards}
+          dashboards={dashboards.map(d => ({ ...d, name: d.nameKey ? t(d.nameKey) : d.name || d.id }))}
           currentDashboard={currentDashboard}
           onDashboardSelect={setCurrentDashboard}
           onCreateDashboard={handleCreateDashboard}
           onRenameDashboard={(id, newName) => {
             setDashboards(
-              dashboards.map((d) => (d.id === id ? { ...d, name: newName } : d))
+              dashboards.map((d) => (d.id === id ? { ...d, name: newName, nameKey: undefined } : d))
             );
           }}
         />
@@ -348,36 +340,39 @@ export default function AnalystAssistantPage() {
           <div className='mb-4 flex items-center justify-between'>
             <div className='flex items-center gap-3'>
               <h2 className='text-2xl font-bold tracking-tight'>
-                {dashboards.find((d) => d.id === currentDashboard)?.name ||
-                  'Dashboard'}
+                {(() => {
+                  const dashboard = dashboards.find((d) => d.id === currentDashboard);
+                  if (!dashboard) return 'Dashboard';
+                  return dashboard.nameKey ? t(dashboard.nameKey) : dashboard.name || dashboard.id;
+                })()}
               </h2>
               {dataLoaded ? (
                 isDemo ? (
                   <Badge variant='outline' className='text-orange-600 border-orange-600'>
                     <IconDatabase className='mr-1 h-3 w-3' />
-                    Demo Mode
+                    {t('analyst.demoMode')}
                   </Badge>
                 ) : (
                   <Badge variant='outline' className='text-green-600 border-green-600'>
                     <IconDatabase className='mr-1 h-3 w-3' />
-                    Data Ready
+                    {t('analyst.dataReady')}
                   </Badge>
                 )
               ) : (
                 <Badge variant='outline' className='text-yellow-600 border-yellow-600'>
                   <IconLoader2 className='mr-1 h-3 w-3 animate-spin' />
-                  Loading...
+                  {t('analyst.loading')}
                 </Badge>
               )}
             </div>
             <div className='flex items-center space-x-2'>
               <Button variant='outline' size='sm' onClick={loadData}>
                 <IconRefresh className='mr-2 h-4 w-4' />
-                Reload Data
+                {t('analyst.reloadData')}
               </Button>
               <Button variant='outline'>
                 <IconShare className='mr-2 h-4 w-4' />
-                Share
+                {t('analyst.share')}
               </Button>
             </div>
           </div>
@@ -403,11 +398,10 @@ export default function AnalystAssistantPage() {
               <div className='flex h-full items-center justify-center'>
                 <div className='text-center text-muted-foreground'>
                   <IconDatabase className='mx-auto h-12 w-12 mb-4 opacity-50' />
-                  <p className='text-lg font-medium'>No charts yet</p>
-                  <p className='text-sm'>Ask the AI assistant to create visualizations</p>
-                  <p className='text-sm mt-1'>還沒有圖表，請使用 AI 助手創建視覺化</p>
+                  <p className='text-lg font-medium'>{t('analyst.noCharts')}</p>
+                  <p className='text-sm'>{t('analyst.askAiCreate')}</p>
                   <Button className='mt-4' onClick={() => setIsChatOpen(true)}>
-                    Open AI Assistant
+                    {t('analyst.openAiAssistant')}
                   </Button>
                 </div>
               </div>
@@ -429,16 +423,16 @@ export default function AnalystAssistantPage() {
             <div className='flex items-center justify-between'>
               <div>
                 <SheetTitle className='flex items-center gap-2'>
-                  🤖 AI Analyst Assistant
+                  🤖 {t('analyst.title')}
                   {isLoading && <IconLoader2 className='h-4 w-4 animate-spin' />}
                 </SheetTitle>
                 <SheetDescription>
-                  Ask questions about your data / 詢問有關數據的問題
+                  {t('analyst.description')}
                 </SheetDescription>
               </div>
               {dataLoaded && (
                 <Badge variant='secondary' className='text-xs'>
-                  Data Loaded ✓
+                  {t('analyst.dataReady')} ✓
                 </Badge>
               )}
             </div>
@@ -461,17 +455,16 @@ export default function AnalystAssistantPage() {
           {messages.length <= 2 && (
             <div className='border-border border-t p-3 bg-muted/30'>
               <p className='text-xs font-medium text-muted-foreground mb-2'>
-                💡 Sample Prompts / 範例提示：
+                💡 {t('analyst.samplePrompts')}：
               </p>
               <div className='flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto'>
-                {samplePrompts.slice(0, 12).map((prompt, index) => (
+                {samplePromptKeys.slice(0, 12).map((promptKey, index) => (
                   <button
                     key={index}
-                    onClick={() => setNewMessage(prompt.en)}
+                    onClick={() => setNewMessage(t(promptKey))}
                     className='text-xs px-2 py-1 rounded-full bg-background border border-border hover:bg-primary/10 hover:border-primary/50 transition-colors text-left'
-                    title={prompt.zh}
                   >
-                    {prompt.en}
+                    {t(promptKey)}
                   </button>
                 ))}
               </div>
@@ -481,7 +474,7 @@ export default function AnalystAssistantPage() {
           <div className='border-border mt-auto shrink-0 border-t p-4'>
             <div className='flex gap-2'>
               <Input
-                placeholder='Ask a question... / 輸入問題...'
+                placeholder={t('analyst.askQuestion')}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -496,7 +489,7 @@ export default function AnalystAssistantPage() {
               </Button>
             </div>
             <p className='text-xs text-muted-foreground mt-2'>
-              Press Enter to send / 按 Enter 發送 • Hover prompts to see Chinese / 滑鼠移到提示上查看中文
+              {t('analyst.pressEnter')}
             </p>
           </div>
         </SheetContent>
