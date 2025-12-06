@@ -19,67 +19,76 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Accounting - Revenue by service type (HK$ thousands)
 const accountingRevenueData = [
-  { service: 'audit', revenue: 5200, label: 'Statutory Audit', fill: 'var(--primary)' },
-  { service: 'tax', revenue: 2800, label: 'Tax Services', fill: 'var(--primary-light)' },
-  { service: 'bookkeeping', revenue: 1800, label: 'Bookkeeping', fill: 'var(--primary-lighter)' },
-  { service: 'advisory', revenue: 1500, label: 'Advisory', fill: 'var(--primary-dark)' },
-  { service: 'secretarial', revenue: 1000, label: 'Company Secretary', fill: 'var(--primary-darker)' }
+  { service: 'audit', revenue: 5200, labelKey: 'dashboard.charts.pie.accounting.audit', fill: 'var(--primary)' },
+  { service: 'tax', revenue: 2800, labelKey: 'dashboard.charts.pie.accounting.tax', fill: 'var(--primary-light)' },
+  { service: 'bookkeeping', revenue: 1800, labelKey: 'dashboard.charts.pie.accounting.bookkeeping', fill: 'var(--primary-lighter)' },
+  { service: 'advisory', revenue: 1500, labelKey: 'dashboard.charts.pie.accounting.advisory', fill: 'var(--primary-dark)' },
+  { service: 'secretarial', revenue: 1000, labelKey: 'dashboard.charts.pie.accounting.secretarial', fill: 'var(--primary-darker)' }
 ];
 
 // Financial PR - Revenue by service type (HK$ thousands)
 const prRevenueData = [
-  { service: 'retainer', revenue: 6500, label: 'IR Retainer', fill: 'var(--primary)' },
-  { service: 'ipo', revenue: 4200, label: 'IPO Campaigns', fill: 'var(--primary-light)' },
-  { service: 'results', revenue: 3100, label: 'Results Announcements', fill: 'var(--primary-lighter)' },
-  { service: 'annual', revenue: 2400, label: 'Annual Reports', fill: 'var(--primary-dark)' },
-  { service: 'crisis', revenue: 1500, label: 'Crisis Comms', fill: 'var(--primary-darker)' }
+  { service: 'retainer', revenue: 6500, labelKey: 'dashboard.charts.pie.financialPR.retainer', fill: 'var(--primary)' },
+  { service: 'ipo', revenue: 4200, labelKey: 'dashboard.charts.pie.financialPR.ipo', fill: 'var(--primary-light)' },
+  { service: 'results', revenue: 3100, labelKey: 'dashboard.charts.pie.financialPR.results', fill: 'var(--primary-lighter)' },
+  { service: 'annual', revenue: 2400, labelKey: 'dashboard.charts.pie.financialPR.annual', fill: 'var(--primary-dark)' },
+  { service: 'crisis', revenue: 1500, labelKey: 'dashboard.charts.pie.financialPR.crisis', fill: 'var(--primary-darker)' }
 ];
 
 // IPO Advisory - Revenue by deal type (HK$ thousands)
 const ipoRevenueData = [
-  { service: 'mainboard', revenue: 22000, label: 'Main Board IPO', fill: 'var(--primary)' },
-  { service: 'gem', revenue: 9500, label: 'GEM Listing', fill: 'var(--primary-light)' },
-  { service: 'preipo', revenue: 6200, label: 'Pre-IPO Advisory', fill: 'var(--primary-lighter)' },
-  { service: 'corpfin', revenue: 5100, label: 'Corporate Finance', fill: 'var(--primary-dark)' },
-  { service: 'compliance', revenue: 2200, label: 'Compliance', fill: 'var(--primary-darker)' }
+  { service: 'mainboard', revenue: 22000, labelKey: 'dashboard.charts.pie.ipoAdvisory.mainboard', fill: 'var(--primary)' },
+  { service: 'gem', revenue: 9500, labelKey: 'dashboard.charts.pie.ipoAdvisory.gem', fill: 'var(--primary-light)' },
+  { service: 'preipo', revenue: 6200, labelKey: 'dashboard.charts.pie.ipoAdvisory.preipo', fill: 'var(--primary-lighter)' },
+  { service: 'corpfin', revenue: 5100, labelKey: 'dashboard.charts.pie.ipoAdvisory.corpfin', fill: 'var(--primary-dark)' },
+  { service: 'compliance', revenue: 2200, labelKey: 'dashboard.charts.pie.ipoAdvisory.compliance', fill: 'var(--primary-darker)' }
 ];
 
-const chartConfigs = {
-  accounting: {
-    title: 'Revenue by Service',
-    description: 'Fee income breakdown by service line',
-    centerLabel: 'Total Revenue',
-    trend: 'Audit leads with',
-    period: 'FY 2024 Year-to-Date'
-  },
-  'financial-pr': {
-    title: 'Revenue by Service',
-    description: 'Income breakdown by PR service type',
-    centerLabel: 'Total Revenue',
-    trend: 'IR Retainer leads with',
-    period: 'FY 2024 Year-to-Date'
-  },
-  'ipo-advisory': {
-    title: 'Revenue by Deal Type',
-    description: 'Fee income by transaction category',
-    centerLabel: 'Total Revenue',
-    trend: 'Main Board IPO leads with',
-    period: 'FY 2024 Year-to-Date'
-  }
-};
-
 export function PieGraph() {
+  const { t } = useTranslation();
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+
+  // i18n config for chart titles
+  const chartConfigs = {
+    accounting: {
+      title: t('dashboard.charts.pie.accounting.title', 'Revenue by Service'),
+      description: t('dashboard.charts.pie.accounting.description', 'Fee income breakdown by service line'),
+      centerLabel: t('dashboard.charts.pie.totalRevenue', 'Total Revenue'),
+      trend: t('dashboard.charts.pie.accounting.trend', 'Audit leads with'),
+      period: t('dashboard.charts.pie.period', 'FY 2024 Year-to-Date')
+    },
+    'financial-pr': {
+      title: t('dashboard.charts.pie.financialPR.title', 'Revenue by Service'),
+      description: t('dashboard.charts.pie.financialPR.description', 'Income breakdown by PR service type'),
+      centerLabel: t('dashboard.charts.pie.totalRevenue', 'Total Revenue'),
+      trend: t('dashboard.charts.pie.financialPR.trend', 'IR Retainer leads with'),
+      period: t('dashboard.charts.pie.period', 'FY 2024 Year-to-Date')
+    },
+    'ipo-advisory': {
+      title: t('dashboard.charts.pie.ipoAdvisory.title', 'Revenue by Deal Type'),
+      description: t('dashboard.charts.pie.ipoAdvisory.description', 'Fee income by transaction category'),
+      centerLabel: t('dashboard.charts.pie.totalRevenue', 'Total Revenue'),
+      trend: t('dashboard.charts.pie.ipoAdvisory.trend', 'Main Board IPO leads with'),
+      period: t('dashboard.charts.pie.period', 'FY 2024 Year-to-Date')
+    }
+  };
   
-  const chartData = companyType === 'accounting'
+  const rawChartData = companyType === 'accounting'
     ? accountingRevenueData
     : companyType === 'financial-pr'
     ? prRevenueData
     : ipoRevenueData;
+
+  // Translate labels
+  const chartData = rawChartData.map(item => ({
+    ...item,
+    label: t(item.labelKey, item.service)
+  }));
 
   const config = chartConfigs[companyType];
   
@@ -93,7 +102,7 @@ export function PieGraph() {
   const chartConfig = chartData.reduce((acc, item) => {
     acc[item.service] = { label: item.label, color: 'var(--primary)' };
     return acc;
-  }, { revenue: { label: 'Revenue' } } as ChartConfig);
+  }, { revenue: { label: t('dashboard.charts.pie.revenue', 'Revenue') } } as ChartConfig);
 
   return (
     <Card className='@container/card'>
@@ -103,7 +112,7 @@ export function PieGraph() {
           <span className='hidden @[540px]/card:block'>
             {config.description}
           </span>
-          <span className='@[540px]/card:hidden'>Revenue breakdown</span>
+          <span className='@[540px]/card:hidden'>{t('dashboard.charts.pie.breakdown', 'Revenue breakdown')}</span>
         </CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>

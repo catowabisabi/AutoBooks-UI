@@ -235,6 +235,106 @@
         "revenueManagement": "服務收入管理",
         "viewRevenueManagement": "查看收入管理"
       }
+    },
+    "charts": {
+      "bar": {
+        "accounting": {
+          "title": "按服務類型計費時數",
+          "description": "每月計費時數明細",
+          "audit": "審計",
+          "tax": "稅務",
+          "advisory": "諮詢"
+        },
+        "financialPR": {
+          "title": "客戶業務活動",
+          "description": "每月公關活動統計",
+          "announcements": "公告發布",
+          "meetings": "投資者會議",
+          "events": "活動"
+        },
+        "ipoAdvisory": {
+          "title": "交易管道價值",
+          "description": "按階段分類的交易價值（港幣百萬）",
+          "preparation": "準備中",
+          "filing": "申報中",
+          "listing": "已上市"
+        },
+        "lastSixMonths": "過去六個月"
+      },
+      "pie": {
+        "totalRevenue": "總收入",
+        "revenue": "收入",
+        "breakdown": "收入明細",
+        "period": "2024財年累計",
+        "accounting": {
+          "title": "按服務類型收入",
+          "description": "服務收入明細",
+          "trend": "審計業務佔比領先",
+          "audit": "法定審計",
+          "tax": "稅務服務",
+          "bookkeeping": "簿記",
+          "advisory": "諮詢",
+          "secretarial": "公司秘書"
+        },
+        "financialPR": {
+          "title": "按服務類型收入",
+          "description": "公關服務收入明細",
+          "trend": "投資者關係服務佔比領先",
+          "retainer": "投資者關係服務",
+          "ipo": "IPO 推廣",
+          "results": "業績公告",
+          "annual": "年報",
+          "crisis": "危機公關"
+        },
+        "ipoAdvisory": {
+          "title": "按交易類型收入",
+          "description": "交易費用收入分類",
+          "trend": "主板 IPO 佔比領先",
+          "mainboard": "主板 IPO",
+          "gem": "GEM 上市",
+          "preipo": "Pre-IPO 諮詢",
+          "corpfin": "企業融資",
+          "compliance": "合規"
+        }
+      },
+      "area": {
+        "period": "2024年7月至12月",
+        "accounting": {
+          "title": "現金流趨勢",
+          "description": "服務收入與營運成本對比（港幣千元）",
+          "trend": "淨利率提升 18.5%",
+          "income": "服務收入（港幣千元）",
+          "expenses": "營運成本（港幣千元）"
+        },
+        "financialPR": {
+          "title": "媒體報導分析",
+          "description": "客戶正面與負面媒體報導",
+          "trend": "正面報導增長 24.3%",
+          "positive": "正面報導",
+          "negative": "負面報導"
+        },
+        "ipoAdvisory": {
+          "title": "交易管道進度",
+          "description": "進行中委託與已完成上市",
+          "trend": "年度成功上市 11 宗",
+          "active": "進行中交易",
+          "completed": "已完成交易"
+        }
+      }
+    },
+    "recentPayments": {
+      "accounting": {
+        "title": "最近客戶付款",
+        "description": "本月服務收入"
+      },
+      "financialPR": {
+        "title": "最近客戶活動",
+        "description": "最新公關服務賬單"
+      },
+      "ipoAdvisory": {
+        "title": "最近交易費用",
+        "description": "最新交易費用收入"
+      }
     }
   },
   "accounting": {

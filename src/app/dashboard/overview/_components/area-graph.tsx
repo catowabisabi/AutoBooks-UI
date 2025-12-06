@@ -18,6 +18,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Accounting firm - Cash Flow data (收入 vs 支出)
 const accountingCashFlowData = [
@@ -86,8 +87,46 @@ const chartTitles = {
 };
 
 export function AreaGraph() {
+  const { t } = useTranslation();
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+
+  // i18n config for chart
+  const chartConfigs = {
+    accounting: {
+      primary: { label: t('dashboard.charts.area.accounting.income', 'Fee Income (HK$K)'), color: 'var(--primary)' },
+      secondary: { label: t('dashboard.charts.area.accounting.expenses', 'Operating Costs (HK$K)'), color: 'var(--primary)' }
+    },
+    'financial-pr': {
+      primary: { label: t('dashboard.charts.area.financialPR.positive', 'Positive Coverage'), color: 'var(--primary)' },
+      secondary: { label: t('dashboard.charts.area.financialPR.negative', 'Negative Coverage'), color: 'var(--primary)' }
+    },
+    'ipo-advisory': {
+      primary: { label: t('dashboard.charts.area.ipoAdvisory.active', 'Active Deals'), color: 'var(--primary)' },
+      secondary: { label: t('dashboard.charts.area.ipoAdvisory.completed', 'Completed Deals'), color: 'var(--primary)' }
+    }
+  };
+
+  const chartTitles = {
+    accounting: {
+      title: t('dashboard.charts.area.accounting.title', 'Cash Flow Trend'),
+      description: t('dashboard.charts.area.accounting.description', 'Fee income vs operating costs (HK$ thousands)'),
+      trend: t('dashboard.charts.area.accounting.trend', 'Net margin improved by 18.5%'),
+      period: t('dashboard.charts.area.period', 'July - December 2024')
+    },
+    'financial-pr': {
+      title: t('dashboard.charts.area.financialPR.title', 'Media Coverage Analysis'),
+      description: t('dashboard.charts.area.financialPR.description', 'Positive vs negative media mentions for clients'),
+      trend: t('dashboard.charts.area.financialPR.trend', 'Positive sentiment up 24.3%'),
+      period: t('dashboard.charts.area.period', 'July - December 2024')
+    },
+    'ipo-advisory': {
+      title: t('dashboard.charts.area.ipoAdvisory.title', 'Deal Pipeline Progress'),
+      description: t('dashboard.charts.area.ipoAdvisory.description', 'Active mandates vs completed listings'),
+      trend: t('dashboard.charts.area.ipoAdvisory.trend', '11 successful listings YTD'),
+      period: t('dashboard.charts.area.period', 'July - December 2024')
+    }
+  };
   
   const chartData = companyType === 'accounting' 
     ? accountingCashFlowData 

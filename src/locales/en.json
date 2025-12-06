@@ -235,6 +235,106 @@
         "revenueManagement": "Revenue Management",
         "viewRevenueManagement": "View Revenue Management"
       }
+    },
+    "charts": {
+      "bar": {
+        "accounting": {
+          "title": "Billable Hours by Service",
+          "description": "Monthly breakdown of billable hours",
+          "audit": "Audit",
+          "tax": "Tax",
+          "advisory": "Advisory"
+        },
+        "financialPR": {
+          "title": "Client Engagement Activities",
+          "description": "Monthly PR activities performed",
+          "announcements": "Announcements",
+          "meetings": "Investor Meetings",
+          "events": "Events"
+        },
+        "ipoAdvisory": {
+          "title": "Deal Pipeline Value",
+          "description": "Deal value by stage (HK$ millions)",
+          "preparation": "Preparation",
+          "filing": "Filing",
+          "listing": "Listed"
+        },
+        "lastSixMonths": "Last 6 months"
+      },
+      "pie": {
+        "totalRevenue": "Total Revenue",
+        "revenue": "Revenue",
+        "breakdown": "Revenue breakdown",
+        "period": "FY 2024 Year-to-Date",
+        "accounting": {
+          "title": "Revenue by Service",
+          "description": "Fee income breakdown by service line",
+          "trend": "Audit leads with",
+          "audit": "Statutory Audit",
+          "tax": "Tax Services",
+          "bookkeeping": "Bookkeeping",
+          "advisory": "Advisory",
+          "secretarial": "Company Secretary"
+        },
+        "financialPR": {
+          "title": "Revenue by Service",
+          "description": "Income breakdown by PR service type",
+          "trend": "IR Retainer leads with",
+          "retainer": "IR Retainer",
+          "ipo": "IPO Campaigns",
+          "results": "Results Announcements",
+          "annual": "Annual Reports",
+          "crisis": "Crisis Comms"
+        },
+        "ipoAdvisory": {
+          "title": "Revenue by Deal Type",
+          "description": "Fee income by transaction category",
+          "trend": "Main Board IPO leads with",
+          "mainboard": "Main Board IPO",
+          "gem": "GEM Listing",
+          "preipo": "Pre-IPO Advisory",
+          "corpfin": "Corporate Finance",
+          "compliance": "Compliance"
+        }
+      },
+      "area": {
+        "period": "July - December 2024",
+        "accounting": {
+          "title": "Cash Flow Trend",
+          "description": "Fee income vs operating costs (HK$ thousands)",
+          "trend": "Net margin improved by 18.5%",
+          "income": "Fee Income (HK$K)",
+          "expenses": "Operating Costs (HK$K)"
+        },
+        "financialPR": {
+          "title": "Media Coverage Analysis",
+          "description": "Positive vs negative media mentions for clients",
+          "trend": "Positive sentiment up 24.3%",
+          "positive": "Positive Coverage",
+          "negative": "Negative Coverage"
+        },
+        "ipoAdvisory": {
+          "title": "Deal Pipeline Progress",
+          "description": "Active mandates vs completed listings",
+          "trend": "11 successful listings YTD",
+          "active": "Active Deals",
+          "completed": "Completed Deals"
+        }
+      }
+    },
+    "recentPayments": {
+      "accounting": {
+        "title": "Recent Client Payments",
+        "description": "Fee income received this month"
+      },
+      "financialPR": {
+        "title": "Recent Client Activities",
+        "description": "Latest PR service billings"
+      },
+      "ipoAdvisory": {
+        "title": "Recent Deal Fees",
+        "description": "Latest transaction fee income"
+      }
     }
   },
   "accounting": {

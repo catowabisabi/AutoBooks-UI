@@ -49,30 +49,6 @@ const ipoDealValueData = [
   { month: 'Dec', preparation: 1250, filing: 980, listing: 2800 }
 ];
 
-const chartConfigs = {
-  accounting: {
-    metrics: {
-      audit: { label: 'Audit', color: 'var(--primary)' },
-      tax: { label: 'Tax', color: 'var(--primary)' },
-      advisory: { label: 'Advisory', color: 'var(--primary)' }
-    }
-  },
-  'financial-pr': {
-    metrics: {
-      announcements: { label: 'Announcements', color: 'var(--primary)' },
-      meetings: { label: 'Investor Meetings', color: 'var(--primary)' },
-      events: { label: 'Events', color: 'var(--primary)' }
-    }
-  },
-  'ipo-advisory': {
-    metrics: {
-      preparation: { label: 'Preparation', color: 'var(--primary)' },
-      filing: { label: 'Filing', color: 'var(--primary)' },
-      listing: { label: 'Listed', color: 'var(--primary)' }
-    }
-  }
-};
-
 export function BarGraph() {
   const { t } = useTranslation();
   const { currentCompany } = useApp();
