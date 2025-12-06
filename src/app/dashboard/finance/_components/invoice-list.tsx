@@ -146,26 +146,26 @@ export default function InvoiceList() {
   const handleDownloadPDF = (invoice: Invoice) => {
     const exportData = convertToExportFormat(invoice);
     downloadInvoicePDF(exportData);
-    toast.success(`正在生成 ${invoice.invoiceNumber} 的 PDF...`);
+    toast.success(t('invoices.generating'));
   };
 
   // 匯出所有發票為 Excel
   const handleExportAllToExcel = () => {
     const exportData = data.map(convertToExportFormat);
     exportInvoicesToExcel(exportData, `invoices_${new Date().toISOString().split('T')[0]}`);
-    toast.success('發票已匯出為 Excel 檔案');
+    toast.success(t('invoices.exported'));
   };
 
   // 匯出選取的發票為 Excel
   const handleExportSelectedToExcel = () => {
     const selectedRows = table.getFilteredSelectedRowModel().rows;
     if (selectedRows.length === 0) {
-      toast.error('請先選取要匯出的發票');
+      toast.error(t('invoices.selectToExport'));
       return;
     }
     const exportData = selectedRows.map(row => convertToExportFormat(row.original));
     exportInvoicesToExcel(exportData, `invoices_selected_${new Date().toISOString().split('T')[0]}`);
-    toast.success(`已匯出 ${selectedRows.length} 筆發票`);
+    toast.success(t('invoices.exported'));
   };
 
   const columns: ColumnDef<Invoice>[] = [
@@ -210,6 +210,7 @@ export default function InvoiceList() {
       header: t('invoices.status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as string;
+        const statusKey = status.toLowerCase() as 'paid' | 'pending' | 'overdue';
         return (
           <Badge
             variant={
@@ -220,7 +221,7 @@ export default function InvoiceList() {
                   : 'destructive'
             }
           >
-            {status}
+            {t(`invoices.${statusKey}`)}
           </Badge>
         );
       }
@@ -262,7 +263,7 @@ export default function InvoiceList() {
               <DropdownMenuItem onClick={() => {
                 const exportData = convertToExportFormat(invoice);
                 exportInvoicesToExcel([exportData], `invoice_${invoice.invoiceNumber}`);
-                toast.success('發票已匯出為 Excel');
+                toast.success(t('invoices.exported'));
               }}>
                 <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
                 {t('invoices.exportExcel')}

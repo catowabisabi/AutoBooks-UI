@@ -21,6 +21,7 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 import { IconTrendingUp, IconClock, IconUsers, IconChartBar, IconExternalLink } from '@tabler/icons-react';
 
 // Accounting - Monthly billable hours by service type (Bar Chart)
@@ -51,33 +52,7 @@ const ipoCompletionData = [
   { name: 'Marketing', value: 65, fill: 'var(--primary)' }
 ];
 
-const chartConfigs = {
-  accounting: {
-    title: 'Billable Hours by Service',
-    description: 'Monthly breakdown of billable hours',
-    metrics: {
-      audit: { label: 'Audit', color: 'var(--primary)' },
-      tax: { label: 'Tax', color: 'var(--primary)' },
-      advisory: { label: 'Advisory', color: 'var(--primary)' }
-    }
-  },
-  'financial-pr': {
-    title: 'Media Sentiment Analysis',
-    description: 'Monthly sentiment breakdown (%)',
-    metrics: {
-      positive: { label: 'Positive', color: 'hsl(142, 76%, 36%)' },
-      neutral: { label: 'Neutral', color: 'hsl(48, 96%, 53%)' },
-      negative: { label: 'Negative', color: 'hsl(0, 84%, 60%)' }
-    }
-  },
-  'ipo-advisory': {
-    title: 'IPO Process Completion',
-    description: 'Current project milestone progress',
-    metrics: {
-      value: { label: 'Completion %', color: 'var(--primary)' }
-    }
-  }
-};
+// chartConfigs moved inside component functions to use translations
 
 // Color schemes
 const COLORS = {
@@ -93,12 +68,12 @@ const COLORS = {
 
 // Bar Chart for Accounting
 function AccountingBarChart() {
-  const config = chartConfigs.accounting;
+  const { t } = useTranslation();
   
   const chartConfig = {
-    audit: { label: 'Audit', color: COLORS.blue },
-    tax: { label: 'Tax', color: COLORS.green },
-    advisory: { label: 'Advisory', color: COLORS.orange }
+    audit: { label: t('dashboard.charts.accounting.audit') || 'Audit', color: COLORS.blue },
+    tax: { label: t('dashboard.charts.accounting.tax') || 'Tax', color: COLORS.green },
+    advisory: { label: t('dashboard.charts.accounting.advisory') || 'Advisory', color: COLORS.orange }
   } satisfies ChartConfig;
 
   const totals = React.useMemo(() => {
@@ -117,13 +92,13 @@ function AccountingBarChart() {
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
           <CardTitle className='flex items-center gap-2'>
             <IconClock className='h-5 w-5 text-blue-500' />
-            {config.title}
+            {t('dashboard.charts.accounting.barTitle') || 'Billable Hours by Service'}
           </CardTitle>
-          <CardDescription>{config.description}</CardDescription>
+          <CardDescription>{t('dashboard.charts.accounting.barDescription') || 'Monthly breakdown of billable hours'}</CardDescription>
         </div>
         <div className='flex'>
           <div className='flex flex-col justify-center gap-1 border-l px-6 py-4'>
-            <span className='text-muted-foreground text-xs'>Total Hours</span>
+            <span className='text-muted-foreground text-xs'>{t('common.totalHours') || 'Total Hours'}</span>
             <span className='text-2xl font-bold'>{totalHours.toLocaleString()}</span>
           </div>
         </div>
@@ -149,9 +124,9 @@ function AccountingBarChart() {
             <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Bar dataKey='audit' name='Audit' fill='url(#fillAuditBar)' radius={[4, 4, 0, 0]} />
-            <Bar dataKey='tax' name='Tax' fill='url(#fillTaxBar)' radius={[4, 4, 0, 0]} />
-            <Bar dataKey='advisory' name='Advisory' fill='url(#fillAdvisoryBar)' radius={[4, 4, 0, 0]} />
+            <Bar dataKey='audit' name={t('dashboard.charts.accounting.audit') || 'Audit'} fill='url(#fillAuditBar)' radius={[4, 4, 0, 0]} />
+            <Bar dataKey='tax' name={t('dashboard.charts.accounting.tax') || 'Tax'} fill='url(#fillTaxBar)' radius={[4, 4, 0, 0]} />
+            <Bar dataKey='advisory' name={t('dashboard.charts.accounting.advisory') || 'Advisory'} fill='url(#fillAdvisoryBar)' radius={[4, 4, 0, 0]} />
           </BarChart>
         </ChartContainer>
       </CardContent>
@@ -159,18 +134,18 @@ function AccountingBarChart() {
         <div className='flex gap-4 flex-wrap'>
           <div className='flex items-center gap-2'>
             <div className='w-3 h-3 rounded' style={{ background: COLORS.blue }} />
-            <span>Audit: <strong>{totals.audit.toLocaleString()}h</strong> ({((totals.audit/totalHours)*100).toFixed(0)}%)</span>
+            <span>{t('dashboard.charts.accounting.audit') || 'Audit'}: <strong>{totals.audit.toLocaleString()}h</strong> ({((totals.audit/totalHours)*100).toFixed(0)}%)</span>
           </div>
           <div className='flex items-center gap-2'>
             <div className='w-3 h-3 rounded' style={{ background: COLORS.green }} />
-            <span>Tax: <strong>{totals.tax.toLocaleString()}h</strong> ({((totals.tax/totalHours)*100).toFixed(0)}%)</span>
+            <span>{t('dashboard.charts.accounting.tax') || 'Tax'}: <strong>{totals.tax.toLocaleString()}h</strong> ({((totals.tax/totalHours)*100).toFixed(0)}%)</span>
           </div>
           <div className='flex items-center gap-2'>
             <div className='w-3 h-3 rounded' style={{ background: COLORS.orange }} />
-            <span>Advisory: <strong>{totals.advisory.toLocaleString()}h</strong> ({((totals.advisory/totalHours)*100).toFixed(0)}%)</span>
+            <span>{t('dashboard.charts.accounting.advisory') || 'Advisory'}: <strong>{totals.advisory.toLocaleString()}h</strong> ({((totals.advisory/totalHours)*100).toFixed(0)}%)</span>
           </div>
         </div>
-        <p className='text-muted-foreground'>📈 Audit hours increased 31% from Jul to Dec. Peak season in Q4.</p>
+        <p className='text-muted-foreground'>📈 {t('dashboard.charts.accounting.footerNote') || 'Audit hours increased 31% from Jul to Dec. Peak season in Q4.'}</p>
       </CardFooter>
     </Card>
   );
@@ -178,12 +153,12 @@ function AccountingBarChart() {
 
 // Line Chart for Financial PR
 function PRLineChart() {
-  const config = chartConfigs['financial-pr'];
+  const { t } = useTranslation();
   
   const chartConfig = {
-    positive: { label: 'Positive', color: COLORS.green },
-    neutral: { label: 'Neutral', color: COLORS.yellow },
-    negative: { label: 'Negative', color: COLORS.red }
+    positive: { label: t('dashboard.charts.financialPR.positive') || 'Positive', color: COLORS.green },
+    neutral: { label: t('dashboard.charts.financialPR.neutral') || 'Neutral', color: COLORS.yellow },
+    negative: { label: t('dashboard.charts.financialPR.negative') || 'Negative', color: COLORS.red }
   } satisfies ChartConfig;
 
   const latestData = prSentimentData[prSentimentData.length - 1];
@@ -196,21 +171,21 @@ function PRLineChart() {
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
           <CardTitle className='flex items-center gap-2'>
             <IconChartBar className='h-5 w-5 text-purple-500' />
-            {config.title}
+            {t('dashboard.charts.financialPR.lineTitle') || 'Media Sentiment Analysis'}
           </CardTitle>
-          <CardDescription>{config.description}</CardDescription>
+          <CardDescription>{t('dashboard.charts.financialPR.lineDescription') || 'Monthly sentiment breakdown (%)'}</CardDescription>
         </div>
         <div className='flex'>
           <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
-            <span className='text-muted-foreground text-xs'>Positive</span>
+            <span className='text-muted-foreground text-xs'>{t('dashboard.charts.financialPR.positive') || 'Positive'}</span>
             <span className='text-xl font-bold text-green-500'>{latestData.positive}%</span>
           </div>
           <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
-            <span className='text-muted-foreground text-xs'>Neutral</span>
+            <span className='text-muted-foreground text-xs'>{t('dashboard.charts.financialPR.neutral') || 'Neutral'}</span>
             <span className='text-xl font-bold text-yellow-500'>{latestData.neutral}%</span>
           </div>
           <div className='flex flex-col justify-center gap-1 border-l px-4 py-4 text-center'>
-            <span className='text-muted-foreground text-xs'>Negative</span>
+            <span className='text-muted-foreground text-xs'>{t('dashboard.charts.financialPR.negative') || 'Negative'}</span>
             <span className='text-xl font-bold text-red-500'>{latestData.negative}%</span>
           </div>
         </div>
@@ -223,18 +198,18 @@ function PRLineChart() {
             <YAxis tickLine={false} axisLine={false} tickMargin={8} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Line type='monotone' dataKey='positive' name='Positive' stroke={COLORS.green} strokeWidth={3} dot={{ fill: COLORS.green, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
-            <Line type='monotone' dataKey='neutral' name='Neutral' stroke={COLORS.yellow} strokeWidth={3} dot={{ fill: COLORS.yellow, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
-            <Line type='monotone' dataKey='negative' name='Negative' stroke={COLORS.red} strokeWidth={3} dot={{ fill: COLORS.red, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+            <Line type='monotone' dataKey='positive' name={t('dashboard.charts.financialPR.positive') || 'Positive'} stroke={COLORS.green} strokeWidth={3} dot={{ fill: COLORS.green, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+            <Line type='monotone' dataKey='neutral' name={t('dashboard.charts.financialPR.neutral') || 'Neutral'} stroke={COLORS.yellow} strokeWidth={3} dot={{ fill: COLORS.yellow, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
+            <Line type='monotone' dataKey='negative' name={t('dashboard.charts.financialPR.negative') || 'Negative'} stroke={COLORS.red} strokeWidth={3} dot={{ fill: COLORS.red, r: 5, strokeWidth: 2, stroke: '#fff' }} activeDot={{ r: 7 }} />
           </LineChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
         <div className='flex items-center gap-2'>
           <IconTrendingUp className='h-4 w-4 text-green-500' />
-          <span>Positive sentiment <strong className='text-green-500'>+{positiveTrend}%</strong> since July</span>
+          <span>{t('dashboard.charts.financialPR.positiveTrend') || 'Positive sentiment'} <strong className='text-green-500'>+{positiveTrend}%</strong> {t('dashboard.charts.financialPR.sinceJuly') || 'since July'}</span>
         </div>
-        <p className='text-muted-foreground'>🎯 Client media coverage shows strong positive momentum. Negative mentions reduced to just {latestData.negative}%.</p>
+        <p className='text-muted-foreground'>🎯 {t('dashboard.charts.financialPR.footerNote') || `Client media coverage shows strong positive momentum. Negative mentions reduced to just ${latestData.negative}%.`}</p>
       </CardFooter>
     </Card>
   );
@@ -250,18 +225,25 @@ const ipoCompletionDataColored = [
 
 // Radial Bar Chart for IPO
 function IPORadialChart() {
-  const config = chartConfigs['ipo-advisory'];
+  const { t } = useTranslation();
   const avgCompletion = Math.round(ipoCompletionDataColored.reduce((acc, curr) => acc + curr.value, 0) / ipoCompletionDataColored.length);
 
   const chartConfig = {
-    value: { label: 'Completion' }
+    value: { label: t('dashboard.charts.ipoAdvisory.completion') || 'Completion' }
   } satisfies ChartConfig;
 
+  const ipoCompletionDataWithTranslations = [
+    { name: t('dashboard.charts.ipoAdvisory.dueDiligence') || 'Due Diligence', value: 92, fill: COLORS.blue },
+    { name: t('dashboard.charts.ipoAdvisory.documentation') || 'Documentation', value: 78, fill: COLORS.green },
+    { name: t('dashboard.charts.ipoAdvisory.regulatory') || 'Regulatory', value: 85, fill: COLORS.purple },
+    { name: t('dashboard.charts.ipoAdvisory.marketing') || 'Marketing', value: 65, fill: COLORS.orange }
+  ];
+
   const getStatusText = (value: number) => {
-    if (value >= 90) return { text: 'Excellent', color: 'text-green-500' };
-    if (value >= 75) return { text: 'Good', color: 'text-blue-500' };
-    if (value >= 60) return { text: 'In Progress', color: 'text-yellow-500' };
-    return { text: 'Needs Attention', color: 'text-red-500' };
+    if (value >= 90) return { text: t('common.status.excellent') || 'Excellent', color: 'text-green-500' };
+    if (value >= 75) return { text: t('common.status.good') || 'Good', color: 'text-blue-500' };
+    if (value >= 60) return { text: t('common.status.inProgress') || 'In Progress', color: 'text-yellow-500' };
+    return { text: t('common.status.needsAttention') || 'Needs Attention', color: 'text-red-500' };
   };
 
   return (
@@ -270,19 +252,19 @@ function IPORadialChart() {
         <div className='flex flex-1 flex-col justify-center gap-1 px-6 py-4'>
           <CardTitle className='flex items-center gap-2'>
             <IconUsers className='h-5 w-5 text-cyan-500' />
-            {config.title}
+            {t('dashboard.charts.ipoAdvisory.radialTitle') || 'IPO Process Completion'}
           </CardTitle>
-          <CardDescription>{config.description}</CardDescription>
+          <CardDescription>{t('dashboard.charts.ipoAdvisory.radialDescription') || 'Current project milestone progress'}</CardDescription>
         </div>
         <div className='flex flex-col justify-center gap-1 border-l px-6 py-4'>
-          <span className='text-muted-foreground text-xs'>Average</span>
+          <span className='text-muted-foreground text-xs'>{t('common.average') || 'Average'}</span>
           <span className='text-2xl font-bold'>{avgCompletion}%</span>
         </div>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
           <RadialBarChart
-            data={ipoCompletionDataColored}
+            data={ipoCompletionDataWithTranslations}
             innerRadius='25%'
             outerRadius='100%'
             startAngle={180}
@@ -303,7 +285,7 @@ function IPORadialChart() {
                   return (
                     <div className='bg-background border rounded-lg shadow-lg p-3'>
                       <p className='font-medium'>{data.name}</p>
-                      <p className='text-sm'><strong>{data.value}%</strong> complete</p>
+                      <p className='text-sm'><strong>{data.value}%</strong> {t('common.complete') || 'complete'}</p>
                     </div>
                   );
                 }
@@ -315,7 +297,7 @@ function IPORadialChart() {
       </CardContent>
       <CardFooter className='flex-col items-start gap-3 text-sm border-t pt-4'>
         <div className='grid grid-cols-2 gap-3 w-full'>
-          {ipoCompletionDataColored.map((item) => {
+          {ipoCompletionDataWithTranslations.map((item) => {
             const status = getStatusText(item.value);
             return (
               <div key={item.name} className='flex items-center gap-2'>
@@ -326,7 +308,7 @@ function IPORadialChart() {
             );
           })}
         </div>
-        <p className='text-muted-foreground'>🚀 Due Diligence near completion. Marketing phase needs acceleration to meet Q1 listing target.</p>
+        <p className='text-muted-foreground'>🚀 {t('dashboard.charts.ipoAdvisory.footerNote') || 'Due Diligence near completion. Marketing phase needs acceleration to meet Q1 listing target.'}</p>
       </CardFooter>
     </Card>
   );
@@ -334,6 +316,7 @@ function IPORadialChart() {
 
 export function BarGraph() {
   const { currentCompany } = useApp();
+  const { t } = useTranslation();
   const companyType = currentCompany.type;
   const router = useRouter();
   
@@ -385,7 +368,7 @@ export function BarGraph() {
         <ChartComponent />
         <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
           <IconExternalLink className='size-3' />
-          查看詳情
+          {t('common.viewDetails') || '查看詳情'}
         </div>
       </div>
     </div>

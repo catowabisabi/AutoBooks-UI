@@ -22,6 +22,7 @@ import {
   ChartLegendContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Color schemes
 const COLORS = {
@@ -67,10 +68,12 @@ const ipoFunnelData = [
 
 // Accounting - Stacked Area Chart
 function AccountingAreaChart() {
+  const { t } = useTranslation();
+  
   const chartConfig = {
-    audit: { label: 'Audit', color: COLORS.blue },
-    tax: { label: 'Tax', color: COLORS.green },
-    advisory: { label: 'Advisory', color: COLORS.orange }
+    audit: { label: t('dashboard.charts.accounting.audit') || 'Audit', color: COLORS.blue },
+    tax: { label: t('dashboard.charts.accounting.tax') || 'Tax', color: COLORS.green },
+    advisory: { label: t('dashboard.charts.accounting.advisory') || 'Advisory', color: COLORS.orange }
   } satisfies ChartConfig;
 
   const totalRevenue = accountingRevenueData.reduce((acc, curr) => acc + curr.audit + curr.tax + curr.advisory, 0);
@@ -83,9 +86,9 @@ function AccountingAreaChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconChartAreaLine className='h-5 w-5 text-blue-500' />
-          Revenue Trends
+          {t('dashboard.charts.accounting.areaTitle') || 'Revenue Trends'}
         </CardTitle>
-        <CardDescription>Monthly revenue by service line (HK$k) • Total: <strong>HK${(totalRevenue/1000).toFixed(1)}M</strong></CardDescription>
+        <CardDescription>{t('dashboard.charts.accounting.areaDescription') || 'Monthly revenue by service line (HK$k)'} • {t('common.total') || 'Total'}: <strong>HK${(totalRevenue/1000).toFixed(1)}M</strong></CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
@@ -108,18 +111,18 @@ function AccountingAreaChart() {
             <XAxis dataKey='month' tickLine={false} axisLine={false} tickMargin={8} />
             <ChartTooltip content={<ChartTooltipContent indicator='dot' />} />
             <ChartLegend content={<ChartLegendContent />} />
-            <Area dataKey='advisory' name='Advisory' type='natural' fill='url(#fillAdvisoryArea)' stroke={COLORS.orange} strokeWidth={2} stackId='a' />
-            <Area dataKey='tax' name='Tax' type='natural' fill='url(#fillTaxArea)' stroke={COLORS.green} strokeWidth={2} stackId='a' />
-            <Area dataKey='audit' name='Audit' type='natural' fill='url(#fillAuditArea)' stroke={COLORS.blue} strokeWidth={2} stackId='a' />
+            <Area dataKey='advisory' name={t('dashboard.charts.accounting.advisory') || 'Advisory'} type='natural' fill='url(#fillAdvisoryArea)' stroke={COLORS.orange} strokeWidth={2} stackId='a' />
+            <Area dataKey='tax' name={t('dashboard.charts.accounting.tax') || 'Tax'} type='natural' fill='url(#fillTaxArea)' stroke={COLORS.green} strokeWidth={2} stackId='a' />
+            <Area dataKey='audit' name={t('dashboard.charts.accounting.audit') || 'Audit'} type='natural' fill='url(#fillAuditArea)' stroke={COLORS.blue} strokeWidth={2} stackId='a' />
           </AreaChart>
         </ChartContainer>
       </CardContent>
       <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
         <div className='flex items-center gap-2'>
           <IconTrendingUp className='h-4 w-4 text-green-500' />
-          <span>Revenue growth <strong className='text-green-500'>+{growth.toFixed(1)}%</strong> from Jul to Dec</span>
+          <span>{t('dashboard.charts.accounting.revenueGrowth') || 'Revenue growth'} <strong className='text-green-500'>+{growth.toFixed(1)}%</strong> {t('dashboard.charts.accounting.fromJulToDec') || 'from Jul to Dec'}</span>
         </div>
-        <p className='text-muted-foreground'>📊 Audit services remain the primary revenue driver. Tax advisory shows strongest growth trajectory (+117%).</p>
+        <p className='text-muted-foreground'>📊 {t('dashboard.charts.accounting.areaFooterNote') || 'Audit services remain the primary revenue driver. Tax advisory shows strongest growth trajectory (+117%).'}</p>
       </CardFooter>
     </Card>
   );
@@ -127,9 +130,11 @@ function AccountingAreaChart() {
 
 // Financial PR - Radar Chart
 function PRRadarChart() {
+  const { t } = useTranslation();
+  
   const chartConfig = {
-    score: { label: 'Your Score', color: COLORS.purple },
-    benchmark: { label: 'Industry Avg', color: COLORS.cyan }
+    score: { label: t('dashboard.charts.financialPR.yourScore') || 'Your Score', color: COLORS.purple },
+    benchmark: { label: t('dashboard.charts.financialPR.industryAvg') || 'Industry Avg', color: COLORS.cyan }
   } satisfies ChartConfig;
 
   const avgScore = Math.round(prPerformanceData.reduce((acc, curr) => acc + curr.score, 0) / prPerformanceData.length);
@@ -141,9 +146,9 @@ function PRRadarChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconRadar2 className='h-5 w-5 text-purple-500' />
-          Client Performance Radar
+          {t('dashboard.charts.financialPR.radarTitle') || 'Client Performance Radar'}
         </CardTitle>
-        <CardDescription>Performance vs industry benchmarks • Your avg: <strong className='text-purple-500'>{avgScore}</strong> vs Industry: <strong>{avgBenchmark}</strong></CardDescription>
+        <CardDescription>{t('dashboard.charts.financialPR.radarDescription') || 'Performance vs industry benchmarks'} • {t('dashboard.charts.financialPR.yourAvg') || 'Your avg'}: <strong className='text-purple-500'>{avgScore}</strong> vs {t('dashboard.charts.financialPR.industryAvgLabel') || 'Industry'}: <strong>{avgBenchmark}</strong></CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='mx-auto aspect-square h-[250px]'>
@@ -152,8 +157,8 @@ function PRRadarChart() {
             <PolarAngleAxis dataKey='metric' tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }} />
             <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
             <ChartTooltip content={<ChartTooltipContent />} />
-            <Radar name='Industry Avg' dataKey='benchmark' stroke={COLORS.cyan} fill={COLORS.cyan} fillOpacity={0.2} strokeWidth={2} />
-            <Radar name='Your Score' dataKey='score' stroke={COLORS.purple} fill={COLORS.purple} fillOpacity={0.4} strokeWidth={2} />
+            <Radar name={t('dashboard.charts.financialPR.industryAvg') || 'Industry Avg'} dataKey='benchmark' stroke={COLORS.cyan} fill={COLORS.cyan} fillOpacity={0.2} strokeWidth={2} />
+            <Radar name={t('dashboard.charts.financialPR.yourScore') || 'Your Score'} dataKey='score' stroke={COLORS.purple} fill={COLORS.purple} fillOpacity={0.4} strokeWidth={2} />
             <Legend />
           </RadarChart>
         </ChartContainer>
@@ -161,7 +166,7 @@ function PRRadarChart() {
       <CardFooter className='flex-col items-start gap-2 text-sm border-t pt-4'>
         <div className='flex items-center gap-2'>
           <IconTrendingUp className='h-4 w-4 text-purple-500' />
-          <span>Outperforming industry in <strong className='text-purple-500'>{outperformCount}/6</strong> key metrics</span>
+          <span>{t('dashboard.charts.financialPR.outperforming') || 'Outperforming industry in'} <strong className='text-purple-500'>{outperformCount}/6</strong> {t('dashboard.charts.financialPR.keyMetrics') || 'key metrics'}</span>
         </div>
         <div className='grid grid-cols-2 gap-2 w-full text-xs'>
           {prPerformanceData.map((item) => (
@@ -173,7 +178,7 @@ function PRRadarChart() {
             </div>
           ))}
         </div>
-        <p className='text-muted-foreground'>🎯 Investor Relations (92) is the strongest area. Focus on improving Brand Awareness (75) to match competitors.</p>
+        <p className='text-muted-foreground'>🎯 {t('dashboard.charts.financialPR.radarFooterNote') || 'Investor Relations (92) is the strongest area. Focus on improving Brand Awareness (75) to match competitors.'}</p>
       </CardFooter>
     </Card>
   );
@@ -181,9 +186,11 @@ function PRRadarChart() {
 
 // IPO Advisory - Composed Bar + Line Chart
 function IPOFunnelChart() {
+  const { t } = useTranslation();
+  
   const chartConfig = {
-    count: { label: 'Deal Count', color: COLORS.blue },
-    conversion: { label: 'Conversion %', color: COLORS.orange }
+    count: { label: t('dashboard.charts.ipoAdvisory.dealCount') || 'Deal Count', color: COLORS.blue },
+    conversion: { label: t('dashboard.charts.ipoAdvisory.conversionPercent') || 'Conversion %', color: COLORS.orange }
   } satisfies ChartConfig;
 
   const totalLeads = ipoFunnelData[0].count;
@@ -195,9 +202,9 @@ function IPOFunnelChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconFilter className='h-5 w-5 text-cyan-500' />
-          IPO Deal Funnel
+          {t('dashboard.charts.ipoAdvisory.funnelTitle') || 'IPO Deal Funnel'}
         </CardTitle>
-        <CardDescription>Pipeline stages and conversion rates • <strong>{totalLeads}</strong> leads → <strong className='text-green-500'>{totalListed}</strong> listed ({overallConversion}% conversion)</CardDescription>
+        <CardDescription>{t('dashboard.charts.ipoAdvisory.funnelDescription') || 'Pipeline stages and conversion rates'} • <strong>{totalLeads}</strong> {t('dashboard.charts.ipoAdvisory.leads') || 'leads'} → <strong className='text-green-500'>{totalListed}</strong> {t('dashboard.charts.ipoAdvisory.listed') || 'listed'} ({overallConversion}% {t('common.conversion') || 'conversion'})</CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='aspect-auto h-[250px] w-full'>
@@ -214,8 +221,8 @@ function IPOFunnelChart() {
             <YAxis yAxisId='right' orientation='right' tickLine={false} axisLine={false} tickMargin={8} domain={[0, 100]} tickFormatter={(v) => `${v}%`} />
             <ChartTooltip content={<ChartTooltipContent />} />
             <Legend />
-            <Bar yAxisId='left' dataKey='count' name='Deal Count' fill='url(#fillFunnelBar)' radius={[4, 4, 0, 0]} />
-            <Line yAxisId='right' type='monotone' dataKey='conversion' name='Conversion %' stroke={COLORS.orange} strokeWidth={3} dot={{ fill: COLORS.orange, r: 6, strokeWidth: 2, stroke: '#fff' }} />
+            <Bar yAxisId='left' dataKey='count' name={t('dashboard.charts.ipoAdvisory.dealCount') || 'Deal Count'} fill='url(#fillFunnelBar)' radius={[4, 4, 0, 0]} />
+            <Line yAxisId='right' type='monotone' dataKey='conversion' name={t('dashboard.charts.ipoAdvisory.conversionPercent') || 'Conversion %'} stroke={COLORS.orange} strokeWidth={3} dot={{ fill: COLORS.orange, r: 6, strokeWidth: 2, stroke: '#fff' }} />
           </ComposedChart>
         </ChartContainer>
       </CardContent>
@@ -231,7 +238,7 @@ function IPOFunnelChart() {
             </div>
           ))}
         </div>
-        <p className='text-muted-foreground'>🚀 Strongest drop-off at Qualified stage (38% loss). Consider improving initial screening criteria.</p>
+        <p className='text-muted-foreground'>🚀 {t('dashboard.charts.ipoAdvisory.funnelFooterNote') || 'Strongest drop-off at Qualified stage (38% loss). Consider improving initial screening criteria.'}</p>
       </CardFooter>
     </Card>
   );
@@ -239,6 +246,7 @@ function IPOFunnelChart() {
 
 export function AreaGraph() {
   const { currentCompany } = useApp();
+  const { t } = useTranslation();
   const companyType = currentCompany.type;
   const router = useRouter();
 
@@ -280,7 +288,7 @@ export function AreaGraph() {
         <ChartComponent />
         <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
           <IconExternalLink className='size-3' />
-          查看詳情
+          {t('common.viewDetails') || '查看詳情'}
         </div>
       </div>
     </div>

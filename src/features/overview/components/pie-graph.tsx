@@ -20,6 +20,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Color schemes
 const COLORS = {
@@ -60,14 +61,15 @@ const ipoSizeData = [
 
 // Accounting - Donut Chart
 function AccountingDonutChart() {
+  const { t } = useTranslation();
   const totalRevenue = accountingServiceData.reduce((acc, curr) => acc + curr.revenue, 0);
   
   const chartConfig = {
-    revenue: { label: 'Revenue (HK$k)' },
-    audit: { label: 'Audit', color: COLORS.blue },
-    tax: { label: 'Tax', color: COLORS.green },
-    consulting: { label: 'Consulting', color: COLORS.orange },
-    compliance: { label: 'Compliance', color: COLORS.purple }
+    revenue: { label: t('dashboard.charts.accounting.revenue') || 'Revenue (HK$k)' },
+    audit: { label: t('dashboard.charts.accounting.audit') || 'Audit', color: COLORS.blue },
+    tax: { label: t('dashboard.charts.accounting.tax') || 'Tax', color: COLORS.green },
+    consulting: { label: t('dashboard.charts.accounting.consulting') || 'Consulting', color: COLORS.orange },
+    compliance: { label: t('dashboard.charts.accounting.compliance') || 'Compliance', color: COLORS.purple }
   } satisfies ChartConfig;
 
   return (
@@ -75,9 +77,9 @@ function AccountingDonutChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconChartPie className='h-5 w-5 text-blue-500' />
-          Revenue by Service
+          {t('dashboard.charts.accounting.pieTitle') || 'Revenue by Service'}
         </CardTitle>
-        <CardDescription>Service revenue distribution (HK$k) • H2 2024</CardDescription>
+        <CardDescription>{t('dashboard.charts.accounting.pieDescription') || 'Service revenue distribution (HK$k)'} • {t('dashboard.charts.accounting.piePeriod') || 'H2 2024'}</CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='mx-auto aspect-square h-[250px]'>
@@ -103,7 +105,7 @@ function AccountingDonutChart() {
                           ${(totalRevenue / 1000).toFixed(1)}M
                         </tspan>
                         <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className='fill-muted-foreground text-sm'>
-                          Total Revenue
+                          {t('dashboard.charts.accounting.pieCenterLabel') || 'Total Revenue'}
                         </tspan>
                       </text>
                     );
@@ -123,7 +125,7 @@ function AccountingDonutChart() {
             </div>
           ))}
         </div>
-        <p className='text-muted-foreground'>📈 Audit services contribute 51% of total revenue. Consider expanding advisory services for diversification.</p>
+        <p className='text-muted-foreground'>📈 {t('dashboard.charts.accounting.pieFooterNote') || 'Audit services contribute 51% of total revenue. Consider expanding advisory services for diversification.'}</p>
       </CardFooter>
     </Card>
   );
@@ -131,10 +133,11 @@ function AccountingDonutChart() {
 
 // Financial PR - Client Industry Distribution
 function PRIndustryChart() {
+  const { t } = useTranslation();
   const totalClients = prIndustryData.reduce((acc, curr) => acc + curr.clients, 0);
   
   const chartConfig = {
-    value: { label: 'Share %' }
+    value: { label: t('common.sharePercent') || 'Share %' }
   } satisfies ChartConfig;
 
   return (
@@ -142,9 +145,9 @@ function PRIndustryChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconUsers className='h-5 w-5 text-green-500' />
-          Client Industry Mix
+          {t('dashboard.charts.financialPR.industryTitle') || 'Client Industry Mix'}
         </CardTitle>
-        <CardDescription>Distribution across sectors • <strong>{totalClients}</strong> active clients</CardDescription>
+        <CardDescription>{t('dashboard.charts.financialPR.industryDescription') || 'Distribution across sectors'} • <strong>{totalClients}</strong> {t('dashboard.charts.financialPR.activeClients') || 'active clients'}</CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='mx-auto aspect-square h-[250px]'>
@@ -156,7 +159,7 @@ function PRIndustryChart() {
                   return (
                     <div className='bg-background border rounded-lg shadow-lg p-3'>
                       <p className='font-medium'>{data.name}</p>
-                      <p className='text-sm text-muted-foreground'>{data.value}% • {data.clients} clients</p>
+                      <p className='text-sm text-muted-foreground'>{data.value}% • {data.clients} {t('common.clients') || 'clients'}</p>
                     </div>
                   );
                 }
@@ -187,7 +190,7 @@ function PRIndustryChart() {
                           {totalClients}
                         </tspan>
                         <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className='fill-muted-foreground text-sm'>
-                          Active Clients
+                          {t('dashboard.charts.financialPR.activeClientsLabel') || 'Active Clients'}
                         </tspan>
                       </text>
                     );
@@ -207,7 +210,7 @@ function PRIndustryChart() {
             </div>
           ))}
         </div>
-        <p className='text-muted-foreground'>🎯 Tech sector dominates with 35% of clients. Healthcare showing 15% YoY growth potential.</p>
+        <p className='text-muted-foreground'>🎯 {t('dashboard.charts.financialPR.industryFooterNote') || 'Tech sector dominates with 35% of clients. Healthcare showing 15% YoY growth potential.'}</p>
       </CardFooter>
     </Card>
   );
@@ -215,12 +218,13 @@ function PRIndustryChart() {
 
 // IPO Advisory - Deal Size Distribution
 function IPODealSizeChart() {
+  const { t } = useTranslation();
   const totalDeals = ipoSizeData.reduce((acc, curr) => acc + curr.value, 0);
   const totalAmount = ipoSizeData.reduce((acc, curr) => acc + curr.amount, 0);
   
   const chartConfig = {
-    value: { label: 'Deals' },
-    amount: { label: 'Amount ($M)' }
+    value: { label: t('dashboard.charts.ipoAdvisory.deals') || 'Deals' },
+    amount: { label: t('dashboard.charts.ipoAdvisory.amountM') || 'Amount ($M)' }
   } satisfies ChartConfig;
 
   return (
@@ -228,9 +232,9 @@ function IPODealSizeChart() {
       <CardHeader>
         <CardTitle className='flex items-center gap-2'>
           <IconBuildingSkyscraper className='h-5 w-5 text-purple-500' />
-          Deal Size Distribution
+          {t('dashboard.charts.ipoAdvisory.dealSizeTitle') || 'Deal Size Distribution'}
         </CardTitle>
-        <CardDescription>Pipeline by deal size category • <strong>{totalDeals}</strong> deals worth <strong>${(totalAmount/1000).toFixed(1)}B</strong></CardDescription>
+        <CardDescription>{t('dashboard.charts.ipoAdvisory.dealSizeDescription') || 'Pipeline by deal size category'} • <strong>{totalDeals}</strong> {t('dashboard.charts.ipoAdvisory.deals') || 'deals'} {t('common.worth') || 'worth'} <strong>${(totalAmount/1000).toFixed(1)}B</strong></CardDescription>
       </CardHeader>
       <CardContent className='px-2 pt-4 sm:px-6 sm:pt-6'>
         <ChartContainer config={chartConfig} className='mx-auto aspect-square h-[250px]'>
@@ -242,7 +246,7 @@ function IPODealSizeChart() {
                   return (
                     <div className='bg-background border rounded-lg shadow-lg p-3'>
                       <p className='font-medium'>{data.name}</p>
-                      <p className='text-sm text-muted-foreground'>{data.value} deals • ${data.amount}M total value</p>
+                      <p className='text-sm text-muted-foreground'>{data.value} {t('dashboard.charts.ipoAdvisory.deals') || 'deals'} • ${data.amount}M {t('common.totalValue') || 'total value'}</p>
                     </div>
                   );
                 }
@@ -273,7 +277,7 @@ function IPODealSizeChart() {
                           ${(totalAmount / 1000).toFixed(1)}B
                         </tspan>
                         <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 24} className='fill-muted-foreground text-sm'>
-                          Pipeline Value
+                          {t('dashboard.charts.ipoAdvisory.pipelineValue') || 'Pipeline Value'}
                         </tspan>
                       </text>
                     );
@@ -289,11 +293,11 @@ function IPODealSizeChart() {
           {ipoSizeData.map((item) => (
             <div key={item.name} className='flex items-center gap-2'>
               <div className='w-3 h-3 rounded-full' style={{ background: item.fill }} />
-              <span className='text-xs'>{item.name}: <strong>{item.value}</strong> deals (${item.amount}M)</span>
+              <span className='text-xs'>{item.name}: <strong>{item.value}</strong> {t('dashboard.charts.ipoAdvisory.deals') || 'deals'} (${item.amount}M)</span>
             </div>
           ))}
         </div>
-        <p className='text-muted-foreground'>💰 Mega deals contribute 35% of pipeline value with only 2 deals. Focus on maintaining these relationships.</p>
+        <p className='text-muted-foreground'>💰 {t('dashboard.charts.ipoAdvisory.dealSizeFooterNote') || 'Mega deals contribute 35% of pipeline value with only 2 deals. Focus on maintaining these relationships.'}</p>
       </CardFooter>
     </Card>
   );
@@ -301,6 +305,7 @@ function IPODealSizeChart() {
 
 export function PieGraph() {
   const { currentCompany } = useApp();
+  const { t } = useTranslation();
   const companyType = currentCompany.type;
   const router = useRouter();
 
@@ -342,7 +347,7 @@ export function PieGraph() {
         <ChartComponent />
         <div className='absolute top-4 right-4 flex items-center gap-1 text-xs text-primary opacity-0 group-hover:opacity-100 transition-opacity bg-background/80 px-2 py-1 rounded'>
           <IconExternalLink className='size-3' />
-          查看詳情
+          {t('common.viewDetails') || '查看詳情'}
         </div>
       </div>
     </div>

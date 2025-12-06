@@ -248,7 +248,7 @@ export default function ExpenseList() {
 
         {filteredExpenses.length > 0 ? (
           <div className='text-muted-foreground text-sm'>
-            Showing {paginated.length} of {filteredExpenses.length} expenses
+            {t('expenses.showing', { count: paginated.length, total: filteredExpenses.length })}
             {search && (
               <Badge
                 variant='outline'
@@ -269,7 +269,7 @@ export default function ExpenseList() {
         ) : (
           <div className='py-8 text-center'>
             <p className='text-muted-foreground'>
-              No expenses found matching your criteria.
+              {t('expenses.noExpensesFound')}
             </p>
             <Button
               variant='link'
@@ -281,7 +281,7 @@ export default function ExpenseList() {
               }}
               className='mt-2'
             >
-              Clear filters
+              {t('expenses.clearFilters')}
             </Button>
           </div>
         )}
@@ -295,7 +295,7 @@ export default function ExpenseList() {
               <TableHeader>
                 <TableRow>
                   <TableHead>{t('expenses.merchant')}</TableHead>
-                  <TableHead>{t('expenses.invoice')}</TableHead>
+                  <TableHead>{t('expenses.invoiceNo')}</TableHead>
                   <TableHead>{t('common.amount')}</TableHead>
                   <TableHead>{t('common.status')}</TableHead>
                   <TableHead>{t('expenses.description')}</TableHead>
@@ -312,7 +312,7 @@ export default function ExpenseList() {
                     </TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(expense.status)}>
-                        {expense.status}
+                        {t(`expenses.${expense.status.toLowerCase()}`)}
                       </Badge>
                     </TableCell>
                     <TableCell>{expense.description}</TableCell>
@@ -322,7 +322,7 @@ export default function ExpenseList() {
                           <Link
                             href={`/dashboard/finance/expenses/${expense.id}`}
                           >
-                            View
+                            {t('common.view')}
                           </Link>
                         </Button>
                       </div>
@@ -341,7 +341,7 @@ export default function ExpenseList() {
           <div className='flex flex-col items-center justify-between gap-4 sm:flex-row'>
             <div className='flex items-center gap-2'>
               <span className='text-muted-foreground text-sm'>
-                Items per page:
+                {t('common.itemsPerPage')}:
               </span>
               <Select
                 value={itemsPerPage.toString()}
@@ -412,9 +412,11 @@ export default function ExpenseList() {
             )}
 
             <div className='text-muted-foreground text-sm'>
-              Showing {(currentPage - 1) * itemsPerPage + 1}-
-              {Math.min(currentPage * itemsPerPage, filteredExpenses.length)} of{' '}
-              {filteredExpenses.length} expenses
+              {t('common.showingRange', { 
+                start: (currentPage - 1) * itemsPerPage + 1, 
+                end: Math.min(currentPage * itemsPerPage, filteredExpenses.length), 
+                total: filteredExpenses.length 
+              })}
             </div>
           </div>
         )}

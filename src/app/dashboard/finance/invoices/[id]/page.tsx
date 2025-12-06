@@ -182,7 +182,7 @@ export default function InvoiceDetailPage() {
                         : 'destructive'
                   }
                 >
-                  {invoice.status}
+                  {t(`invoices.${invoice.status.toLowerCase()}`)}
                 </Badge>
               </div>
             </CardContent>

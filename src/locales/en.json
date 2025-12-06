@@ -1,4 +1,10 @@
 {
+  "overview": {
+    "recentSales": {
+      "title": "Active Engagements",
+      "description": "{count} active client engagements this quarter."
+    }
+  },
   "landing": {
     "nav": {
       "home": "Home",
@@ -56,12 +62,19 @@
     "warning": "Warning",
     "info": "Info",
     "actions": "Actions",
+    "view": "View",
+    "print": "Print",
+    "itemsPerPage": "Items per page",
+    "showingRange": "Showing {start}-{end} of {total}",
     "status": {
       "label": "Status",
       "completed": "Completed",
       "inProgress": "In Progress",
       "dueReview": "Due Review",
-      "pending": "Pending"
+      "pending": "Pending",
+      "excellent": "Excellent",
+      "good": "Good",
+      "needsAttention": "Needs Attention"
     },
     "date": "Date",
     "amount": "Amount",
@@ -79,7 +92,16 @@
     "confirmDelete": "Confirm Delete",
     "deleteSuccess": "Successfully deleted",
     "deleteFailed": "Delete failed",
-    "progress": "Progress"
+    "progress": "Progress",
+    "totalHours": "Total Hours",
+    "total": "Total",
+    "average": "Average",
+    "complete": "complete",
+    "clients": "clients",
+    "sharePercent": "Share %",
+    "worth": "worth",
+    "totalValue": "total value",
+    "conversion": "conversion"
   },
   "auth": {
     "signIn": "Sign In",
@@ -1942,6 +1964,8 @@
     "generating": "Generating PDF...",
     "exported": "Invoice exported",
     "selectToExport": "Please select invoices to export",
+    "notFound": "Invoice not found",
+    "loadFailed": "Failed to load invoice",
     "newInvoice": "New Invoice",
     "newInvoiceDescription": "Create a new invoice record",
     "invoiceInfo": "Invoice Information",
@@ -1992,24 +2016,30 @@
     "rejected": "Rejected",
     "all": "All",
     "clear": "Clear",
-    "showing": "Showing {count} of {total} expenses"
+    "showing": "Showing {count} of {total} expenses",
+    "noExpensesFound": "No expenses found matching your criteria",
+    "clearFilters": "Clear filters"
   },
   "chartOfAccounts": {
-    "title": "Accounting Items",
-    "description": "Manage your organization's accounting item structure",
-    "addAccount": "Add Item",
-    "editAccount": "Edit Item",
-    "accountCode": "Item Code",
-    "accountName": "Item Name",
-    "accountNameZh": "Item Name (Chinese)",
-    "accountType": "Item Type",
-    "parentAccount": "Parent Item",
+    "title": "Chart of Accounts",
+    "description": "Manage your organization's accounting structure",
+    "addAccount": "Add Account",
+    "addAccountDescription": "Add a new account to the chart of accounts",
+    "editAccount": "Edit Account",
+    "editAccountDescription": "Modify this account's information",
+    "allAccounts": "All Accounts",
+    "accountCode": "Account Code",
+    "accountName": "Account Name",
+    "accountNameZh": "Account Name (Chinese)",
+    "accountType": "Account Type",
+    "parentAccount": "Parent Account",
     "currentBalance": "Current Balance",
     "isActive": "Active",
     "treeView": "Tree View",
     "listView": "List View",
     "filterByType": "Filter by Type",
     "allTypes": "All Types",
+    "optionalDescription": "Optional description",
     "types": {
       "asset": "Asset",
       "liability": "Liability",
@@ -2017,7 +2047,7 @@
       "revenue": "Revenue",
       "expense": "Expense"
     },
-    "noAccounts": "No items found"
+    "noAccounts": "No accounts found"
   }
 }
 
