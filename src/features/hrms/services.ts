@@ -215,10 +215,25 @@ interface PaginatedResponse<T> {
   results: T[];
 }
 
+// Helper function to normalize API response (handles both array and paginated response)
+function normalizeResponse<T>(data: T[] | PaginatedResponse<T>): PaginatedResponse<T> {
+  if (Array.isArray(data)) {
+    return {
+      count: data.length,
+      next: null,
+      previous: null,
+      results: data,
+    };
+  }
+  return data;
+}
+
 // Departments API
 export const departmentsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Department>>(`${BASE_URL}/departments/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Department[] | PaginatedResponse<Department>>(`${BASE_URL}/departments/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Department>(`${BASE_URL}/departments/${id}/`),
@@ -238,8 +253,10 @@ export const departmentsApi = {
 
 // Designations API
 export const designationsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Designation>>(`${BASE_URL}/designations/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Designation[] | PaginatedResponse<Designation>>(`${BASE_URL}/designations/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Designation>(`${BASE_URL}/designations/${id}/`),
@@ -256,8 +273,10 @@ export const designationsApi = {
 
 // Employees API
 export const employeesApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Employee>>(`${BASE_URL}/employees/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Employee[] | PaginatedResponse<Employee>>(`${BASE_URL}/employees/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Employee>(`${BASE_URL}/employees/${id}/`),
@@ -283,8 +302,10 @@ export const employeesApi = {
 
 // Leave Applications API
 export const leaveApplicationsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<LeaveApplication>>(`${BASE_URL}/leave-applications/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<LeaveApplication[] | PaginatedResponse<LeaveApplication>>(`${BASE_URL}/leave-applications/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<LeaveApplication>(`${BASE_URL}/leave-applications/${id}/`),
@@ -331,8 +352,10 @@ export const leaveBalancesApi = {
 
 // Payroll Periods API
 export const payrollPeriodsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<PayrollPeriod>>(`${BASE_URL}/payroll-periods/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<PayrollPeriod[] | PaginatedResponse<PayrollPeriod>>(`${BASE_URL}/payroll-periods/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<PayrollPeriod>(`${BASE_URL}/payroll-periods/${id}/`),
@@ -349,8 +372,10 @@ export const payrollPeriodsApi = {
 
 // Payroll API
 export const payrollsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Payroll>>(`${BASE_URL}/payrolls/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Payroll[] | PaginatedResponse<Payroll>>(`${BASE_URL}/payrolls/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Payroll>(`${BASE_URL}/payrolls/${id}/`),
@@ -370,8 +395,10 @@ export const payrollsApi = {
 
 // Projects API
 export const projectsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Project>>(`${BASE_URL}/projects/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Project[] | PaginatedResponse<Project>>(`${BASE_URL}/projects/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Project>(`${BASE_URL}/projects/${id}/`),
@@ -397,8 +424,10 @@ export const projectsApi = {
 
 // Tasks API
 export const tasksApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Task>>(`${BASE_URL}/tasks/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Task[] | PaginatedResponse<Task>>(`${BASE_URL}/tasks/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Task>(`${BASE_URL}/tasks/${id}/`),

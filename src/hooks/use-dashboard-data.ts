@@ -82,14 +82,20 @@ export function useDashboardData(): DashboardData {
         const audits = auditsResponse?.results || [];
         const taxReturns = taxReturnsResponse?.results || [];
         const revenue = (revenueResponse || {}) as Record<string, any>;
-        const billableHours = (billableHoursResponse || {}) as Record<string, any>;
+        // billableHours API returns: { total_hours, billable_hours, total_billable_value, by_role }
+        const billableHoursSummary = (billableHoursResponse || {}) as Record<string, any>;
         const salesData = salesResponse?.results || [];
         const employees = employeesResponse?.results || [];
 
-        const activeAudits = audits.filter((a: any) => a.status !== 'completed').length;
-        const pendingTaxReturns = taxReturns.filter((t: any) => t.status === 'pending').length;
-        const totalBillableHours = Object.values(billableHours).reduce((sum: number, val: any) => 
-          sum + (val?.total_hours || 0), 0);
+        // Case-insensitive status comparison
+        const activeAudits = audits.filter((a: any) => 
+          a.status?.toUpperCase() !== 'COMPLETED'
+        ).length;
+        const pendingTaxReturns = taxReturns.filter((t: any) => 
+          t.status?.toUpperCase() === 'PENDING'
+        ).length;
+        // Get billable hours directly from summary response
+        const totalBillableHours = parseFloat(billableHoursSummary['billable_hours'] || billableHoursSummary['total_hours'] || 0);
 
         // Calculate YTD revenue
         const currentYear = new Date().getFullYear();
@@ -98,10 +104,16 @@ export function useDashboardData(): DashboardData {
           .reduce((sum: number, s: any) => sum + parseFloat(s.revenue || 0), 0);
 
         // Build stats object
+        // Revenue API returns: { total_revenue, received_amount, pending_amount, by_status }
+        const pendingAmount = parseFloat(revenue['pending_amount'] || 0);
+        const receivedAmount = parseFloat(revenue['received_amount'] || 0);
+        const totalRevenue = parseFloat(revenue['total_revenue'] || 0);
+        const collectionRate = totalRevenue > 0 ? Math.round((receivedAmount / totalRevenue) * 100) : 0;
+        
         const apiStats: DashboardStats = {
-          outstandingInvoices: `HK$${((revenue['pending'] || 0) / 1000).toFixed(0)}K`,
+          outstandingInvoices: `HK$${(pendingAmount / 1000).toFixed(0)}K`,
           activeEngagements: activeAudits + pendingTaxReturns,
-          complianceScore: `${revenue['collection_rate'] || 95}%`,
+          complianceScore: `${collectionRate}%`,
           revenueYTD: `HK$${(ytdRevenue / 1000000).toFixed(1)}M`,
           pendingTasks: pendingTaxReturns,
           clientCount: employees.length || currentCompany.stats.clientCount,
@@ -122,8 +134,8 @@ export function useDashboardData(): DashboardData {
           },
           quaternaryMetric: {
             label: 'Total Revenue',
-            value: `HK$${((revenue['total_received'] || 0) / 1000).toFixed(0)}K`,
-            trend: `${((revenue['pending'] || 0) / 1000).toFixed(0)}K pending`
+            value: `HK$${(receivedAmount / 1000).toFixed(0)}K`,
+            trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
           }
         };
 

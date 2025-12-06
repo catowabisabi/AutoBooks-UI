@@ -156,10 +156,25 @@ interface PaginatedResponse<T> {
   results: T[];
 }
 
+// Helper function to normalize API response (handles both array and paginated response)
+function normalizeResponse<T>(data: T[] | PaginatedResponse<T>): PaginatedResponse<T> {
+  if (Array.isArray(data)) {
+    return {
+      count: data.length,
+      next: null,
+      previous: null,
+      results: data,
+    };
+  }
+  return data;
+}
+
 // Companies API
 export const companiesApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Company>>(`${BASE_URL}/companies/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Company[] | PaginatedResponse<Company>>(`${BASE_URL}/companies/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Company>(`${BASE_URL}/companies/${id}/`),
@@ -179,8 +194,10 @@ export const companiesApi = {
 
 // Audits API
 export const auditsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<AuditProject>>(`${BASE_URL}/audits/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<AuditProject[] | PaginatedResponse<AuditProject>>(`${BASE_URL}/audits/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<AuditProject>(`${BASE_URL}/audits/${id}/`),
@@ -200,8 +217,10 @@ export const auditsApi = {
 
 // Tax Returns API
 export const taxReturnsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<TaxReturnCase>>(`${BASE_URL}/tax-returns/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<TaxReturnCase[] | PaginatedResponse<TaxReturnCase>>(`${BASE_URL}/tax-returns/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<TaxReturnCase>(`${BASE_URL}/tax-returns/${id}/`),
@@ -221,8 +240,10 @@ export const taxReturnsApi = {
 
 // Billable Hours API
 export const billableHoursApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<BillableHour>>(`${BASE_URL}/billable-hours/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<BillableHour[] | PaginatedResponse<BillableHour>>(`${BASE_URL}/billable-hours/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<BillableHour>(`${BASE_URL}/billable-hours/${id}/`),
@@ -245,8 +266,10 @@ export const billableHoursApi = {
 
 // Revenue API
 export const revenueApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Revenue>>(`${BASE_URL}/revenues/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Revenue[] | PaginatedResponse<Revenue>>(`${BASE_URL}/revenues/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Revenue>(`${BASE_URL}/revenues/${id}/`),
@@ -269,8 +292,10 @@ export const revenueApi = {
 
 // BMI IPO/PR API
 export const bmiProjectsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<BMIIPOPRRecord>>(`${BASE_URL}/bmi-projects/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<BMIIPOPRRecord[] | PaginatedResponse<BMIIPOPRRecord>>(`${BASE_URL}/bmi-projects/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<BMIIPOPRRecord>(`${BASE_URL}/bmi-projects/${id}/`),

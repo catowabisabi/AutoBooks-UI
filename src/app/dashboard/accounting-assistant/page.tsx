@@ -63,9 +63,12 @@ import {
   IconRobot,
   IconMessageCircle,
   IconSearch,
+  IconFiles,
 } from '@tabler/icons-react';
 import {
   uploadReceipt,
+  uploadReceiptsBatch,
+  BatchUploadResult,
   getReceipts,
   getReceiptDetail,
   approveReceipt,
@@ -143,6 +146,12 @@ export default function AccountingAssistantPage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
   
+  // Batch upload state
+  const [uploadMode, setUploadMode] = useState<'single' | 'batch'>('single');
+  const [batchFiles, setBatchFiles] = useState<File[]>([]);
+  const [batchResults, setBatchResults] = useState<BatchUploadResult | null>(null);
+  const [batchProgress, setBatchProgress] = useState({ completed: 0, total: 0, currentFile: '' });
+  
   // Receipts state
   const [receipts, setReceipts] = useState<Receipt[]>([]);
   const [selectedReceipt, setSelectedReceipt] = useState<Receipt | null>(null);
@@ -172,6 +181,7 @@ export default function AccountingAssistantPage() {
   
   // Refs
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const batchFileInputRef = useRef<HTMLInputElement>(null);
   const comparisonFileRef = useRef<HTMLInputElement>(null);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
@@ -266,6 +276,49 @@ export default function AccountingAssistantPage() {
     } finally {
       setIsUploading(false);
     }
+  };
+
+  // Handle batch file selection
+  const handleBatchFileSelect = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const files = event.target.files;
+    if (files && files.length > 0) {
+      setBatchFiles(Array.from(files));
+      setBatchResults(null);
+    }
+  };
+
+  // Handle batch upload
+  const handleBatchUpload = async () => {
+    if (batchFiles.length === 0) return;
+    
+    setIsUploading(true);
+    setBatchResults(null);
+    setBatchProgress({ completed: 0, total: batchFiles.length, currentFile: '' });
+    
+    try {
+      const results = await uploadReceiptsBatch(
+        batchFiles,
+        'auto',
+        true,
+        true,
+        (completed, total, currentFile) => {
+          setBatchProgress({ completed, total, currentFile });
+        }
+      );
+      
+      setBatchResults(results);
+      loadReceipts(); // Refresh list
+      loadStats(); // Refresh stats
+    } catch (error: any) {
+      console.error('Batch upload failed:', error);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  // Remove file from batch
+  const removeBatchFile = (index: number) => {
+    setBatchFiles(prev => prev.filter((_, i) => i !== index));
   };
 
   // Handle comparison upload

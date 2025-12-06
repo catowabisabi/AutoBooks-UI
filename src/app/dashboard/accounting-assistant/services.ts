@@ -170,6 +170,62 @@ export async function uploadReceipt(
 }
 
 /**
+ * Batch upload multiple receipts
+ * 批量上傳多張收據
+ */
+export interface BatchUploadResult {
+  total: number;
+  successful: number;
+  failed: number;
+  results: Array<{
+    filename: string;
+    status: 'success' | 'error';
+    receipt_id?: string;
+    error?: string;
+  }>;
+}
+
+export async function uploadReceiptsBatch(
+  files: File[],
+  language: string = 'auto',
+  autoCategorize: boolean = true,
+  autoJournal: boolean = false,
+  onProgress?: (completed: number, total: number, currentFile: string) => void
+): Promise<BatchUploadResult> {
+  const results: BatchUploadResult = {
+    total: files.length,
+    successful: 0,
+    failed: 0,
+    results: [],
+  };
+
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    onProgress?.(i, files.length, file.name);
+
+    try {
+      const result = await uploadReceipt(file, language, autoCategorize, autoJournal);
+      results.successful++;
+      results.results.push({
+        filename: file.name,
+        status: 'success',
+        receipt_id: result.receipt_id,
+      });
+    } catch (error: any) {
+      results.failed++;
+      results.results.push({
+        filename: file.name,
+        status: 'error',
+        error: error.message || 'Upload failed',
+      });
+    }
+  }
+
+  onProgress?.(files.length, files.length, 'Complete');
+  return results;
+}
+
+/**
  * Get all receipts
  * 獲取所有收據
  */

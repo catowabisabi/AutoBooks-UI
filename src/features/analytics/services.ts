@@ -116,10 +116,25 @@ interface PaginatedResponse<T> {
   results: T[];
 }
 
+// Helper function to normalize API response (handles both array and paginated response)
+function normalizeResponse<T>(data: T[] | PaginatedResponse<T>): PaginatedResponse<T> {
+  if (Array.isArray(data)) {
+    return {
+      count: data.length,
+      next: null,
+      previous: null,
+      results: data,
+    };
+  }
+  return data;
+}
+
 // Dashboards API
 export const dashboardsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<Dashboard>>(`${BASE_URL}/dashboards/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Dashboard[] | PaginatedResponse<Dashboard>>(`${BASE_URL}/dashboards/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<Dashboard>(`${BASE_URL}/dashboards/${id}/`),
@@ -157,8 +172,10 @@ export const chartsApi = {
 
 // Sales Analytics API
 export const salesAnalyticsApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<AnalyticsSales>>(`${BASE_URL}/sales/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<AnalyticsSales[] | PaginatedResponse<AnalyticsSales>>(`${BASE_URL}/sales/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<AnalyticsSales>(`${BASE_URL}/sales/${id}/`),
@@ -178,8 +195,10 @@ export const salesAnalyticsApi = {
 
 // KPIs API
 export const kpisApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<KPIMetric>>(`${BASE_URL}/kpis/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<KPIMetric[] | PaginatedResponse<KPIMetric>>(`${BASE_URL}/kpis/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<KPIMetric>(`${BASE_URL}/kpis/${id}/`),
@@ -202,8 +221,10 @@ export const kpisApi = {
 
 // Report Schedules API
 export const reportSchedulesApi = {
-  list: (params?: Record<string, any>) => 
-    api.get<PaginatedResponse<ReportSchedule>>(`${BASE_URL}/report-schedules/`, { params }),
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ReportSchedule[] | PaginatedResponse<ReportSchedule>>(`${BASE_URL}/report-schedules/`, { params });
+    return normalizeResponse(data);
+  },
   
   get: (id: string) => 
     api.get<ReportSchedule>(`${BASE_URL}/report-schedules/${id}/`),
