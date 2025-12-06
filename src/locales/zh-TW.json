@@ -56,7 +56,13 @@
     "warning": "警告",
     "info": "資訊",
     "actions": "操作",
-    "status": "狀態",
+    "status": {
+      "label": "狀態",
+      "completed": "已完成",
+      "inProgress": "進行中",
+      "dueReview": "待審核",
+      "pending": "待處理"
+    },
     "date": "日期",
     "amount": "金額",
     "description": "描述",
@@ -335,6 +341,10 @@
         "title": "最近交易費用",
         "description": "最新交易費用收入"
       }
+    },
+    "recentSales": {
+      "activeEngagements": "進行中的委託",
+      "engagementsCount": "本季度 {count} 個進行中的客戶委託。"
     }
   },
   "accounting": {

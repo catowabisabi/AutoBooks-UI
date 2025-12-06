@@ -130,7 +130,7 @@ export function BarGraph() {
             <span className='hidden @[540px]/card:block'>
               {config.description}
             </span>
-            <span className='@[540px]/card:hidden'>Last 6 months</span>
+            <span className='@[540px]/card:hidden'>{t('dashboard.charts.bar.lastSixMonths', 'Last 6 months')}</span>
           </CardDescription>
         </div>
         <div className='flex'>

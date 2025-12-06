@@ -56,7 +56,13 @@
     "warning": "Warning",
     "info": "Info",
     "actions": "Actions",
-    "status": "Status",
+    "status": {
+      "label": "Status",
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "dueReview": "Due Review",
+      "pending": "Pending"
+    },
     "date": "Date",
     "amount": "Amount",
     "description": "Description",
@@ -335,6 +341,10 @@
         "title": "Recent Deal Fees",
         "description": "Latest transaction fee income"
       }
+    },
+    "recentSales": {
+      "activeEngagements": "Active Engagements",
+      "engagementsCount": "{count} active client engagements this quarter."
     }
   },
   "accounting": {
