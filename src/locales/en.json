@@ -1,4 +1,34 @@
 {
+  "landing": {
+    "nav": {
+      "home": "Home",
+      "features": "Features",
+      "pricing": "Pricing",
+      "faqs": "FAQs",
+      "contactUs": "Contact",
+      "signIn": "Sign In",
+      "signUp": "Sign Up",
+      "logout": "Logout",
+      "dashboard": "Dashboard",
+      "bookDemo": "Book Demo",
+      "login": "Login",
+      "mobileNav": "Mobile Navigation"
+    },
+    "contact": {
+      "title": "Get in",
+      "titleHighlight": "Touch",
+      "subtitle": "Have questions or want to know more? Drop us a message below and we'll get back to you soon.",
+      "name": "Name",
+      "email": "Email",
+      "subject": "Subject",
+      "message": "Message",
+      "send": "Send Message",
+      "submitting": "Submitting...",
+      "successMessage": "Message sent successfully!",
+      "errorMessage": "Failed to send message. Please try again.",
+      "networkError": "An error occurred. Please try again later."
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -169,7 +199,43 @@
     "pendingInvoices": "Pending Invoices",
     "recentTransactions": "Recent Transactions",
     "upcomingTasks": "Upcoming Tasks",
-    "quickActions": "Quick Actions"
+    "quickActions": "Quick Actions",
+    "demoData": "Demo Data",
+    "liveAPI": "Live API",
+    "statsCards": {
+      "active": "Active",
+      "growth": "Growth",
+      "accounting": {
+        "auditProjects": "Audit Projects In Progress",
+        "viewAuditProjects": "View Audit Projects",
+        "taxReturns": "Tax Returns Pending",
+        "viewTaxReturns": "View Tax Returns",
+        "billableHoursMTD": "Billable Hours MTD",
+        "viewBillableHours": "View Billable Hours",
+        "annualRevenue": "Annual Revenue YTD",
+        "viewRevenueManagement": "View Revenue Management"
+      },
+      "financialPR": {
+        "listedClients": "Listed Clients",
+        "viewListedClients": "View Listed Clients",
+        "monthlyAnnouncements": "Announcements This Month",
+        "viewAnnouncements": "View Announcements",
+        "mediaCoverage": "Media Coverage",
+        "viewMediaCoverage": "View Media Coverage",
+        "activeEngagements": "Active Engagements",
+        "viewEngagements": "View Engagements"
+      },
+      "ipoAdvisory": {
+        "ipoMandates": "IPO Mandates",
+        "viewIPOMandates": "View IPO Mandates",
+        "engagements": "Active Engagements",
+        "viewEngagements": "View Engagements",
+        "clientPerformance": "Client Performance",
+        "viewClientPerformance": "View Client Performance",
+        "revenueManagement": "Revenue Management",
+        "viewRevenueManagement": "View Revenue Management"
+      }
+    }
   },
   "accounting": {
     "chartOfAccounts": "Chart of Accounts",

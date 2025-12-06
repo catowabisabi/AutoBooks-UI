@@ -3,6 +3,8 @@ import { useState } from 'react';
 import { CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
+import { useTranslation } from '@/lib/i18n/provider';
+
 type Category = 'organization' | 'instructor';
 
 interface PricingToggleProps {
@@ -10,6 +12,7 @@ interface PricingToggleProps {
 }
 
 const PricingToggle = ({ onToggle }: PricingToggleProps) => {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<Category>('organization');
 
   const toggleSwitch = () => {
@@ -27,7 +30,7 @@ const PricingToggle = ({ onToggle }: PricingToggleProps) => {
       transition={{ duration: 0.5 }}
       viewport={{ once: false }}
     >
-      <span className='text-base font-medium text-gray-700'>Organization</span>
+      <span className='text-base font-medium text-gray-700'>{t('landing.pricing.organization', 'Organization')}</span>
       <button
         onClick={toggleSwitch}
         className={`$ { selected === 'instructor' ? 'bg-blue-500' : 'bg-gray-400' } relative flex h-6 w-12 items-center rounded-full bg-gray-400 p-1 transition`}
@@ -38,12 +41,13 @@ const PricingToggle = ({ onToggle }: PricingToggleProps) => {
           transition={{ type: 'spring', stiffness: 300 }}
         />
       </button>
-      <span className='text-base font-medium text-gray-700'>Instructor</span>
+      <span className='text-base font-medium text-gray-700'>{t('landing.pricing.instructor', 'Instructor')}</span>
     </motion.div>
   );
 };
 
 const Pricing = () => {
+  const { t } = useTranslation();
   const [selectedCategory, setSelectedCategory] = useState<
     'organization' | 'instructor'
   >('organization');
@@ -51,30 +55,46 @@ const Pricing = () => {
   const pricingOptions = {
     organization: [
       {
-        title: 'Free Plan',
+        title: t('landing.pricing.freePlan', 'Free Plan'),
         price: '$0',
-        duration: '30 Days',
-        features: ['100 Users', 'Basic Support', 'Access to Dashboard']
+        duration: t('landing.pricing.30Days', '30 Days'),
+        features: [
+          t('landing.pricing.features.100Users', '100 Users'),
+          t('landing.pricing.features.basicSupport', 'Basic Support'),
+          t('landing.pricing.features.accessToDashboard', 'Access to Dashboard')
+        ]
       },
       {
-        title: 'Paid Plan',
+        title: t('landing.pricing.paidPlan', 'Paid Plan'),
         price: '$99.99',
-        duration: 'Yearly',
-        features: ['1000 Users', 'Premium Support', 'Advanced Analytics']
+        duration: t('landing.pricing.yearly', 'Yearly'),
+        features: [
+          t('landing.pricing.features.1000Users', '1000 Users'),
+          t('landing.pricing.features.premiumSupport', 'Premium Support'),
+          t('landing.pricing.features.advancedAnalytics', 'Advanced Analytics')
+        ]
       }
     ],
     instructor: [
       {
-        title: 'Free Plan',
+        title: t('landing.pricing.freePlan', 'Free Plan'),
         price: '$0',
-        duration: '30 Days',
-        features: ['50 Users', 'Basic Support', 'Limited Analytics']
+        duration: t('landing.pricing.30Days', '30 Days'),
+        features: [
+          t('landing.pricing.features.50Users', '50 Users'),
+          t('landing.pricing.features.basicSupport', 'Basic Support'),
+          t('landing.pricing.features.limitedAnalytics', 'Limited Analytics')
+        ]
       },
       {
-        title: 'Paid Plan',
+        title: t('landing.pricing.paidPlan', 'Paid Plan'),
         price: '$29.99',
-        duration: 'Yearly',
-        features: ['200 Users', 'Priority Support', 'Full Analytics Access']
+        duration: t('landing.pricing.yearly', 'Yearly'),
+        features: [
+          t('landing.pricing.features.200Users', '200 Users'),
+          t('landing.pricing.features.prioritySupport', 'Priority Support'),
+          t('landing.pricing.features.fullAnalyticsAccess', 'Full Analytics Access')
+        ]
       }
     ]
   };
@@ -94,10 +114,10 @@ const Pricing = () => {
         transition={{ duration: 0.7 }}
         viewport={{ once: false }}
       >
-        Pricing Plans
+        {t('landing.pricing.title', 'Pricing Plans')}
       </motion.h2>
       <p className='text-muted-foreground mx-auto max-w-3xl text-center text-lg'>
-        Choose a plan that fits your needs and scale your education services
+        {t('landing.pricing.subtitle', 'Choose a plan that fits your needs and scale your education services')}
         effortlessly.
       </p>
 

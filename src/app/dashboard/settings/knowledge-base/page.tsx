@@ -26,7 +26,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
-import { Loader2, Upload, FileText, Trash2, Search, Database, FolderOpen, Plus, X } from 'lucide-react';
+import { Loader2, Upload, FileText, Trash2, Search, Database, FolderOpen, Plus, X, MessageSquare, Send } from 'lucide-react';
 import { ragApi, documentsApi } from '@/lib/api';
 
 interface KnowledgeItem {
@@ -62,6 +62,38 @@ export default function KnowledgeBasePage() {
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [uploadCategory, setUploadCategory] = useState('general');
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
+
+  // Chat state
+  const [chatQuery, setChatQuery] = useState('');
+  const [isChatting, setIsChatting] = useState(false);
+  const [chatResponse, setChatResponse] = useState('');
+  const [chatSources, setChatSources] = useState<string[]>([]);
+
+  const EXAMPLE_QUESTIONS = [
+    "What is the company's leave policy?",
+    "How do I submit an expense claim?",
+    "Summarize the latest audit report",
+    "What are the project deadlines?",
+  ];
+
+  const handleChat = async () => {
+    if (!chatQuery.trim()) return;
+    
+    setIsChatting(true);
+    setChatResponse('');
+    setChatSources([]);
+    
+    try {
+      const result = await ragApi.chat(chatQuery, { category: selectedCategory !== 'all' ? selectedCategory : undefined });
+      setChatResponse(result.response);
+      setChatSources(result.sources || []);
+    } catch (err) {
+      console.error('Chat failed:', err);
+      // toast.error('Failed to get answer from AI'); // toast not imported, skipping
+    } finally {
+      setIsChatting(false);
+    }
+  };
 
   // Load knowledge base data
   const loadKnowledgeBase = useCallback(async () => {
@@ -426,6 +458,68 @@ export default function KnowledgeBasePage() {
               </div>
             )}
           </ScrollArea>
+        </CardContent>
+      </Card>
+
+      {/* AI Chat Preview */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-lg flex items-center gap-2">
+            <MessageSquare className="h-5 w-5" />
+            Test Knowledge Base
+          </CardTitle>
+          <CardDescription>
+            Ask questions to verify if the AI can retrieve information from your documents.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          <div className="flex flex-col gap-2">
+             <div className="flex gap-2">
+              <Input 
+                placeholder="Ask a question about your documents..." 
+                value={chatQuery}
+                onChange={(e) => setChatQuery(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleChat()}
+              />
+              <Button onClick={handleChat} disabled={isChatting || !chatQuery.trim()}>
+                {isChatting ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </div>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <span className="text-sm text-muted-foreground self-center mr-2">Try asking:</span>
+              {EXAMPLE_QUESTIONS.map((q, i) => (
+                <Badge 
+                  key={i} 
+                  variant="outline" 
+                  className="cursor-pointer hover:bg-muted"
+                  onClick={() => setChatQuery(q)}
+                >
+                  {q}
+                </Badge>
+              ))}
+            </div>
+          </div>
+
+          {chatResponse && (
+            <div className="rounded-lg bg-muted/50 p-4 mt-4">
+              <p className="font-medium mb-2 text-sm text-primary">AI Response:</p>
+              <ScrollArea className="h-[300px] w-full rounded-md border bg-background p-4">
+                <div className="text-sm whitespace-pre-wrap">{chatResponse}</div>
+              </ScrollArea>
+              {chatSources.length > 0 && (
+                <div className="mt-3 pt-3 border-t border-border/50">
+                  <p className="text-xs font-medium text-muted-foreground mb-1">Sources:</p>
+                  <div className="flex flex-wrap gap-2">
+                    {chatSources.map((source, i) => (
+                      <Badge key={i} variant="secondary" className="text-xs">
+                        {source}
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 

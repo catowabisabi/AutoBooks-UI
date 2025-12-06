@@ -9,17 +9,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Save, Check, X, Loader2, Key, ExternalLink } from 'lucide-react';
-import { settingsApi } from '@/lib/api';
+import { Eye, EyeOff, Save, Check, X, Loader2, Key, ExternalLink, RefreshCw } from 'lucide-react';
 import { HelpTooltip } from '@/components/help-tooltip';
+import { useApiKeyStatus, useUpdateApiKey, useTestApiKey } from '@/features/settings/hooks';
+import { toast } from 'sonner';
 
 interface ApiKeyState {
   value: string;
-  isSet: boolean;
   showValue: boolean;
-  isSaving: boolean;
-  isTesting: boolean;
-  testResult?: 'success' | 'error';
 }
 
 const API_KEY_CONFIGS = [
@@ -44,195 +41,142 @@ const API_KEY_CONFIGS = [
     placeholder: 'sk-...',
     docsUrl: 'https://platform.deepseek.com/api_keys',
   },
+  {
+    id: 'anthropic',
+    name: 'Anthropic',
+    description: 'Claude models for high-quality reasoning',
+    placeholder: 'sk-ant-...',
+    docsUrl: 'https://console.anthropic.com/settings/keys',
+  },
 ];
 
 export default function ApiSettingsPage() {
   const { t } = useTranslation();
-  const [apiKeys, setApiKeys] = useState<Record<string, ApiKeyState>>({
-    openai: { value: '', isSet: false, showValue: false, isSaving: false, isTesting: false },
-    gemini: { value: '', isSet: false, showValue: false, isSaving: false, isTesting: false },
-    deepseek: { value: '', isSet: false, showValue: false, isSaving: false, isTesting: false },
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [globalError, setGlobalError] = useState<string | null>(null);
+  const { data: statusList, isLoading: isLoadingStatus, refetch } = useApiKeyStatus();
+  const updateKeyMutation = useUpdateApiKey();
+  const testKeyMutation = useTestApiKey();
 
-  // Load existing API key status
+  const [localState, setLocalState] = useState<Record<string, ApiKeyState>>({});
+
+  // Initialize local state for inputs
   useEffect(() => {
-    const loadKeyStatus = async () => {
-      try {
-        const status = await settingsApi.getApiKeyStatus();
-        setApiKeys((prev) => ({
-          ...prev,
-          openai: { ...prev.openai, isSet: status.openai || false },
-          gemini: { ...prev.gemini, isSet: status.gemini || false },
-          deepseek: { ...prev.deepseek, isSet: status.deepseek || false },
-        }));
-      } catch (error) {
-        console.error('Failed to load API key status:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadKeyStatus();
+    const initialState: Record<string, ApiKeyState> = {};
+    API_KEY_CONFIGS.forEach(config => {
+      initialState[config.id] = { value: '', showValue: false };
+    });
+    setLocalState(initialState);
   }, []);
 
+  const getProviderStatus = (providerId: string) => {
+    // Handle both array responses and object responses with data property
+    const list = Array.isArray(statusList) ? statusList : (statusList as any)?.data;
+    if (!Array.isArray(list)) return undefined;
+    return list.find((s: any) => s.provider === providerId);
+  };
+
   const handleKeyChange = (provider: string, value: string) => {
-    setApiKeys((prev) => ({
+    setLocalState((prev) => ({
       ...prev,
-      [provider]: { ...prev[provider], value, testResult: undefined },
+      [provider]: { ...prev[provider], value },
     }));
   };
 
   const toggleShowValue = (provider: string) => {
-    setApiKeys((prev) => ({
+    setLocalState((prev) => ({
       ...prev,
       [provider]: { ...prev[provider], showValue: !prev[provider].showValue },
     }));
   };
 
   const handleSaveKey = async (provider: string) => {
-    const keyState = apiKeys[provider];
-    if (!keyState.value.trim()) return;
-
-    setApiKeys((prev) => ({
-      ...prev,
-      [provider]: { ...prev[provider], isSaving: true },
-    }));
+    const keyState = localState[provider];
+    if (!keyState?.value.trim()) return;
 
     try {
-      await settingsApi.updateApiKey(provider, keyState.value);
-      setApiKeys((prev) => ({
+      await updateKeyMutation.mutateAsync({ provider, key: keyState.value });
+      toast.success(t('API key saved successfully'));
+      setLocalState(prev => ({
         ...prev,
-        [provider]: {
-          ...prev[provider],
-          isSet: true,
-          isSaving: false,
-          value: '',
-          showValue: false,
-        },
+        [provider]: { ...prev[provider], value: '' } // Clear input after save for security
       }));
-      setGlobalError(null);
-    } catch (error: any) {
-      setGlobalError(error.message || `Failed to save ${provider} API key`);
-      setApiKeys((prev) => ({
-        ...prev,
-        [provider]: { ...prev[provider], isSaving: false },
-      }));
+    } catch (error) {
+      console.error(error);
+      toast.error(t('Failed to save API key'));
     }
   };
 
   const handleTestKey = async (provider: string) => {
-    setApiKeys((prev) => ({
-      ...prev,
-      [provider]: { ...prev[provider], isTesting: true, testResult: undefined },
-    }));
-
     try {
-      const result = await settingsApi.testApiKey(provider);
-      setApiKeys((prev) => ({
-        ...prev,
-        [provider]: {
-          ...prev[provider],
-          isTesting: false,
-          testResult: result.valid ? 'success' : 'error',
-        },
-      }));
+      const result = await testKeyMutation.mutateAsync(provider);
+      if (result.success) {
+        toast.success(t('API key is valid and working'));
+        refetch();
+      } else {
+        toast.error(t('API key validation failed: ') + result.message);
+      }
     } catch (error) {
-      setApiKeys((prev) => ({
-        ...prev,
-        [provider]: { ...prev[provider], isTesting: false, testResult: 'error' },
-      }));
+      console.error(error);
+      toast.error(t('Failed to test API key'));
     }
   };
 
-  const handleDeleteKey = async (provider: string) => {
-    if (!confirm(`Are you sure you want to delete the ${provider} API key?`)) return;
-
-    try {
-      await settingsApi.deleteApiKey(provider);
-      setApiKeys((prev) => ({
-        ...prev,
-        [provider]: {
-          ...prev[provider],
-          isSet: false,
-          value: '',
-          testResult: undefined,
-        },
-      }));
-    } catch (error: any) {
-      setGlobalError(error.message || `Failed to delete ${provider} API key`);
-    }
-  };
-
-  if (isLoading) {
+  if (isLoadingStatus) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+      <div className="flex items-center justify-center h-96">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight flex items-center gap-2">
-          <Key className="h-6 w-6" />
-          {t('settings.apiKeys')}
-        </h2>
-        <p className="text-muted-foreground mt-1">
-          {t('settings.apiKeyDescription')}
+        <h3 className="text-lg font-medium">{t('AI Provider Settings')}</h3>
+        <p className="text-sm text-muted-foreground">
+          {t('Configure API keys for various AI providers to enable advanced features.')}
         </p>
       </div>
+      <Separator />
 
-      {globalError && (
-        <Alert variant="destructive">
-          <AlertDescription>{globalError}</AlertDescription>
-        </Alert>
-      )}
-
-      <div className="grid gap-4">
+      <div className="grid gap-6">
         {API_KEY_CONFIGS.map((config) => {
-          const keyState = apiKeys[config.id];
-          
+          const status = getProviderStatus(config.id);
+          const state = localState[config.id] || { value: '', showValue: false };
+          const isSaving = updateKeyMutation.isPending && updateKeyMutation.variables?.provider === config.id;
+          const isTesting = testKeyMutation.isPending && testKeyMutation.variables === config.id;
+
           return (
             <Card key={config.id}>
-              <CardHeader className="pb-3">
+              <CardHeader className="pb-4">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <CardTitle className="text-lg">{config.name}</CardTitle>
-                    <Badge variant={keyState.isSet ? 'default' : 'secondary'}>
-                      {keyState.isSet ? t('settings.keyConfigured') : t('settings.keyNotConfigured')}
-                    </Badge>
-                    {keyState.testResult === 'success' && (
-                      <Badge variant="outline" className="text-green-600 border-green-600">
-                        <Check className="h-3 w-3 mr-1" /> Valid
+                  <div className="flex items-center gap-2">
+                    <CardTitle className="text-base">{config.name}</CardTitle>
+                    {status?.is_configured ? (
+                      <Badge variant={status.is_valid ? "default" : "destructive"} className="ml-2">
+                        {status.is_valid ? t('Active') : t('Invalid')}
                       </Badge>
-                    )}
-                    {keyState.testResult === 'error' && (
-                      <Badge variant="outline" className="text-red-600 border-red-600">
-                        <X className="h-3 w-3 mr-1" /> Invalid
+                    ) : (
+                      <Badge variant="outline" className="ml-2 text-muted-foreground">
+                        {t('Not Configured')}
                       </Badge>
                     )}
                   </div>
-                  <a
-                    href={config.docsUrl}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-sm text-muted-foreground hover:text-foreground flex items-center gap-1"
-                  >
-                    Get API Key <ExternalLink className="h-3 w-3" />
-                  </a>
+                  <Button variant="ghost" size="sm" asChild>
+                    <a href={config.docsUrl} target="_blank" rel="noopener noreferrer" className="flex items-center gap-1">
+                      <span className="text-xs">{t('Get Key')}</span>
+                      <ExternalLink className="h-3 w-3" />
+                    </a>
+                  </Button>
                 </div>
-                <CardDescription>{config.description}</CardDescription>
+                <CardDescription>{t(config.description)}</CardDescription>
               </CardHeader>
               <CardContent>
-                <div className="flex gap-2">
+                <div className="flex gap-4">
                   <div className="relative flex-1">
                     <Input
-                      type={keyState.showValue ? 'text' : 'password'}
-                      placeholder={keyState.isSet ? '••••••••••••••••' : config.placeholder}
-                      value={keyState.value}
+                      type={state.showValue ? 'text' : 'password'}
+                      placeholder={status?.is_configured ? '••••••••••••••••' : config.placeholder}
+                      value={state.value}
                       onChange={(e) => handleKeyChange(config.id, e.target.value)}
                       className="pr-10"
                     />
@@ -243,74 +187,51 @@ export default function ApiSettingsPage() {
                       className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
                       onClick={() => toggleShowValue(config.id)}
                     >
-                      {keyState.showValue ? (
+                      {state.showValue ? (
                         <EyeOff className="h-4 w-4 text-muted-foreground" />
                       ) : (
                         <Eye className="h-4 w-4 text-muted-foreground" />
                       )}
                     </Button>
                   </div>
-                  
-                  <Button
-                    onClick={() => handleSaveKey(config.id)}
-                    disabled={!keyState.value.trim() || keyState.isSaving}
-                  >
-                    {keyState.isSaving ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={() => handleSaveKey(config.id)}
+                      disabled={!state.value || isSaving}
+                    >
+                      {isSaving ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
                         <Save className="h-4 w-4 mr-2" />
-                        {t('settings.saveKey')}
-                      </>
-                    )}
-                  </Button>
-
-                  {keyState.isSet && (
-                    <>
+                      )}
+                      {t('Save')}
+                    </Button>
+                    {status?.is_configured && (
                       <Button
                         variant="outline"
                         onClick={() => handleTestKey(config.id)}
-                        disabled={keyState.isTesting}
+                        disabled={isTesting}
                       >
-                        {keyState.isTesting ? (
+                        {isTesting ? (
                           <Loader2 className="h-4 w-4 animate-spin" />
                         ) : (
-                          t('settings.testKey')
+                          <RefreshCw className="h-4 w-4 mr-2" />
                         )}
+                        {t('Test')}
                       </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDeleteKey(config.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </>
-                  )}
+                    )}
+                  </div>
                 </div>
+                {status?.last_checked && (
+                  <p className="mt-2 text-xs text-muted-foreground">
+                    {t('Last checked:')} {new Date(status.last_checked).toLocaleString()}
+                  </p>
+                )}
               </CardContent>
             </Card>
           );
         })}
       </div>
-
-      <Separator />
-
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-lg flex items-center gap-2">
-            Usage Notes
-            <HelpTooltip content="Important information about using AI features" />
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="text-sm text-muted-foreground space-y-2">
-          <p>• API keys are stored securely on the server and are never exposed to the browser.</p>
-          <p>• Each AI provider has different pricing. Check their documentation for details.</p>
-          <p>• OpenAI (GPT-4) provides the most advanced capabilities but at a higher cost.</p>
-          <p>• Google Gemini offers competitive performance with good pricing.</p>
-          <p>• DeepSeek provides cost-effective options for high-volume usage.</p>
-        </CardContent>
-      </Card>
     </div>
   );
 }

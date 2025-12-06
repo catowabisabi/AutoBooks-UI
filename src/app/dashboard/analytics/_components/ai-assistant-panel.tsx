@@ -22,8 +22,9 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { ChartRenderer } from './chart-renderer';
-import { sendAnalystQuery } from '../services';
+import { analystApi } from '@/features/ai-assistants/services';
 import { toast } from 'sonner';
+import { MarkdownDisplay } from '@/components/ui/markdown-display';
 
 // Updated type to match chart-renderer
 type ChartType = 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table' | 'text';
@@ -64,7 +65,11 @@ function ChatMessage({ message, onAddToDashboard }: ChatMessageProps) {
             : 'bg-muted'
         }`}
       >
-        <p className='break-words whitespace-pre-wrap'>{message.content}</p>
+        {message.role === 'assistant' ? (
+          <MarkdownDisplay content={message.content} className="text-sm" />
+        ) : (
+          <p className='break-words whitespace-pre-wrap'>{message.content}</p>
+        )}
 
         {message.chart && (
           <div className='mt-3'>
@@ -144,12 +149,8 @@ export default function AiAssistantPanel() {
   useEffect(() => {
     const startAssistant = async () => {
       try {
-        const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
-        const res = await fetch(
-          `${apiBaseUrl}/api/v1/analyst-assistant/start/`
-        );
-        const data = await res.json();
-        console.log('Assistant started:', data);
+        await analystApi.start();
+        console.log('Assistant started');
       } catch (error) {
         console.error('Failed to start assistant:', error);
       }
@@ -173,17 +174,17 @@ export default function AiAssistantPanel() {
 
     try {
       // Call the analyst API
-      const response = await sendAnalystQuery({ query: message });
+      const response: any = await analystApi.query(userMessage.content);
 
       const aiResponse: Message = {
         id: `ai-${Date.now()}`,
         role: 'assistant',
-        content: response.message || `Here's the analysis for "${message}":`,
+        content: response.message || `Here's the analysis for "${userMessage.content}":`,
         chart:
           response.type !== 'invalid' && response.type !== 'text'
             ? {
-                type: response.type as ChartType, // Now properly typed
-                title: response.title || `Analysis of ${message}`,
+                type: response.type as ChartType,
+                title: response.title || `Analysis of ${userMessage.content}`,
                 description: 'Generated based on your query',
                 data: response.data,
                 xKey: response.xKey,

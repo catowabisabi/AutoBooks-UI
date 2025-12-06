@@ -29,11 +29,11 @@ export default function LandingPageNavbar() {
   }, []);
 
   const navMenuItems = [
-    { title: mounted ? t('landing.nav.home') : 'Home', href: '/' },
-    { title: mounted ? t('landing.nav.features') : 'Features', href: '#features' },
-    { title: mounted ? t('landing.nav.pricing') : 'Pricing', href: '/pricing' },
-    { title: mounted ? t('landing.nav.faqs') : 'FAQs', href: '#faqs' },
-    { title: mounted ? t('landing.nav.contactUs') : 'Contact', href: '#contact' }
+    { title: mounted ? t('landing.nav.home', 'Home') : 'Home', href: '/' },
+    { title: mounted ? t('landing.nav.features', 'Features') : 'Features', href: '#features' },
+    { title: mounted ? t('landing.nav.pricing', 'Pricing') : 'Pricing', href: '/pricing' },
+    { title: mounted ? t('landing.nav.faqs', 'FAQs') : 'FAQs', href: '#faqs' },
+    { title: mounted ? t('landing.nav.contactUs', 'Contact') : 'Contact', href: '#contact' }
   ];
 
   const handleDashboardRedirect = () => {
@@ -76,13 +76,13 @@ export default function LandingPageNavbar() {
                 onClick={logout}
                 className='transform transition-transform hover:scale-105 hover:shadow-lg'
               >
-                {t('landing.nav.logout')}
+                {t('landing.nav.logout', 'Logout')}
               </Button>
               <Button
                 onClick={handleDashboardRedirect}
                 className='transform transition-transform hover:scale-105 hover:shadow-lg'
               >
-                {t('landing.nav.dashboard')}
+                {t('landing.nav.dashboard', 'Dashboard')}
               </Button>
             </>
           ) : (
@@ -91,15 +91,23 @@ export default function LandingPageNavbar() {
                 href='/book-demo'
               >
                 <Button className='border-black-600 bg-primary text-primary-foreground transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
-                  {t('landing.nav.bookDemo')}
+                  {t('landing.nav.bookDemo', 'Book Demo')}
                 </Button>
               </Link>
-              <Link href='/auth/sign-in'>
+              <Link href='/sign-up'>
                 <Button
                   variant='outline'
                   className='transform transition-transform hover:scale-105 hover:shadow-lg'
                 >
-                  {t('landing.nav.login')}
+                  {t('auth.signUp', 'Sign Up')}
+                </Button>
+              </Link>
+              <Link href='/sign-in'>
+                <Button
+                  variant='outline'
+                  className='transform transition-transform hover:scale-105 hover:shadow-lg'
+                >
+                  {t('landing.nav.signIn', 'Sign In')}
                 </Button>
               </Link>
             </>
@@ -115,7 +123,7 @@ export default function LandingPageNavbar() {
             </Button>
           </SheetTrigger>
           <SheetContent side='right' className='w-[300px] sm:w-[400px]'>
-            <SheetTitle className='sr-only'>{t('landing.nav.mobileNav')}</SheetTitle>
+            <SheetTitle className='sr-only'>{t('landing.nav.mobileNav', 'Mobile Navigation')}</SheetTitle>
             <nav className='flex h-full flex-col'>
               <ul className='flex flex-col space-y-4 px-4 py-6'>
                 {navMenuItems.map((item) => (
@@ -144,7 +152,7 @@ export default function LandingPageNavbar() {
                         setOpen(false);
                       }}
                     >
-                      {t('landing.nav.logout')}
+                      {t('landing.nav.logout', 'Logout')}
                     </Button>
                     <Button
                       className='w-full transform transition-transform hover:scale-105 hover:shadow-lg'
@@ -153,7 +161,7 @@ export default function LandingPageNavbar() {
                         setOpen(false);
                       }}
                     >
-                      {t('landing.nav.dashboard')}
+                      {t('landing.nav.dashboard', 'Dashboard')}
                     </Button>
                   </>
                 ) : (
@@ -163,16 +171,16 @@ export default function LandingPageNavbar() {
                       onClick={() => setOpen(false)}
                     >
                       <Button className='border-black-600 bg-primary text-primary-foreground w-full transform rounded-full border px-6 py-2 transition-transform hover:scale-105 hover:shadow-lg'>
-                        {t('landing.nav.bookDemo')}
+                        {t('landing.nav.bookDemo', 'Book Demo')}
                       </Button>
                     </Link>
-                    <Link href='/auth/sign-in'>
+                    <Link href='/sign-in'>
                       <Button
                         variant='outline'
                         className='w-full transform transition-transform hover:scale-105 hover:shadow-lg'
                         onClick={() => setOpen(false)}
                       >
-                        {t('landing.nav.login')}
+                        {t('landing.nav.login', 'Login')}
                       </Button>
                     </Link>
                   </>

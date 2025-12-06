@@ -13,6 +13,7 @@ import {
 import { cn } from '@/lib/utils';
 import { ChartRenderer } from './chart-renderer';
 import { IconPlus } from '@tabler/icons-react';
+import { MarkdownDisplay } from '@/components/ui/markdown-display';
 
 export type WidgetType = 'text' | 'bar' | 'area' | 'pie';
 export type ChartType = 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
@@ -55,7 +56,11 @@ export default function ChatMessage({
             : 'bg-muted'
         )}
       >
-        <p>{message.content}</p>
+        {message.role === 'user' ? (
+          <p className='whitespace-pre-wrap'>{message.content}</p>
+        ) : (
+          <MarkdownDisplay content={message.content} />
+        )}
 
         {message.chart && (
           <div className='mt-3'>

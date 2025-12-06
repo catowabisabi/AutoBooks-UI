@@ -396,6 +396,12 @@ export const plannerApi = {
 
   getUpcomingEvents: () => 
     apiClient.get<ScheduleEvent[]>('/planner-assistant/events/upcoming/'),
+
+  // Extended Planner Endpoints
+  start: () => apiClient.post('/planner-assistant/start/'),
+  getData: () => apiClient.get('/planner-assistant/data/'),
+  query: (query: string) => apiClient.post('/planner-assistant/query/', { query }),
+  generatePlan: (goal: string) => apiClient.post('/planner-assistant/generate-plan/', { goal }),
 };
 
 // =================================================================
@@ -609,6 +615,53 @@ export const brainstormApi = {
 };
 
 // =================================================================
+// Document Assistant API (Extended)
+// =================================================================
+
+export const documentApi = {
+  upload: (formData: FormData) => 
+    apiClient.upload('/document-assistant/upload/', formData),
+    
+  getComparisons: () => 
+    apiClient.get('/document-assistant/comparisons/'),
+    
+  getDocumentInfo: (id: string) => 
+    apiClient.get(`/document-assistant/${id}/info/`),
+    
+  query: (documentId: string, query: string) => 
+    apiClient.post('/document-assistant/query/', { document_id: documentId, query }),
+    
+  process: (formData: FormData) => 
+    apiClient.upload('/document-assistant/process/', formData),
+};
+
+// =================================================================
+// Analyst Assistant API (Extended)
+// =================================================================
+
+export const analystApi = {
+  getData: () => apiClient.get('/analyst-assistant/data/'),
+  start: () => apiClient.post('/analyst-assistant/start/'),
+  query: (query: string) => apiClient.post('/analyst-assistant/query/', { query }),
+};
+
+// =================================================================
+// AI Agent API
+// =================================================================
+
+export const agentApi = {
+  chat: (message: string, sessionId?: string) => 
+    apiClient.post('/agent/chat/', { message, session_id: sessionId }),
+    
+  getAgents: () => apiClient.get('/agent/agents/'),
+  getTools: () => apiClient.get('/agent/tools/'),
+  getActions: () => apiClient.get('/agent/actions/'),
+  getSessions: () => apiClient.get('/agent/sessions/'),
+  getSession: (id: string) => apiClient.get(`/agent/sessions/${id}/`),
+  rollbackAction: (actionId: string) => apiClient.post(`/agent/actions/${actionId}/rollback/`),
+};
+
+// =================================================================
 // Export all services
 // =================================================================
 
@@ -616,6 +669,9 @@ export const aiAssistantsApi = {
   email: emailApi,
   planner: plannerApi,
   brainstorm: brainstormApi,
+  document: documentApi,
+  analyst: analystApi,
+  agent: agentApi,
 };
 
 export default aiAssistantsApi;

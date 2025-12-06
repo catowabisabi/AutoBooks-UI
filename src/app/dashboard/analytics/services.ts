@@ -103,6 +103,15 @@ export async function sendAnalystQuery(
   }
 }
 
+// Analytics Module Services
+
+export const analyticsApi = {
+  getCharts: () => fetch(`${API_BASE_URL}/analytics/charts/`).then(res => res.json()),
+  getKPIs: () => fetch(`${API_BASE_URL}/analytics/kpis/`).then(res => res.json()),
+  getReportSchedules: () => fetch(`${API_BASE_URL}/analytics/report-schedules/`).then(res => res.json()),
+  getOverview: () => fetch(`${API_BASE_URL}/analytics/overview/`).then(res => res.json()),
+};
+
 // Sales Analytics API
 export async function getSalesAnalytics(params?: {
   start_date?: string;

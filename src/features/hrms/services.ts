@@ -454,6 +454,18 @@ export const tasksApi = {
     api.get<Task[]>(`${BASE_URL}/tasks/my_tasks/`),
 };
 
+// Project Mappings API
+export const projectMappingsApi = {
+  list: (params?: Record<string, any>) => 
+    api.get(`${BASE_URL}/project-mappings/`, { params }),
+  
+  create: (data: { user: string; project: string; role?: string }) => 
+    api.post(`${BASE_URL}/project-mappings/`, data),
+    
+  delete: (id: string) => 
+    api.delete(`${BASE_URL}/project-mappings/${id}/`),
+};
+
 // Dashboard API
 export const hrmsDashboardApi = {
   overview: () => 

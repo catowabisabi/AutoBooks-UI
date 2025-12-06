@@ -121,7 +121,11 @@ export function AuthProvider({ children }: AuthProviderProps) {
   ) => {
     setIsLoading(true);
     try {
-      const response = await authApi.register(email, password, firstName, lastName);
+      const response = await authApi.register({
+        email,
+        password,
+        full_name: `${firstName} ${lastName}`.trim()
+      });
       
       // If registration returns tokens, use them
       if (response.access) {

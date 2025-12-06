@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/provider';
+import { useAuth } from '@/contexts/auth-context';
+import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -18,7 +19,7 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 export default function SignUpPage() {
   const router = useRouter();
-  const { register, isLoading } = useAuth();
+  const { setToken } = useAuth();
   const { t } = useTranslation();
   
   const [email, setEmail] = useState('');
@@ -47,10 +48,17 @@ export default function SignUpPage() {
     setIsSubmitting(true);
 
     try {
-      await register(email, password, firstName, lastName);
-      router.push('/dashboard');
+      const response = await api.post<{ access: string; refresh: string; success?: boolean; errors?: any }>('/api/v1/users/register/', {
+        email,
+        password,
+        full_name: `${firstName} ${lastName}`.trim()
+      }, { skipAuth: true });
+      
+      // Use setToken to handle login after successful registration
+      await setToken(response.access, response.refresh);
+      // Router push is handled by setToken
     } catch (err: any) {
-      setError(err.message || 'Failed to create account. Please try again.');
+      setError(err.message || t('auth.registrationFailed', 'Failed to create account. Please try again.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -72,14 +80,6 @@ export default function SignUpPage() {
 
     window.location.href = googleAuthUrl.toString();
   };
-
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">

@@ -17,6 +17,7 @@ import {
   ChartTooltipContent
 } from '@/components/ui/chart';
 import { useApp } from '@/contexts/app-context';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Accounting - Monthly billable hours by service type
 const accountingBillableData = [
@@ -50,8 +51,6 @@ const ipoDealValueData = [
 
 const chartConfigs = {
   accounting: {
-    title: 'Billable Hours by Service',
-    description: 'Monthly breakdown of billable hours',
     metrics: {
       audit: { label: 'Audit', color: 'var(--primary)' },
       tax: { label: 'Tax', color: 'var(--primary)' },
@@ -59,8 +58,6 @@ const chartConfigs = {
     }
   },
   'financial-pr': {
-    title: 'Client Engagement Activities',
-    description: 'Monthly PR activities performed',
     metrics: {
       announcements: { label: 'Announcements', color: 'var(--primary)' },
       meetings: { label: 'Investor Meetings', color: 'var(--primary)' },
@@ -68,8 +65,6 @@ const chartConfigs = {
     }
   },
   'ipo-advisory': {
-    title: 'Deal Pipeline Value',
-    description: 'Deal value by stage (HK$ millions)',
     metrics: {
       preparation: { label: 'Preparation', color: 'var(--primary)' },
       filing: { label: 'Filing', color: 'var(--primary)' },
@@ -79,8 +74,40 @@ const chartConfigs = {
 };
 
 export function BarGraph() {
+  const { t } = useTranslation();
   const { currentCompany } = useApp();
   const companyType = currentCompany.type;
+
+  // i18n config for chart titles
+  const chartConfigs = {
+    accounting: {
+      title: t('dashboard.charts.bar.accounting.title', 'Billable Hours by Service'),
+      description: t('dashboard.charts.bar.accounting.description', 'Monthly breakdown of billable hours'),
+      metrics: {
+        audit: { label: t('dashboard.charts.bar.accounting.audit', 'Audit'), color: 'var(--primary)' },
+        tax: { label: t('dashboard.charts.bar.accounting.tax', 'Tax'), color: 'var(--primary)' },
+        advisory: { label: t('dashboard.charts.bar.accounting.advisory', 'Advisory'), color: 'var(--primary)' }
+      }
+    },
+    'financial-pr': {
+      title: t('dashboard.charts.bar.financialPR.title', 'Client Engagement Activities'),
+      description: t('dashboard.charts.bar.financialPR.description', 'Monthly PR activities performed'),
+      metrics: {
+        announcements: { label: t('dashboard.charts.bar.financialPR.announcements', 'Announcements'), color: 'var(--primary)' },
+        meetings: { label: t('dashboard.charts.bar.financialPR.meetings', 'Investor Meetings'), color: 'var(--primary)' },
+        events: { label: t('dashboard.charts.bar.financialPR.events', 'Events'), color: 'var(--primary)' }
+      }
+    },
+    'ipo-advisory': {
+      title: t('dashboard.charts.bar.ipoAdvisory.title', 'Deal Pipeline Value'),
+      description: t('dashboard.charts.bar.ipoAdvisory.description', 'Deal value by stage (HK$ millions)'),
+      metrics: {
+        preparation: { label: t('dashboard.charts.bar.ipoAdvisory.preparation', 'Preparation'), color: 'var(--primary)' },
+        filing: { label: t('dashboard.charts.bar.ipoAdvisory.filing', 'Filing'), color: 'var(--primary)' },
+        listing: { label: t('dashboard.charts.bar.ipoAdvisory.listing', 'Listed'), color: 'var(--primary)' }
+      }
+    }
+  };
   
   const chartData = companyType === 'accounting'
     ? accountingBillableData

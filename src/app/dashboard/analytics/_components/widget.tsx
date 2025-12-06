@@ -548,6 +548,7 @@ import {
 } from '@/components/ui/card';
 import { IconEdit, IconResize, IconTrash } from '@tabler/icons-react';
 import { ChartRenderer } from './chart-renderer';
+import { MarkdownDisplay } from '@/components/ui/markdown-display';
 
 // Import shared types
 import type { WidgetData } from '@/types/dashboard';
@@ -641,9 +642,10 @@ export default function Widget({
         <CardContent className='flex-1 overflow-hidden p-4 pt-2'>
           {widget.type === 'text' && !isEditing && (
             <div className='h-full overflow-auto'>
-              <div className='prose prose-sm max-w-none'>
-                {widget.content || 'Click edit to add text content'}
-              </div>
+              <MarkdownDisplay
+                content={widget.content || 'Click edit to add text content'}
+                className='prose prose-sm max-w-none'
+              />
             </div>
           )}
 

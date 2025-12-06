@@ -64,17 +64,17 @@ interface AnalysisReport {
   }[];
   recommendations: {
     priority: 'high' | 'medium' | 'low';
-    title: string;
-    description: string;
-    impact: string;
+    title: { en: string; zh: string };
+    description: { en: string; zh: string };
+    impact: { en: string; zh: string };
   }[];
   riskAssessment: {
-    category: string;
+    category: { en: string; zh: string };
     level: 'low' | 'medium' | 'high';
-    description: string;
+    description: { en: string; zh: string };
   }[];
   forecast: {
-    metric: string;
+    metric: { en: string; zh: string };
     current: string;
     projected: string;
     confidence: number;
@@ -180,13 +180,50 @@ function getIndustryName(type: string): string {
 }
 
 // Generate mock report for demo or fallback
-function generateMockReport(companyData: CompanyData, aiSummary?: string): AnalysisReport {
+function generateMockReport(companyData: CompanyData, aiAnalysis?: Partial<AnalysisReport> | null): AnalysisReport {
   const type = companyData.type;
   
+  // Helper to ensure summary has correct bilingual format
+  const ensureBilingualSummary = (summary: any): { en: string; zh: string } => {
+    if (summary && typeof summary === 'object' && summary.en && summary.zh) {
+      return summary;
+    }
+    if (typeof summary === 'string') {
+      // If it's a raw string, use it for both languages
+      return { en: summary, zh: summary };
+    }
+    // Fallback to default
+    return {
+      en: `${companyData.name} demonstrates strong performance in the ${getIndustryName(companyData.type)} sector.`,
+      zh: `${companyData.name} 在${getIndustryName(companyData.type)}行業展現強勁表現。`
+    };
+  };
+  
+  // If we have a full AI response object with proper structure, use it
+  if (aiAnalysis && typeof aiAnalysis === 'object' && aiAnalysis.summary) {
+    const processedSummary = ensureBilingualSummary(aiAnalysis.summary);
+    
+    return {
+      id: `RPT-${Date.now()}`,
+      generatedAt: new Date().toISOString(),
+      company: {
+        name: companyData.name,
+        type: companyData.type,
+        industry: getIndustryName(companyData.type)
+      },
+      summary: processedSummary,
+      keyMetrics: aiAnalysis.keyMetrics || [],
+      industryComparison: aiAnalysis.industryComparison || [],
+      recommendations: aiAnalysis.recommendations || [],
+      riskAssessment: aiAnalysis.riskAssessment || [],
+      forecast: aiAnalysis.forecast || []
+    } as AnalysisReport;
+  }
+
   const mockReports: Record<string, Partial<AnalysisReport>> = {
     accounting: {
       summary: {
-        en: aiSummary || `${companyData.name} demonstrates strong performance in the accounting and audit sector. The firm has maintained a healthy client portfolio with consistent revenue growth. Key strengths include high audit quality standards and expanding tax advisory services.\n\nThe billable hours utilization rate of 78% exceeds industry average, indicating efficient resource allocation. Client retention remains strong at 92%, suggesting high satisfaction levels. However, the advisory services segment shows potential for growth, currently contributing only 15% to total revenue.\n\nLooking ahead, the firm is well-positioned to capitalize on increased regulatory requirements and growing demand for ESG reporting services.`,
+        en: `${companyData.name} demonstrates strong performance in the accounting and audit sector. The firm has maintained a healthy client portfolio with consistent revenue growth. Key strengths include high audit quality standards and expanding tax advisory services.\n\nThe billable hours utilization rate of 78% exceeds industry average, indicating efficient resource allocation. Client retention remains strong at 92%, suggesting high satisfaction levels. However, the advisory services segment shows potential for growth, currently contributing only 15% to total revenue.\n\nLooking ahead, the firm is well-positioned to capitalize on increased regulatory requirements and growing demand for ESG reporting services.`,
         zh: `${companyData.name} 在會計審計行業展現強勁表現。公司維持健康的客戶組合，收入持續增長。主要優勢包括高審計質量標準和不斷擴展的稅務諮詢服務。\n\n可收費工時使用率達78%，超越行業平均水平，顯示資源配置效率良好。客戶保留率維持在92%的高水平，反映客戶滿意度高。然而，諮詢服務部門顯示增長潛力，目前僅佔總收入15%。\n\n展望未來，公司處於有利位置，可把握監管要求增加及ESG報告服務需求增長的機遇。`
       },
       keyMetrics: [
@@ -202,24 +239,51 @@ function generateMockReport(companyData: CompanyData, aiSummary?: string): Analy
         { metric: 'Staff Turnover', yourValue: 12, industryAvg: 18, percentile: 78, analysis: 'Better retention than peers' }
       ],
       recommendations: [
-        { priority: 'high', title: 'Expand Advisory Services', description: 'Increase focus on consulting and advisory to diversify revenue streams', impact: 'Could increase margins by 5-8%' },
-        { priority: 'medium', title: 'Digital Transformation', description: 'Invest in automation tools for routine audit tasks', impact: 'Improve efficiency by 20%' },
-        { priority: 'low', title: 'ESG Reporting Services', description: 'Develop ESG audit and reporting capabilities', impact: 'New revenue stream potential' }
+        { 
+          priority: 'high', 
+          title: { en: 'Expand Advisory Services', zh: '擴展諮詢服務' },
+          description: { en: 'Increase focus on consulting and advisory to diversify revenue streams', zh: '加強諮詢和顧問服務，以多元化收入來源' },
+          impact: { en: 'Could increase margins by 5-8%', zh: '可能提高利潤率 5-8%' }
+        },
+        { 
+          priority: 'medium', 
+          title: { en: 'Digital Transformation', zh: '數位轉型' },
+          description: { en: 'Invest in automation tools for routine audit tasks', zh: '投資自動化工具以處理常規審計任務' },
+          impact: { en: 'Improve efficiency by 20%', zh: '提高效率 20%' }
+        },
+        { 
+          priority: 'low', 
+          title: { en: 'ESG Reporting Services', zh: 'ESG 報告服務' },
+          description: { en: 'Develop ESG audit and reporting capabilities', zh: '發展 ESG 審計和報告能力' },
+          impact: { en: 'New revenue stream potential', zh: '新收入來源潛力' }
+        }
       ],
       riskAssessment: [
-        { category: 'Client Concentration', level: 'medium', description: 'Top 5 clients represent 35% of revenue' },
-        { category: 'Regulatory Changes', level: 'low', description: 'Well-prepared for new audit standards' },
-        { category: 'Talent Retention', level: 'low', description: 'Strong culture and competitive compensation' }
+        { 
+          category: { en: 'Client Concentration', zh: '客戶集中度' },
+          level: 'medium', 
+          description: { en: 'Top 5 clients represent 35% of revenue', zh: '前 5 大客戶佔收入的 35%' }
+        },
+        { 
+          category: { en: 'Regulatory Changes', zh: '監管變更' },
+          level: 'low', 
+          description: { en: 'Well-prepared for new audit standards', zh: '已為新審計標準做好充分準備' }
+        },
+        { 
+          category: { en: 'Talent Retention', zh: '人才保留' },
+          level: 'low', 
+          description: { en: 'Strong culture and competitive compensation', zh: '強大的企業文化和具競爭力的薪酬' }
+        }
       ],
       forecast: [
-        { metric: 'Revenue', current: 'HK$9.48M', projected: 'HK$10.2M', confidence: 85 },
-        { metric: 'Client Count', current: '48', projected: '52', confidence: 78 },
-        { metric: 'Utilization', current: '78%', projected: '80%', confidence: 72 }
+        { metric: { en: 'Revenue', zh: '收入' }, current: 'HK$9.48M', projected: 'HK$10.2M', confidence: 85 },
+        { metric: { en: 'Client Count', zh: '客戶數量' }, current: '48', projected: '52', confidence: 78 },
+        { metric: { en: 'Utilization', zh: '使用率' }, current: '78%', projected: '80%', confidence: 72 }
       ]
     },
     'financial-pr': {
       summary: {
-        en: aiSummary || `${companyData.name} has established a strong market position in financial PR and communications. The firm excels in investor relations and corporate announcements, with an impressive 85% positive media sentiment across client campaigns.\n\nClient engagement metrics show robust performance with 62 investor meetings facilitated monthly. The technology sector represents the largest client segment at 35%, providing stable recurring revenue. Social media reach has grown 80% year-over-year.\n\nThe firm should focus on expanding healthcare sector clients and developing crisis management capabilities to capture emerging market opportunities.`,
+        en: `${companyData.name} has established a strong market position in financial PR and communications. The firm excels in investor relations and corporate announcements, with an impressive 85% positive media sentiment across client campaigns.\n\nClient engagement metrics show robust performance with 62 investor meetings facilitated monthly. The technology sector represents the largest client segment at 35%, providing stable recurring revenue. Social media reach has grown 80% year-over-year.\n\nThe firm should focus on expanding healthcare sector clients and developing crisis management capabilities to capture emerging market opportunities.`,
         zh: `${companyData.name} 在財經公關和傳訊領域建立了穩固的市場地位。公司在投資者關係和企業公告方面表現出色，客戶活動的正面媒體情緒達到85%的高水平。\n\n客戶互動指標表現強勁，每月促成62次投資者會議。科技行業佔最大客戶群體，達35%，提供穩定的經常性收入。社交媒體覆蓋率按年增長80%。\n\n公司應專注於擴展醫療保健行業客戶，並發展危機管理能力，以把握新興市場機遇。`
       },
       keyMetrics: [
@@ -235,24 +299,51 @@ function generateMockReport(companyData: CompanyData, aiSummary?: string): Analy
         { metric: 'Campaign ROI', yourValue: 380, industryAvg: 320, percentile: 74, analysis: 'Good value delivery' }
       ],
       recommendations: [
-        { priority: 'high', title: 'Crisis Management Service', description: 'Develop 24/7 crisis response team', impact: 'New premium service offering' },
-        { priority: 'high', title: 'Healthcare Sector Expansion', description: 'Target healthcare IPO candidates', impact: 'Diversify client base by 20%' },
-        { priority: 'medium', title: 'AI Content Tools', description: 'Implement AI for content generation and monitoring', impact: 'Reduce turnaround time by 40%' }
+        { 
+          priority: 'high', 
+          title: { en: 'Crisis Management Service', zh: '危機管理服務' },
+          description: { en: 'Develop 24/7 crisis response team', zh: '建立 24/7 危機應對團隊' },
+          impact: { en: 'New premium service offering', zh: '新的高端服務產品' }
+        },
+        { 
+          priority: 'high', 
+          title: { en: 'Healthcare Sector Expansion', zh: '醫療保健行業擴展' },
+          description: { en: 'Target healthcare IPO candidates', zh: '鎖定醫療保健 IPO 候選人' },
+          impact: { en: 'Diversify client base by 20%', zh: '客戶群多元化 20%' }
+        },
+        { 
+          priority: 'medium', 
+          title: { en: 'AI Content Tools', zh: 'AI 內容工具' },
+          description: { en: 'Implement AI for content generation and monitoring', zh: '實施 AI 進行內容生成和監控' },
+          impact: { en: 'Reduce turnaround time by 40%', zh: '縮短周轉時間 40%' }
+        }
       ],
       riskAssessment: [
-        { category: 'Sector Concentration', level: 'medium', description: 'Heavy reliance on tech sector clients' },
-        { category: 'Media Relations', level: 'low', description: 'Strong journalist relationships' },
-        { category: 'Competitive Pressure', level: 'medium', description: 'New entrants in digital PR space' }
+        { 
+          category: { en: 'Sector Concentration', zh: '行業集中度' },
+          level: 'medium', 
+          description: { en: 'Heavy reliance on tech sector clients', zh: '過度依賴科技行業客戶' }
+        },
+        { 
+          category: { en: 'Media Relations', zh: '媒體關係' },
+          level: 'low', 
+          description: { en: 'Strong journalist relationships', zh: '強大的記者關係' }
+        },
+        { 
+          category: { en: 'Competitive Pressure', zh: '競爭壓力' },
+          level: 'medium', 
+          description: { en: 'New entrants in digital PR space', zh: '數位公關領域的新進入者' }
+        }
       ],
       forecast: [
-        { metric: 'Client Base', current: '80', projected: '88', confidence: 82 },
-        { metric: 'Media Reach', current: '225K', projected: '280K', confidence: 78 },
-        { metric: 'Revenue', current: 'HK$6.8M', projected: 'HK$7.5M', confidence: 75 }
+        { metric: { en: 'Client Base', zh: '客戶群' }, current: '80', projected: '88', confidence: 82 },
+        { metric: { en: 'Media Reach', zh: '媒體覆蓋' }, current: '225K', projected: '280K', confidence: 78 },
+        { metric: { en: 'Revenue', zh: '收入' }, current: 'HK$6.8M', projected: 'HK$7.5M', confidence: 75 }
       ]
     },
     'ipo-advisory': {
       summary: {
-        en: aiSummary || `${companyData.name} maintains a strong position in the IPO advisory market with a robust deal pipeline valued at $9.12B. The firm has demonstrated consistent success with an 11% lead-to-listing conversion rate, outperforming market averages.\n\nThe current pipeline shows healthy distribution across deal sizes, with mega deals (>$1B) contributing significantly to potential fee income. Due diligence processes are 92% complete on average, indicating strong operational execution.\n\nKey focus areas should include accelerating the marketing phase timeline and strengthening relationships with institutional investors to improve deal conversion rates.`,
+        en: `${companyData.name} maintains a strong position in the IPO advisory market with a robust deal pipeline valued at $9.12B. The firm has demonstrated consistent success with an 11% lead-to-listing conversion rate, outperforming market averages.\n\nThe current pipeline shows healthy distribution across deal sizes, with mega deals (>$1B) contributing significantly to potential fee income. Due diligence processes are 92% complete on average, indicating strong operational execution.\n\nKey focus areas should include accelerating the marketing phase timeline and strengthening relationships with institutional investors to improve deal conversion rates.`,
         zh: `${companyData.name} 在IPO顧問市場保持強勢地位，交易管道價值達91.2億美元。公司展現持續成功，潛在客戶到上市的轉換率達11%，優於市場平均水平。\n\n目前交易管道在各規模類別分佈健康，大型交易（>10億美元）對潛在費用收入貢獻顯著。盡職調查流程平均完成度達92%，顯示運營執行力強。\n\n主要關注領域應包括加快營銷階段時間線，以及加強與機構投資者的關係，以提高交易轉換率。`
       },
       keyMetrics: [
@@ -268,19 +359,46 @@ function generateMockReport(companyData: CompanyData, aiSummary?: string): Analy
         { metric: 'Client Satisfaction', yourValue: 4.7, industryAvg: 4.5, percentile: 68, analysis: 'High satisfaction' }
       ],
       recommendations: [
-        { priority: 'high', title: 'Accelerate Marketing Phase', description: 'Streamline investor roadshow preparation process', impact: 'Reduce time-to-market by 3 weeks' },
-        { priority: 'high', title: 'Institutional Investor Network', description: 'Expand relationships with top 50 institutional investors', impact: 'Improve subscription rates by 15%' },
-        { priority: 'medium', title: 'ESG Integration', description: 'Add ESG assessment to standard due diligence', impact: 'Attract ESG-focused investors' }
+        { 
+          priority: 'high', 
+          title: { en: 'Accelerate Marketing Phase', zh: '加速營銷階段' },
+          description: { en: 'Streamline investor roadshow preparation process', zh: '簡化投資者路演準備流程' },
+          impact: { en: 'Reduce time-to-market by 3 weeks', zh: '縮短上市時間 3 週' }
+        },
+        { 
+          priority: 'high', 
+          title: { en: 'Institutional Investor Network', zh: '機構投資者網絡' },
+          description: { en: 'Expand relationships with top 50 institutional investors', zh: '擴大與前 50 大機構投資者的關係' },
+          impact: { en: 'Improve subscription rates by 15%', zh: '提高認購率 15%' }
+        },
+        { 
+          priority: 'medium', 
+          title: { en: 'ESG Integration', zh: 'ESG 整合' },
+          description: { en: 'Add ESG assessment to standard due diligence', zh: '將 ESG 評估加入標準盡職調查' },
+          impact: { en: 'Attract ESG-focused investors', zh: '吸引關注 ESG 的投資者' }
+        }
       ],
       riskAssessment: [
-        { category: 'Market Conditions', level: 'medium', description: 'IPO market volatility may affect timing' },
-        { category: 'Regulatory Changes', level: 'low', description: 'Strong compliance framework in place' },
-        { category: 'Deal Concentration', level: 'medium', description: 'Mega deals represent 35% of pipeline value' }
+        { 
+          category: { en: 'Market Conditions', zh: '市場狀況' },
+          level: 'medium', 
+          description: { en: 'IPO market volatility may affect timing', zh: 'IPO 市場波動可能影響時機' }
+        },
+        { 
+          category: { en: 'Regulatory Changes', zh: '監管變更' },
+          level: 'low', 
+          description: { en: 'Strong compliance framework in place', zh: '已建立強大的合規框架' }
+        },
+        { 
+          category: { en: 'Deal Concentration', zh: '交易集中度' },
+          level: 'medium', 
+          description: { en: 'Mega deals represent 35% of pipeline value', zh: '大型交易佔管道價值的 35%' }
+        }
       ],
       forecast: [
-        { metric: 'Listings', current: '5', projected: '8', confidence: 72 },
-        { metric: 'Pipeline Value', current: '$9.12B', projected: '$11.5B', confidence: 68 },
-        { metric: 'Revenue', current: '$12.5M', projected: '$15.2M', confidence: 70 }
+        { metric: { en: 'Listings', zh: '上市數量' }, current: '5', projected: '8', confidence: 72 },
+        { metric: { en: 'Pipeline Value', zh: '管道價值' }, current: '$9.12B', projected: '$11.5B', confidence: 68 },
+        { metric: { en: 'Revenue', zh: '收入' }, current: '$12.5M', projected: '$15.2M', confidence: 70 }
       ]
     }
   };
@@ -305,10 +423,14 @@ function parseAIResponse(response: string): Partial<AnalysisReport> | null {
                       response.match(/\{[\s\S]*"summary"[\s\S]*\}/);
     if (jsonMatch) {
       const jsonStr = jsonMatch[1] || jsonMatch[0];
-      return JSON.parse(jsonStr);
+      // Clean up any potential markdown or invalid characters before parsing
+      const cleanJsonStr = jsonStr.replace(/```json/g, '').replace(/```/g, '').trim();
+      return JSON.parse(cleanJsonStr);
     }
-    return null;
-  } catch {
+    // Try parsing the whole response if no code blocks found
+    return JSON.parse(response);
+  } catch (e) {
+    console.error("Failed to parse AI response:", e);
     return null;
   }
 }
@@ -372,36 +494,46 @@ ${JSON.stringify(companyData.stats, null, 2)}
 Service Breakdown:
 ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
 
-Please provide the following analysis in BOTH English and Traditional Chinese:
+Please provide the following analysis in BOTH English and Traditional Chinese.
+The output MUST be a valid JSON object with the following structure:
 
-1. **Executive Summary** (approximately 200 words each language)
-   - Overall performance assessment
-   - Key strengths
-   - Main challenges
+{
+  "summary": {
+    "en": "English executive summary...",
+    "zh": "中文執行摘要..."
+  },
+  "keyMetrics": [
+    { "metric": "Metric Name", "value": "Value", "status": "good/warning/critical", "insight": "Insight" }
+  ],
+  "industryComparison": [
+    { "metric": "Metric Name", "yourValue": 0, "industryAvg": 0, "percentile": 0, "analysis": "Analysis" }
+  ],
+  "recommendations": [
+    {
+      "priority": "high/medium/low",
+      "title": { "en": "English Title", "zh": "中文標題" },
+      "description": { "en": "English Description", "zh": "中文描述" },
+      "impact": { "en": "English Impact", "zh": "中文影響" }
+    }
+  ],
+  "riskAssessment": [
+    {
+      "category": { "en": "English Category", "zh": "中文類別" },
+      "level": "low/medium/high",
+      "description": { "en": "English Description", "zh": "中文描述" }
+    }
+  ],
+  "forecast": [
+    {
+      "metric": { "en": "English Metric Name", "zh": "中文指標名稱" },
+      "current": "Current Value",
+      "projected": "Projected Value",
+      "confidence": 0-100
+    }
+  ]
+}
 
-2. **Key Metrics Analysis**
-   - 4-5 key performance indicators
-   - Status assessment (good/warning/critical)
-   - Insights for each metric
-
-3. **Industry Comparison**
-   - How the company compares to industry averages
-   - Percentile rankings
-
-4. **Strategic Recommendations**
-   - 3 prioritized recommendations (high/medium/low)
-   - Expected impact for each
-
-5. **Risk Assessment**
-   - Key risk categories
-   - Risk levels (low/medium/high)
-
-6. **Forecast**
-   - 3-month projections for key metrics
-   - Confidence levels
-
-Format the response as a structured JSON with bilingual content where applicable.
-請同時用英文和繁體中文提供具體、可行的分析和建議。
+Ensure all text fields (titles, descriptions, impacts, categories) have both 'en' and 'zh' versions.
 `;
 
       setProgress(30);
@@ -414,11 +546,14 @@ Format the response as a structured JSON with bilingual content where applicable
 
       setProgress(70);
 
-      // Try to parse AI response
-      const aiAnalysis = response.response;
+      // Try to parse AI response - the response.response is a string that may contain JSON
+      const aiResponseText = response.response;
       
-      // Generate report structure, integrating AI analysis
-      const generatedReport = generateMockReport(companyData, aiAnalysis);
+      // Parse the AI response to extract the structured JSON
+      const parsedAiAnalysis = parseAIResponse(aiResponseText);
+      
+      // Generate report structure, integrating parsed AI analysis
+      const generatedReport = generateMockReport(companyData, parsedAiAnalysis);
       
       setProgress(100);
       setReport(generatedReport);
@@ -641,11 +776,20 @@ Format the response as a structured JSON with bilingual content where applicable
                     </CardHeader>
                     <CardContent>
                       <div className="prose dark:prose-invert max-w-none">
-                        {report.summary[language].split('\n').map((paragraph, idx) => (
-                          <p key={idx} className="mb-4 text-sm leading-relaxed">
-                            {paragraph}
-                          </p>
-                        ))}
+                        {(() => {
+                          // Safely get summary text
+                          const summaryText = typeof report.summary === 'object' && report.summary[language]
+                            ? report.summary[language]
+                            : typeof report.summary === 'string'
+                            ? report.summary
+                            : '';
+                          
+                          return summaryText.split('\n').map((paragraph: string, idx: number) => (
+                            <p key={idx} className="mb-4 text-sm leading-relaxed">
+                              {paragraph}
+                            </p>
+                          ));
+                        })()}
                       </div>
                     </CardContent>
                   </Card>
@@ -661,7 +805,9 @@ Format the response as a structured JSON with bilingual content where applicable
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                         {report.forecast.map((item, idx) => (
                           <div key={idx} className="p-4 rounded-lg bg-muted/50">
-                            <div className="text-sm text-muted-foreground">{item.metric}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {typeof item.metric === 'object' ? item.metric[language] : item.metric}
+                            </div>
                             <div className="flex items-center gap-2 mt-1">
                               <span className="text-lg font-semibold">{item.current}</span>
                               <TrendingUp className="h-4 w-4 text-green-500" />
@@ -669,7 +815,7 @@ Format the response as a structured JSON with bilingual content where applicable
                             </div>
                             <div className="mt-2">
                               <div className="flex justify-between text-xs mb-1">
-                                <span>信心度</span>
+                                <span>{language === 'zh' ? '信心度' : 'Confidence'}</span>
                                 <span>{item.confidence}%</span>
                               </div>
                               <Progress value={item.confidence} className="h-1" />
@@ -754,28 +900,39 @@ Format the response as a structured JSON with bilingual content where applicable
                 </TabsContent>
 
                 <TabsContent value="recommendations" className="space-y-4">
-                  {report.recommendations.map((rec, idx) => (
-                    <Card key={idx}>
-                      <CardContent className="pt-6">
-                        <div className="flex items-start gap-4">
-                          <div className={`w-2 h-full min-h-[60px] rounded-full ${getPriorityColor(rec.priority)}`} />
-                          <div className="flex-1">
-                            <div className="flex items-center gap-2 mb-2">
-                              <h4 className="font-semibold">{rec.title}</h4>
-                              <Badge variant="outline" className="text-xs">
-                                {rec.priority === 'high' ? '高優先級' : rec.priority === 'medium' ? '中優先級' : '低優先級'}
-                              </Badge>
-                            </div>
-                            <p className="text-sm text-muted-foreground mb-2">{rec.description}</p>
-                            <div className="flex items-center gap-2 text-sm">
-                              <TrendingUp className="h-4 w-4 text-green-500" />
-                              <span className="text-green-600 dark:text-green-400">{rec.impact}</span>
+                  {report.recommendations.map((rec, idx) => {
+                    // Safely get bilingual values
+                    const title = typeof rec.title === 'object' ? rec.title[language] : rec.title;
+                    const description = typeof rec.description === 'object' ? rec.description[language] : rec.description;
+                    const impact = typeof rec.impact === 'object' ? rec.impact[language] : rec.impact;
+                    
+                    return (
+                      <Card key={idx}>
+                        <CardContent className="pt-6">
+                          <div className="flex items-start gap-4">
+                            <div className={`w-2 h-full min-h-[60px] rounded-full ${getPriorityColor(rec.priority)}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center gap-2 mb-2">
+                                <h4 className="font-semibold">{title}</h4>
+                                <Badge variant="outline" className="text-xs">
+                                  {rec.priority === 'high' 
+                                    ? (language === 'zh' ? '高優先級' : 'High Priority')
+                                    : rec.priority === 'medium' 
+                                    ? (language === 'zh' ? '中優先級' : 'Medium Priority')
+                                    : (language === 'zh' ? '低優先級' : 'Low Priority')}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground mb-2">{description}</p>
+                              <div className="flex items-center gap-2 text-sm">
+                                <TrendingUp className="h-4 w-4 text-green-500" />
+                                <span className="text-green-600 dark:text-green-400">{impact}</span>
+                              </div>
                             </div>
                           </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                        </CardContent>
+                      </Card>
+                    );
+                  })}
                 </TabsContent>
 
                 <TabsContent value="risk" className="space-y-4">
@@ -787,29 +944,39 @@ Format the response as a structured JSON with bilingual content where applicable
                       </CardTitle>
                     </CardHeader>
                     <CardContent className="space-y-4">
-                      {report.riskAssessment.map((risk, idx) => (
-                        <div key={idx} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
-                          <AlertTriangle className={`h-5 w-5 mt-0.5 ${getRiskColor(risk.level)}`} />
-                          <div className="flex-1">
-                            <div className="flex items-center justify-between mb-1">
-                              <h4 className="font-medium">{risk.category}</h4>
-                              <Badge 
-                                variant="outline" 
-                                className={
-                                  risk.level === 'low' 
-                                    ? 'border-green-500 text-green-500' 
+                      {report.riskAssessment.map((risk, idx) => {
+                        // Safely get bilingual values
+                        const category = typeof risk.category === 'object' ? risk.category[language] : risk.category;
+                        const description = typeof risk.description === 'object' ? risk.description[language] : risk.description;
+                        
+                        return (
+                          <div key={idx} className="flex items-start gap-4 p-4 rounded-lg bg-muted/50">
+                            <AlertTriangle className={`h-5 w-5 mt-0.5 ${getRiskColor(risk.level)}`} />
+                            <div className="flex-1">
+                              <div className="flex items-center justify-between mb-1">
+                                <h4 className="font-medium">{category}</h4>
+                                <Badge 
+                                  variant="outline" 
+                                  className={
+                                    risk.level === 'low' 
+                                      ? 'border-green-500 text-green-500' 
+                                      : risk.level === 'medium' 
+                                      ? 'border-yellow-500 text-yellow-500'
+                                      : 'border-red-500 text-red-500'
+                                  }
+                                >
+                                  {risk.level === 'low' 
+                                    ? (language === 'zh' ? '低風險' : 'Low Risk')
                                     : risk.level === 'medium' 
-                                    ? 'border-yellow-500 text-yellow-500'
-                                    : 'border-red-500 text-red-500'
-                                }
-                              >
-                                {risk.level === 'low' ? '低風險' : risk.level === 'medium' ? '中風險' : '高風險'}
-                              </Badge>
+                                    ? (language === 'zh' ? '中風險' : 'Medium Risk')
+                                    : (language === 'zh' ? '高風險' : 'High Risk')}
+                                </Badge>
+                              </div>
+                              <p className="text-sm text-muted-foreground">{description}</p>
                             </div>
-                            <p className="text-sm text-muted-foreground">{risk.description}</p>
                           </div>
-                        </div>
-                      ))}
+                        );
+                      })}
                     </CardContent>
                   </Card>
                 </TabsContent>
@@ -1004,7 +1171,14 @@ function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string 
   <div class="section">
     <h2>📋 ${language === 'zh' ? '執行摘要' : 'Executive Summary'}</h2>
     <div class="summary">
-      ${report.summary[language].split('\n').filter(p => p.trim()).map(p => `<p>${p}</p>`).join('')}
+      ${(() => {
+        const summaryText = typeof report.summary === 'object' && report.summary[language]
+          ? report.summary[language]
+          : typeof report.summary === 'string'
+          ? report.summary
+          : '';
+        return summaryText.split('\n').filter((p: string) => p.trim()).map((p: string) => `<p>${p}</p>`).join('');
+      })()}
     </div>
   </div>
 
@@ -1048,9 +1222,11 @@ function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string 
   <div class="section">
     <h2>📈 ${language === 'zh' ? '業績預測' : 'Performance Forecast'}</h2>
     <div class="forecast-grid">
-      ${report.forecast.map(f => `
+      ${report.forecast.map(f => {
+        const metricName = typeof f.metric === 'object' ? f.metric[language] : f.metric;
+        return `
         <div class="forecast-card">
-          <div class="metric">${f.metric}</div>
+          <div class="metric">${metricName}</div>
           <div class="values">
             <span class="current">${f.current}</span>
             <span class="arrow">→</span>
@@ -1058,44 +1234,51 @@ function generatePDFHTML(report: AnalysisReport, language: 'en' | 'zh'): string 
           </div>
           <div class="confidence">${language === 'zh' ? '信心度' : 'Confidence'}: ${f.confidence}%</div>
         </div>
-      `).join('')}
+      `}).join('')}
     </div>
   </div>
 
   <div class="section">
     <h2>💡 ${language === 'zh' ? '戰略建議' : 'Strategic Recommendations'}</h2>
-    ${report.recommendations.map(r => `
+    ${report.recommendations.map(r => {
+      const title = typeof r.title === 'object' ? r.title[language] : r.title;
+      const description = typeof r.description === 'object' ? r.description[language] : r.description;
+      const impact = typeof r.impact === 'object' ? r.impact[language] : r.impact;
+      return `
       <div class="recommendation priority-${r.priority}">
         <h4>
-          ${r.title}
+          ${title}
           <span class="priority-badge">
             ${r.priority === 'high' ? (language === 'zh' ? '高優先級' : 'High') : 
               r.priority === 'medium' ? (language === 'zh' ? '中優先級' : 'Medium') : 
               (language === 'zh' ? '低優先級' : 'Low')}
           </span>
         </h4>
-        <p>${r.description}</p>
-        <div class="impact">📈 ${language === 'zh' ? '預期影響' : 'Expected Impact'}: ${r.impact}</div>
+        <p>${description}</p>
+        <div class="impact">📈 ${language === 'zh' ? '預期影響' : 'Expected Impact'}: ${impact}</div>
       </div>
-    `).join('')}
+    `}).join('')}
   </div>
 
   <div class="section">
     <h2>⚠️ ${language === 'zh' ? '風險評估' : 'Risk Assessment'}</h2>
-    ${report.riskAssessment.map(r => `
+    ${report.riskAssessment.map(r => {
+      const category = typeof r.category === 'object' ? r.category[language] : r.category;
+      const description = typeof r.description === 'object' ? r.description[language] : r.description;
+      return `
       <div class="risk-item">
         <span class="risk-icon">${r.level === 'low' ? '🟢' : r.level === 'medium' ? '🟡' : '🔴'}</span>
         <div>
-          <strong>${r.category}</strong>
+          <strong>${category}</strong>
           <span class="risk-level risk-${r.level}">
             ${r.level === 'low' ? (language === 'zh' ? '低風險' : 'Low') : 
               r.level === 'medium' ? (language === 'zh' ? '中風險' : 'Medium') : 
               (language === 'zh' ? '高風險' : 'High')}
           </span>
-          <p style="margin: 8px 0 0 0; color: #555; font-size: 13px;">${r.description}</p>
+          <p style="margin: 8px 0 0 0; color: #555; font-size: 13px;">${description}</p>
         </div>
       </div>
-    `).join('')}
+    `}).join('')}
   </div>
 
   <div class="footer">

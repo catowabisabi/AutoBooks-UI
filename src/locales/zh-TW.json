@@ -1,4 +1,34 @@
 {
+  "landing": {
+    "nav": {
+      "home": "首頁",
+      "features": "功能特色",
+      "pricing": "價格方案",
+      "faqs": "常見問題",
+      "contactUs": "聯絡我們",
+      "signIn": "登入",
+      "signUp": "註冊",
+      "logout": "登出",
+      "dashboard": "控制台",
+      "bookDemo": "預約演示",
+      "login": "登入",
+      "mobileNav": "行動版導航"
+    },
+    "contact": {
+      "title": "聯絡",
+      "titleHighlight": "我們",
+      "subtitle": "有任何問題或想了解更多？請在下方留言，我們會盡快回覆您。",
+      "name": "姓名",
+      "email": "電子郵件",
+      "subject": "主旨",
+      "message": "訊息內容",
+      "send": "發送訊息",
+      "submitting": "發送中...",
+      "successMessage": "訊息已成功發送！",
+      "errorMessage": "發送失敗，請稍後再試。",
+      "networkError": "發生錯誤，請稍後再試。"
+    }
+  },
   "common": {
     "save": "儲存",
     "cancel": "取消",
@@ -169,7 +199,43 @@
     "pendingInvoices": "待處理發票",
     "recentTransactions": "最近交易",
     "upcomingTasks": "待辦事項",
-    "quickActions": "快捷操作"
+    "quickActions": "快捷操作",
+    "demoData": "示範數據",
+    "liveAPI": "即時 API",
+    "statsCards": {
+      "active": "進行中",
+      "growth": "增長",
+      "accounting": {
+        "auditProjects": "進行中的審計項目",
+        "viewAuditProjects": "查看審計項目",
+        "taxReturns": "待處理稅務申報",
+        "viewTaxReturns": "查看稅務申報",
+        "billableHoursMTD": "本月計費時數",
+        "viewBillableHours": "查看計費時數",
+        "annualRevenue": "年度收入 YTD",
+        "viewRevenueManagement": "查看收入管理"
+      },
+      "financialPR": {
+        "listedClients": "上市公司客戶",
+        "viewListedClients": "查看上市公司客戶",
+        "monthlyAnnouncements": "本月公告",
+        "viewAnnouncements": "查看公告",
+        "mediaCoverage": "媒體報導",
+        "viewMediaCoverage": "查看媒體報導",
+        "activeEngagements": "進行中的委託",
+        "viewEngagements": "查看委託"
+      },
+      "ipoAdvisory": {
+        "ipoMandates": "IPO 委託",
+        "viewIPOMandates": "查看 IPO 委託",
+        "engagements": "進行中的委託",
+        "viewEngagements": "查看委託",
+        "clientPerformance": "客戶績效",
+        "viewClientPerformance": "查看客戶績效",
+        "revenueManagement": "服務收入管理",
+        "viewRevenueManagement": "查看收入管理"
+      }
+    }
   },
   "accounting": {
     "chartOfAccounts": "會計科目表",
