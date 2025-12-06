@@ -38,7 +38,7 @@ const Footer = () => {
           {/* Brand Section */}
           <div className='space-y-4 md:col-span-4'>
             <h2 className='text-2xl font-bold tracking-tight text-white'>
-              WiseMatic ERP
+              AutoBooks ERP
             </h2>
             <p className='max-w-xs text-sm leading-relaxed text-neutral-400'>
               {t('landing.footer.description', 'An AI-powered, all-in-one ERP platform designed to streamline operations, automate workflows, and empower organizations with actionable insights.')}
@@ -121,7 +121,7 @@ const Footer = () => {
         {/* Footer Bottom */}
         <div className='mt-8 flex flex-col items-center justify-between border-t border-neutral-800 pt-4 md:flex-row'>
           <p className='mb-2 text-xs text-neutral-500 md:mb-0'>
-            © {new Date().getFullYear()} WiseMatic Inc. {t('landing.footer.allRightsReserved', 'All rights reserved.')}
+            © {new Date().getFullYear()} AutoBooks Inc. {t('landing.footer.allRightsReserved', 'All rights reserved.')}
           </p>
           <div className='flex space-x-4 text-xs text-neutral-500'>
             <a href='#' className='hover:text-white'>

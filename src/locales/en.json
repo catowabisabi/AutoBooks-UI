@@ -80,8 +80,34 @@
     "backToSignIn": "Back to Sign In",
     "noAuthCode": "No authorization code received from Google",
     "featureQuote": "Streamline your business operations with our comprehensive ERP solution.",
-    "erpTeam": "WiseMatic Team",
-    "continueWithGoogle": "Continue with Google"
+    "erpTeam": "AutoBooks Team",
+    "continueWithGoogle": "Continue with Google",
+    "features": {
+      "aiAnalytics": {
+        "title": "AI-Powered Analytics",
+        "description": "Ask questions in natural language and get instant visualizations. Our AI analyzes your data and generates charts automatically."
+      },
+      "documentAssistant": {
+        "title": "Intelligent Document Assistant",
+        "description": "Upload documents and chat with AI to extract insights, summarize content, and find information instantly."
+      },
+      "planningAssistant": {
+        "title": "Smart Planning Assistant",
+        "description": "AI-powered project planning with task breakdown, timeline suggestions, and resource allocation optimization."
+      },
+      "brainstorming": {
+        "title": "Brainstorming Workspace",
+        "description": "Collaborate with AI to generate ideas, organize thoughts, and develop strategies for any business challenge."
+      },
+      "financialAnalytics": {
+        "title": "Financial Analytics",
+        "description": "Comprehensive financial reporting with AI-generated insights, trend analysis, and forecasting capabilities."
+      },
+      "knowledgeBase": {
+        "title": "Knowledge Base Integration",
+        "description": "Build your company knowledge base and let AI provide accurate, context-aware answers from your documents."
+      }
+    }
   },
   "nav": {
     "dashboard": "Dashboard",
@@ -134,7 +160,7 @@
     "signOut": "Sign Out"
   },
   "dashboard": {
-    "welcome": "Welcome to Wisematic ERP",
+    "welcome": "Welcome to AutoBooks ERP",
     "welcomeBack": "Hi, Welcome back",
     "totalRevenue": "Total Revenue",
     "totalExpenses": "Total Expenses",
@@ -720,17 +746,17 @@
     "faq": {
       "title": "Frequently Asked",
       "titleHighlight": "Questions",
-      "subtitle": "Got questions? We've got answers. Explore our most common inquiries about WiseMatic ERP.",
-      "q1": "What is WiseMatic ERP and who can use it?",
-      "a1": "WiseMatic ERP is a comprehensive enterprise management platform designed for businesses, educational institutions, and organizations of all sizes. It streamlines operations, facilitates communication, and provides insightful analytics for all stakeholders.",
-      "q2": "How secure is the WiseMatic platform?",
+      "subtitle": "Got questions? We've got answers. Explore our most common inquiries about AutoBooks ERP.",
+      "q1": "What is AutoBooks ERP and who can use it?",
+      "a1": "AutoBooks ERP is a comprehensive enterprise management platform designed for businesses, educational institutions, and organizations of all sizes. It streamlines operations, facilitates communication, and provides insightful analytics for all stakeholders.",
+      "q2": "How secure is the AutoBooks platform?",
       "a2": "We prioritize data security with end-to-end encryption, multi-factor authentication, and compliance with industry data protection regulations. Your information is always safe and protected with enterprise-grade security.",
-      "q3": "Can I customize WiseMatic for my specific organization?",
-      "a3": "Absolutely! WiseMatic offers flexible configuration options to adapt to different organizational environments, whether you're a small business or a large enterprise with complex workflows.",
+      "q3": "Can I customize AutoBooks for my specific organization?",
+      "a3": "Absolutely! AutoBooks offers flexible configuration options to adapt to different organizational environments, whether you're a small business or a large enterprise with complex workflows.",
       "q4": "What kind of support do you offer?",
-      "a4": "We provide 24/7 customer support through multiple channels including live chat, email, and phone. Our dedicated support team is always ready to help you maximize your WiseMatic experience.",
+      "a4": "We provide 24/7 customer support through multiple channels including live chat, email, and phone. Our dedicated support team is always ready to help you maximize your AutoBooks experience.",
       "q5": "How does pricing work?",
-      "a5": "WiseMatic offers scalable pricing models based on the size of your organization and required features. We provide transparent, competitive pricing with no hidden costs and flexible payment options."
+      "a5": "AutoBooks offers scalable pricing models based on the size of your organization and required features. We provide transparent, competitive pricing with no hidden costs and flexible payment options."
     },
     "contact": {
       "title": "Get in",

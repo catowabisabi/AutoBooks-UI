@@ -41,7 +41,7 @@ interface AIButlerProps {
 
 // System prompts for different contexts
 const SYSTEM_PROMPTS = {
-  general: `你是 Wisematic ERP 系統的智能管家助手。你的職責是：
+  general: `你是 AutoBooks ERP 系統的智能管家助手。你的職責是：
 1. 協助用戶了解和使用 ERP 系統的各項功能
 2. 回答關於會計、人力資源、專案管理等模組的問題
 3. 提供操作指導和最佳實踐建議
@@ -49,7 +49,7 @@ const SYSTEM_PROMPTS = {
 
 請保持友善、專業的態度，回答要簡潔明瞭。如果不確定答案，請誠實告知。`,
 
-  accounting: `你是 Wisematic ERP 會計模組的專家助手。你熟悉：
+  accounting: `你是 AutoBooks ERP 會計模組的專家助手。你熟悉：
 - 會計科目表管理
 - 日記帳分錄操作
 - 發票和收款處理
@@ -58,7 +58,7 @@ const SYSTEM_PROMPTS = {
 
 請提供準確的會計指導。`,
 
-  hrms: `你是 Wisematic ERP 人力資源模組的專家助手。你熟悉：
+  hrms: `你是 AutoBooks ERP 人力資源模組的專家助手。你熟悉：
 - 員工資料管理
 - 部門和職稱設定
 - 請假申請和審核流程
@@ -66,7 +66,7 @@ const SYSTEM_PROMPTS = {
 
 請提供人力資源相關的專業建議。`,
 
-  documents: `你是 Wisematic ERP 文件管理模組的專家助手。你熟悉：
+  documents: `你是 AutoBooks ERP 文件管理模組的專家助手。你熟悉：
 - 文件上傳和分類
 - OCR 文字識別
 - 文件搜尋和檢索
@@ -289,7 +289,7 @@ export function AIButler({ position = 'bottom-right', defaultOpen = false }: AIB
           </div>
           <div>
             <h3 className="font-semibold text-sm">{t('ai.assistant')}</h3>
-            <p className="text-xs text-muted-foreground">Wisematic ERP</p>
+            <p className="text-xs text-muted-foreground">AutoBooks ERP</p>
           </div>
         </div>
         <div className="flex items-center gap-1">

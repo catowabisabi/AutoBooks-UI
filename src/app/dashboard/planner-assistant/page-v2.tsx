@@ -525,7 +525,7 @@ export default function PlannerAssistantPageV2() {
         `- ${t.title} (${t.priority}, ${t.status}, due: ${t.due_date || 'no date'})`
       ).join('\n');
 
-      const systemPrompt = `You are a professional planner assistant for WiseMatic ERP, an accounting and audit firm platform. Help users manage tasks, set priorities, and plan their work. Current tasks:\n${taskContext}\n\nProvide helpful, concise advice about task management, scheduling, and prioritization.`;
+      const systemPrompt = `You are a professional planner assistant for AutoBooks ERP, an accounting and audit firm platform. Help users manage tasks, set priorities, and plan their work. Current tasks:\n${taskContext}\n\nProvide helpful, concise advice about task management, scheduling, and prioritization.`;
 
       const conversationHistory = messages.slice(-5).map(m => ({
         role: m.type as 'user' | 'assistant',

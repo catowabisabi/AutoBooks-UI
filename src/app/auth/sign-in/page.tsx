@@ -1,7 +1,7 @@
 import SignInView from '../_components/sign-in-view';
 
 export const metadata = {
-  title: 'Sign In - WiseMatic ERP',
+  title: 'Sign In - AutoBooks ERP',
   description: 'Sign in to your account'
 };
 

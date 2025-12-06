@@ -1,14 +1,28 @@
 'use client';
 
+import Link from 'next/link';
 import { UserAuthForm } from './user-auth-form';
 import { FeatureCarousel } from './feature-carousel';
 import { useTranslation } from '@/lib/i18n/provider';
+import { LanguageSwitcher } from '@/components/language-switcher';
+import { Button } from '@/components/ui/button';
+import { Home } from 'lucide-react';
 
 export default function SignInView() {
   const { t } = useTranslation();
   
   return (
     <div className='relative h-screen flex-col items-center justify-center md:grid lg:max-w-none lg:grid-cols-2 lg:px-0'>
+      {/* Top right buttons - Language and Home */}
+      <div className='absolute right-4 top-4 z-50 flex items-center gap-2'>
+        <LanguageSwitcher variant='outline' size='icon' />
+        <Button variant='outline' size='icon' asChild>
+          <Link href='/'>
+            <Home className='h-4 w-4' />
+          </Link>
+        </Button>
+      </div>
+
       <div className='bg-muted relative flex h-full flex-col p-10 text-white lg:flex-none lg:justify-between dark:border-r'>
         <div className='absolute inset-0 bg-gradient-to-b from-zinc-900 to-zinc-800' />
         <div className='relative z-20 flex items-center text-lg font-medium'>
@@ -24,7 +38,7 @@ export default function SignInView() {
           >
             <path d='M15 6v12a3 3 0 1 0 3-3H6a3 3 0 1 0 3 3V6a3 3 0 1 0-3 3h12a3 3 0 1 0-3-3' />
           </svg>
-          WiseMatic ERP
+          AutoBooks ERP
         </div>
 
         {/* Feature Carousel */}

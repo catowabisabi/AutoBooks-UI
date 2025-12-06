@@ -19,7 +19,7 @@ const META_THEME_COLORS = {
 };
 
 export const metadata: Metadata = {
-  title: 'WiseMatic ERP Suite',
+  title: 'AutoBooks ERP Suite',
   description:
     'A modern, AI-powered multi-tenant ERP platform designed for education, business, and enterprise workflows.'
 };

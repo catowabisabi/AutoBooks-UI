@@ -41,7 +41,7 @@ const LandingPageHeroSection = () => {
           className={LANDING_SECTION_STYLES.hero.title}
         >
           <span className={LANDING_SECTION_STYLES.hero.titleGradient}>
-            WiseMatic ERP
+            AutoBooks ERP
           </span>
           <br />
           {t('landing.hero.tagline', 'The Smartest Way to Run Your Enterprise')}

@@ -48,7 +48,7 @@ const AboutSection = () => {
         </p>
         <p className='text-muted-foreground mx-auto mt-4 max-w-3xl text-lg'>
           With built-in AI assistants for analytics, emails, planning, and
-          document processing, Wisematic ERP helps your team work smarter, not
+          document processing, AutoBooks ERP helps your team work smarter, not
           harder.
         </p>
       </motion.div>

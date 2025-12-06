@@ -132,7 +132,7 @@ export default function SettingsPage() {
       // Use demo data if API fails
       setProfile({
         id: 1,
-        email: user?.email || 'demo@wisematic.com',
+        email: user?.email || 'demo@autobooks.com',
         full_name: user?.full_name || 'Demo User',
         phone: '+852 9123 4567',
         timezone: 'Asia/Hong_Kong',

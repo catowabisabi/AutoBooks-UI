@@ -11,7 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Home } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
 const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
@@ -83,9 +83,14 @@ export default function SignUpPage() {
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher showLabel />
+      {/* Language Switcher and Home Button */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageSwitcher variant="outline" size="icon" />
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/">
+            <Home className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
       {/* Logo */}
@@ -93,7 +98,7 @@ export default function SignUpPage() {
         <div className="w-16 h-16 bg-primary rounded-xl flex items-center justify-center mb-4">
           <span className="text-3xl font-bold text-primary-foreground">W</span>
         </div>
-        <h1 className="text-2xl font-bold">Wisematic ERP</h1>
+        <h1 className="text-2xl font-bold">AutoBooks ERP</h1>
       </div>
 
       <Card className="w-full max-w-md">

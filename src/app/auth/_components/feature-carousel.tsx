@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { useTranslation } from '@/lib/i18n/provider';
 import { 
   BarChart3, 
   FileText, 
@@ -19,50 +20,38 @@ import {
 // ERP System Features for the carousel
 const carouselItems = [
   {
-    title: 'AI-Powered Analytics',
-    titleZh: 'AI 驅動分析',
-    description: 'Ask questions in natural language and get instant visualizations. Our AI analyzes your data and generates charts automatically.',
-    descriptionZh: '用自然語言提問，即時獲得視覺化結果。AI 分析您的數據並自動生成圖表。',
+    titleKey: 'auth.features.aiAnalytics.title',
+    descriptionKey: 'auth.features.aiAnalytics.description',
     Icon: BarChart3,
     gradient: 'from-blue-500 to-cyan-500'
   },
   {
-    title: 'Intelligent Document Assistant',
-    titleZh: '智能文件助手',
-    description: 'Upload documents and chat with AI to extract insights, summarize content, and find information instantly.',
-    descriptionZh: '上傳文件並與 AI 對話，即時提取洞察、摘要內容、查找資訊。',
+    titleKey: 'auth.features.documentAssistant.title',
+    descriptionKey: 'auth.features.documentAssistant.description',
     Icon: FileText,
     gradient: 'from-purple-500 to-pink-500'
   },
   {
-    title: 'Smart Planning Assistant',
-    titleZh: '智能規劃助手',
-    description: 'AI-powered project planning with task breakdown, timeline suggestions, and resource allocation optimization.',
-    descriptionZh: 'AI 驅動的專案規劃，包含任務分解、時間線建議和資源分配優化。',
+    titleKey: 'auth.features.planningAssistant.title',
+    descriptionKey: 'auth.features.planningAssistant.description',
     Icon: Calendar,
     gradient: 'from-green-500 to-emerald-500'
   },
   {
-    title: 'Brainstorming Workspace',
-    titleZh: '腦力激盪工作區',
-    description: 'Collaborate with AI to generate ideas, organize thoughts, and develop strategies for any business challenge.',
-    descriptionZh: '與 AI 協作產生創意、整理思路，為任何商業挑戰制定策略。',
+    titleKey: 'auth.features.brainstorming.title',
+    descriptionKey: 'auth.features.brainstorming.description',
     Icon: Lightbulb,
     gradient: 'from-yellow-500 to-orange-500'
   },
   {
-    title: 'Financial Analytics',
-    titleZh: '財務分析',
-    description: 'Comprehensive financial reporting with AI-generated insights, trend analysis, and forecasting capabilities.',
-    descriptionZh: '全面的財務報告，配備 AI 生成的洞察、趨勢分析和預測功能。',
+    titleKey: 'auth.features.financialAnalytics.title',
+    descriptionKey: 'auth.features.financialAnalytics.description',
     Icon: TrendingUp,
     gradient: 'from-red-500 to-rose-500'
   },
   {
-    title: 'Knowledge Base Integration',
-    titleZh: '知識庫整合',
-    description: 'Build your company knowledge base and let AI provide accurate, context-aware answers from your documents.',
-    descriptionZh: '建立公司知識庫，讓 AI 從您的文件中提供準確的上下文感知答案。',
+    titleKey: 'auth.features.knowledgeBase.title',
+    descriptionKey: 'auth.features.knowledgeBase.description',
     Icon: Database,
     gradient: 'from-indigo-500 to-violet-500'
   }
@@ -70,6 +59,13 @@ const carouselItems = [
 
 export function FeatureCarousel() {
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const { t } = useTranslation();
+
+  // Fix hydration mismatch
+  useEffect(() => {
+    setMounted(true);
+  }, []);
 
   // Auto-scroll functionality
   useEffect(() => {
@@ -90,8 +86,8 @@ export function FeatureCarousel() {
   const currentItem = carouselItems[currentIndex];
 
   return (
-    <div className='relative flex h-full flex-col justify-center'>
-      <div className='relative h-[400px] overflow-hidden'>
+    <div className='relative flex h-full w-full flex-col justify-center'>
+      <div className='relative h-[380px] overflow-hidden'>
         <AnimatePresence mode='wait'>
           <motion.div
             key={currentIndex}
@@ -99,34 +95,26 @@ export function FeatureCarousel() {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -20 }}
             transition={{ duration: 0.5 }}
-            className='absolute inset-0 flex flex-col items-center justify-center px-4'
+            className='absolute inset-0 flex flex-col items-center justify-center px-2'
           >
             {/* Feature Card */}
-            <div className='flex min-h-[320px] w-full max-w-lg flex-col items-center justify-center rounded-3xl border border-white/20 bg-white/10 p-8 shadow-lg backdrop-blur-sm'>
+            <div className='flex min-h-[320px] w-full max-w-xl flex-col items-center justify-center rounded-3xl border border-white/20 bg-white/10 px-8 py-6 shadow-lg backdrop-blur-sm'>
               {/* Icon */}
               <div className={cn(
-                'mb-6 flex h-20 w-20 items-center justify-center rounded-2xl bg-gradient-to-br',
+                'mb-5 flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br',
                 currentItem.gradient
               )}>
-                {currentItem.Icon && <currentItem.Icon className='h-10 w-10 text-white' />}
+                {currentItem.Icon && <currentItem.Icon className='h-8 w-8 text-white' />}
               </div>
               
-              {/* Title - Bilingual */}
-              <h3 className='mb-2 text-center text-2xl font-bold text-white'>
-                {currentItem.title}
+              {/* Title */}
+              <h3 className='mb-4 text-center text-xl font-bold text-white' suppressHydrationWarning>
+                {mounted ? t(currentItem.titleKey) : ''}
               </h3>
-              <h4 className='mb-4 text-center text-lg font-medium text-white/80'>
-                {currentItem.titleZh}
-              </h4>
               
-              {/* Description - English */}
-              <p className='mb-2 text-center text-sm text-white/90 leading-relaxed'>
-                {currentItem.description}
-              </p>
-              
-              {/* Description - Chinese */}
-              <p className='text-center text-sm text-white/70 leading-relaxed'>
-                {currentItem.descriptionZh}
+              {/* Description */}
+              <p className='text-center text-sm text-white/80 leading-relaxed px-2' suppressHydrationWarning>
+                {mounted ? t(currentItem.descriptionKey) : ''}
               </p>
             </div>
           </motion.div>
@@ -134,7 +122,7 @@ export function FeatureCarousel() {
       </div>
 
       {/* Indicators */}
-      <div className='mt-8 flex justify-center gap-2'>
+      <div className='mt-6 flex justify-center gap-2'>
         {carouselItems.map((_, index) => (
           <button
             key={index}

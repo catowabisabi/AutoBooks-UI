@@ -542,7 +542,7 @@ function AIChatPanel({
         ? `Current email:\nFrom: ${email.from_name} <${email.from_address}>\nSubject: ${email.subject}\nCategory: ${email.category}\nContent: ${email.body_text?.substring(0, 500)}`
         : 'No email selected.';
 
-      const systemPrompt = `You are a professional email assistant for WiseMatic ERP, a business services platform for accounting firms. Help users draft emails, respond to messages, summarize correspondence, and manage their inbox professionally. ${emailContext}`;
+      const systemPrompt = `You are a professional email assistant for AutoBooks ERP, a business services platform for accounting firms. Help users draft emails, respond to messages, summarize correspondence, and manage their inbox professionally. ${emailContext}`;
 
       const conversationHistory = messages.slice(-6).map(m => ({
         role: m.role as 'user' | 'assistant',

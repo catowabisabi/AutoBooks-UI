@@ -367,7 +367,7 @@ function SessionDetailPanel({
 
     try {
       const existingIdeas = ideas.map((i: BrainstormIdea) => `- ${i.content}`).join('\n');
-      const systemPrompt = `You are a creative brainstorming assistant for WiseMatic ERP. The current session is: "${session.title}" with prompt: "${session.prompt}". Existing ideas:\n${existingIdeas}\n\nHelp the user expand on these ideas, suggest new ones, or provide feedback.`;
+      const systemPrompt = `You are a creative brainstorming assistant for AutoBooks ERP. The current session is: "${session.title}" with prompt: "${session.prompt}". Existing ideas:\n${existingIdeas}\n\nHelp the user expand on these ideas, suggest new ones, or provide feedback.`;
 
       const response = await aiApi.chatWithHistory(
         [...chatMessages.slice(-5), { role: 'user', content: userMsg }],
