@@ -912,7 +912,7 @@ ${selectedSession.target_outcome ? `期望成果: ${selectedSession.target_outco
 用繁體中文回覆，每個點子用換行分隔，不要加編號。`;
 
       const response = await aiApi.chat(prompt, 'openai');
-      const content = response.content || response.text || '';
+      const content = response.content || '';
       
       const newIdeasContent = content
         .split('\n')
