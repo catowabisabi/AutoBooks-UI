@@ -22,6 +22,9 @@ import {
 import { toast } from 'sonner';
 import { IconArrowLeft, IconLoader2 } from '@tabler/icons-react';
 import { billableHoursApi, companiesApi, BillableHour, Company } from '@/features/business/services';
+import { employeesApi, Employee } from '@/features/hrms/services';
+import { CompanySelect } from '@/components/business/company-select';
+import { EmployeeSelect } from '@/components/business/employee-select';
 
 const ROLE_OPTIONS = [
   { value: 'CLERK', label: '文員', multiplier: 1 },
@@ -34,15 +37,15 @@ const ROLE_OPTIONS = [
 export default function BillableHourEditPage() {
   const params = useParams();
   const router = useRouter();
-  const recordId = params.id as string;
-  const isNew = recordId === 'new';
+  const recordId = (params?.id as string) || 'new';
+  const isNew = !params?.id || recordId === 'new';
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [formData, setFormData] = useState<Partial<BillableHour>>({
     employee: '',
-    employee_name: '',
     company: '',
     project_reference: '',
     role: 'ACCOUNTANT',
@@ -62,15 +65,25 @@ export default function BillableHourEditPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const companiesRes = await companiesApi.list();
+        const [companiesRes, employeesRes] = await Promise.all([
+          companiesApi.list(),
+          employeesApi.list({ is_active: true }).catch(() => ({ results: [] })),
+        ]);
         setCompanies(companiesRes.results || []);
+        setEmployees(employeesRes.results || []);
 
         if (!isNew) {
+          // Check if it's a demo ID
+          if (recordId.startsWith('demo-')) {
+            toast.error('這是示範資料，無法編輯。請使用真實資料。');
+            router.push('/dashboard/business/billable-hours');
+            return;
+          }
+          
           setIsLoading(true);
           const record = await billableHoursApi.get(recordId);
           setFormData({
             employee: record.employee,
-            employee_name: record.employee_name,
             company: record.company || '',
             project_reference: record.project_reference || '',
             role: record.role,
@@ -85,16 +98,20 @@ export default function BillableHourEditPage() {
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        toast.error('找不到該工時記錄');
         setCompanies([
           { id: 'demo-1', name: 'ABC 有限公司', is_active: true, created_at: '', updated_at: '' },
           { id: 'demo-2', name: 'XYZ 科技股份有限公司', is_active: true, created_at: '', updated_at: '' },
         ]);
+        if (!isNew) {
+          router.push('/dashboard/business/billable-hours');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [recordId, isNew]);
+  }, [recordId, isNew, router]);
 
   const handleRoleChange = (role: string) => {
     const roleOption = ROLE_OPTIONS.find((r) => r.value === role);
@@ -107,6 +124,17 @@ export default function BillableHourEditPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.employee) {
+      toast.error('請選擇員工');
+      return;
+    }
+    if (!formData.date) {
+      toast.error('請選擇日期');
+      return;
+    }
+    
     setIsSaving(true);
 
     try {
@@ -118,8 +146,10 @@ export default function BillableHourEditPage() {
         toast.success('工時記錄已更新');
       }
       router.push('/dashboard/business/billable-hours');
-    } catch (error) {
-      toast.error(isNew ? '建立失敗' : '更新失敗');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -175,13 +205,13 @@ export default function BillableHourEditPage() {
               </CardHeader>
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
-                  <Label htmlFor='employee_name'>員工姓名 *</Label>
-                  <Input
-                    id='employee_name'
-                    value={formData.employee_name}
-                    onChange={(e) => handleChange('employee_name', e.target.value)}
-                    placeholder='輸入員工姓名'
-                    required
+                  <Label htmlFor='employee'>員工 *</Label>
+                  <EmployeeSelect
+                    value={formData.employee || ''}
+                    onChange={(value) => handleChange('employee', value)}
+                    employees={employees}
+                    placeholder='搜尋並選擇員工'
+                    allowClear={false}
                   />
                 </div>
 
@@ -206,22 +236,13 @@ export default function BillableHourEditPage() {
 
                 <div className='space-y-2'>
                   <Label htmlFor='company'>客戶公司</Label>
-                  <Select
-                    value={formData.company}
-                    onValueChange={(value) => handleChange('company', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='選擇客戶公司（可選）' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value=''>無</SelectItem>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CompanySelect
+                    value={formData.company || ''}
+                    onChange={(value) => handleChange('company', value)}
+                    companies={companies}
+                    onCompanyAdded={(company) => setCompanies((prev) => [...prev, company])}
+                    placeholder='選擇客戶公司（可選）'
+                  />
                 </div>
 
                 <div className='space-y-2'>

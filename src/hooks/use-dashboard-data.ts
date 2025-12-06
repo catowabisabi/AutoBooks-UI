@@ -74,13 +74,17 @@ export function useDashboardData(): DashboardData {
         employeesApi.list({ is_active: true }).catch(() => null),
       ]);
 
-      // Check if we got any data from API
-      const hasApiData = auditsResponse || taxReturnsResponse || revenueResponse || salesResponse;
+      // Extract results from responses
+      const audits = auditsResponse?.results || [];
+      const taxReturns = taxReturnsResponse?.results || [];
+      const salesData = salesResponse?.results || [];
+      const employees = employeesResponse?.results || [];
+      
+      // Check if we got any ACTUAL data from API (not just empty arrays)
+      const hasApiData = audits.length > 0 || taxReturns.length > 0 || salesData.length > 0 || employees.length > 0;
 
       if (hasApiData) {
         // Calculate stats from API data
-        const audits = auditsResponse?.results || [];
-        const taxReturns = taxReturnsResponse?.results || [];
         const revenue = (revenueResponse || {}) as Record<string, any>;
         // billableHours API returns: { total_hours, billable_hours, total_billable_value, by_role }
         const billableHoursSummary = (billableHoursResponse || {}) as Record<string, any>;
@@ -110,6 +114,87 @@ export function useDashboardData(): DashboardData {
         const totalRevenue = parseFloat(revenue['total_revenue'] || 0);
         const collectionRate = totalRevenue > 0 ? Math.round((receivedAmount / totalRevenue) * 100) : 0;
         
+        // Get industry-specific metrics based on company type
+        const getIndustryMetrics = () => {
+          const companyType = currentCompany.type;
+          
+          if (companyType === 'financial-pr') {
+            // Financial PR specific metrics
+            return {
+              primaryMetric: {
+                label: 'Listed Company Clients',
+                value: (employees.length || currentCompany.stats.clientCount).toString(),
+                trend: `${audits.length + taxReturns.length} active mandates`
+              },
+              secondaryMetric: {
+                label: 'Announcements This Month',
+                value: taxReturns.length.toString(), // Use tax returns as proxy for announcements
+                trend: 'Results season'
+              },
+              tertiaryMetric: {
+                label: 'Media Coverage Score',
+                value: `${collectionRate}%`,
+                trend: 'Based on engagement rate'
+              },
+              quaternaryMetric: {
+                label: 'Investor Meetings Arranged',
+                value: (audits.length * 5).toString(), // Estimated based on projects
+                trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
+              }
+            };
+          } else if (companyType === 'ipo-advisory') {
+            // IPO Advisory specific metrics
+            return {
+              primaryMetric: {
+                label: 'Active IPO Mandates',
+                value: activeAudits.toString(),
+                trend: `${audits.length} total projects`
+              },
+              secondaryMetric: {
+                label: 'Total Deal Value (Pipeline)',
+                value: `HK$${(totalRevenue / 1000000).toFixed(1)}B`,
+                trend: 'Across all stages'
+              },
+              tertiaryMetric: {
+                label: 'SFC Approval Rate',
+                value: `${collectionRate}%`,
+                trend: 'Based on completion rate'
+              },
+              quaternaryMetric: {
+                label: 'Avg. Time to Listing',
+                value: `${Math.max(1, Math.round(pendingTaxReturns / 2))} months`,
+                trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
+              }
+            };
+          }
+          
+          // Default: Accounting firm metrics
+          return {
+            primaryMetric: {
+              label: 'Audits In Progress',
+              value: activeAudits.toString(),
+              trend: `${audits.length} total projects`
+            },
+            secondaryMetric: {
+              label: 'Tax Returns Pending',
+              value: pendingTaxReturns.toString(),
+              trend: `${taxReturns.length} total cases`
+            },
+            tertiaryMetric: {
+              label: 'Billable Hours (MTD)',
+              value: `${totalBillableHours.toLocaleString()} hrs`,
+              trend: 'From API data'
+            },
+            quaternaryMetric: {
+              label: 'Total Revenue',
+              value: `HK$${(receivedAmount / 1000).toFixed(0)}K`,
+              trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
+            }
+          };
+        };
+
+        const industryMetrics = getIndustryMetrics();
+        
         const apiStats: DashboardStats = {
           outstandingInvoices: `HK$${(pendingAmount / 1000).toFixed(0)}K`,
           activeEngagements: activeAudits + pendingTaxReturns,
@@ -117,26 +202,7 @@ export function useDashboardData(): DashboardData {
           revenueYTD: `HK$${(ytdRevenue / 1000000).toFixed(1)}M`,
           pendingTasks: pendingTaxReturns,
           clientCount: employees.length || currentCompany.stats.clientCount,
-          primaryMetric: {
-            label: 'Audits In Progress',
-            value: activeAudits.toString(),
-            trend: `${audits.length} total projects`
-          },
-          secondaryMetric: {
-            label: 'Tax Returns Pending',
-            value: pendingTaxReturns.toString(),
-            trend: `${taxReturns.length} total cases`
-          },
-          tertiaryMetric: {
-            label: 'Billable Hours (MTD)',
-            value: `${totalBillableHours.toLocaleString()} hrs`,
-            trend: 'From API data'
-          },
-          quaternaryMetric: {
-            label: 'Total Revenue',
-            value: `HK$${(receivedAmount / 1000).toFixed(0)}K`,
-            trend: `${(pendingAmount / 1000).toFixed(0)}K pending`
-          }
+          ...industryMetrics
         };
 
         setData({

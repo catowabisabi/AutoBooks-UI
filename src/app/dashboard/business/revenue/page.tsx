@@ -91,56 +91,106 @@ export default function RevenueListPage() {
   });
   const [paymentAmount, setPaymentAmount] = useState('');
 
+  // Mock data for demo
+  const mockData: Revenue[] = [
+    {
+      id: 'demo-1',
+      company: 'demo-company-1',
+      company_name: 'ABC 有限公司',
+      invoice_number: 'INV-2024-001',
+      description: '2024年度審計服務費',
+      total_amount: 150000,
+      received_amount: 100000,
+      pending_amount: 50000,
+      is_fully_paid: false,
+      status: 'PARTIAL',
+      invoice_date: '2024-01-15',
+      due_date: '2024-02-15',
+      contact_name: '張先生',
+      contact_email: 'zhang@abc.com',
+      is_active: true,
+      created_at: '2024-01-15T00:00:00Z',
+      updated_at: '2024-01-20T00:00:00Z',
+    },
+    {
+      id: 'demo-2',
+      company: 'demo-company-2',
+      company_name: 'XYZ 科技股份有限公司',
+      invoice_number: 'INV-2024-002',
+      description: '稅務諮詢服務',
+      total_amount: 85000,
+      received_amount: 85000,
+      pending_amount: 0,
+      is_fully_paid: true,
+      status: 'RECEIVED',
+      invoice_date: '2024-01-20',
+      due_date: '2024-02-20',
+      received_date: '2024-02-10',
+      contact_name: '李小姐',
+      contact_email: 'li@xyz.com',
+      is_active: true,
+      created_at: '2024-01-20T00:00:00Z',
+      updated_at: '2024-02-10T00:00:00Z',
+    },
+    {
+      id: 'demo-3',
+      company: 'demo-company-3',
+      company_name: 'Hong Kong Trading Ltd.',
+      invoice_number: 'INV-2024-003',
+      description: '內部審計服務',
+      total_amount: 200000,
+      received_amount: 0,
+      pending_amount: 200000,
+      is_fully_paid: false,
+      status: 'PENDING',
+      invoice_date: '2024-02-01',
+      due_date: '2024-03-01',
+      contact_name: 'Mr. Wong',
+      contact_email: 'wong@hkt.com',
+      is_active: true,
+      created_at: '2024-02-01T00:00:00Z',
+      updated_at: '2024-02-01T00:00:00Z',
+    },
+    {
+      id: 'demo-4',
+      company: 'demo-company-4',
+      company_name: '大灣區投資控股',
+      invoice_number: 'INV-2024-004',
+      description: '盡職調查服務',
+      total_amount: 350000,
+      received_amount: 175000,
+      pending_amount: 175000,
+      is_fully_paid: false,
+      status: 'PARTIAL',
+      invoice_date: '2024-01-25',
+      due_date: '2024-02-25',
+      contact_name: '陳總',
+      contact_email: 'chen@gba.com',
+      is_active: true,
+      created_at: '2024-01-25T00:00:00Z',
+      updated_at: '2024-02-05T00:00:00Z',
+    },
+  ];
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const response = await revenueApi.list({ ordering: '-invoice_date' });
-      setData(response.results || []);
-      setIsUsingMockData(false);
+      const results = response.results || [];
+      
+      // If API returns empty data, use mock data
+      if (results.length === 0) {
+        console.log('[Revenue] API returned empty, using mock data');
+        setData(mockData);
+        setIsUsingMockData(true);
+      } else {
+        setData(results);
+        setIsUsingMockData(false);
+      }
     } catch (error) {
       console.error('Failed to fetch revenue:', error);
       setIsUsingMockData(true);
-      setData([
-        {
-          id: 'demo-1',
-          company: 'demo-company-1',
-          company_name: 'ABC 有限公司',
-          invoice_number: 'INV-2024-001',
-          description: '2024年度審計服務費',
-          total_amount: 150000,
-          received_amount: 100000,
-          pending_amount: 50000,
-          is_fully_paid: false,
-          status: 'PARTIAL',
-          invoice_date: '2024-01-15',
-          due_date: '2024-02-15',
-          contact_name: '張先生',
-          contact_email: 'zhang@abc.com',
-          is_active: true,
-          created_at: '2024-01-15T00:00:00Z',
-          updated_at: '2024-01-20T00:00:00Z',
-        },
-        {
-          id: 'demo-2',
-          company: 'demo-company-2',
-          company_name: 'XYZ 科技股份有限公司',
-          invoice_number: 'INV-2024-002',
-          description: '稅務諮詢服務',
-          total_amount: 85000,
-          received_amount: 85000,
-          pending_amount: 0,
-          is_fully_paid: true,
-          status: 'RECEIVED',
-          invoice_date: '2024-01-20',
-          due_date: '2024-02-20',
-          received_date: '2024-02-10',
-          contact_name: '李小姐',
-          contact_email: 'li@xyz.com',
-          is_active: true,
-          created_at: '2024-01-20T00:00:00Z',
-          updated_at: '2024-02-10T00:00:00Z',
-        },
-      ]);
+      setData(mockData);
     } finally {
       setIsLoading(false);
     }
@@ -288,8 +338,11 @@ export default function RevenueListPage() {
   const { table } = useDataTable({
     data,
     columns,
-    pageCount: Math.ceil(data.length / 10) || 1,
+    pageCount: -1,
     shallow: false,
+    manualPagination: false,
+    manualSorting: false,
+    manualFiltering: false,
   });
 
   return (

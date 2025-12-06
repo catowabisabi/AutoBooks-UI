@@ -192,6 +192,30 @@ export const APPS_CONFIG: AppConfig[] = [
         icon: '🏠'
       },
       {
+        id: 'listed-clients',
+        label: 'Listed Clients / 上市公司客戶',
+        href: '/dashboard/business/listed-clients',
+        icon: '🏢'
+      },
+      {
+        id: 'ipo-mandates',
+        label: 'IPO Mandates / IPO項目',
+        href: '/dashboard/business/ipo-mandates',
+        icon: '📈'
+      },
+      {
+        id: 'announcements',
+        label: 'Announcements / 公告管理',
+        href: '/dashboard/business/announcements',
+        icon: '📢'
+      },
+      {
+        id: 'media-coverage',
+        label: 'Media Coverage / 媒體報導',
+        href: '/dashboard/business/media-coverage',
+        icon: '📰'
+      },
+      {
         id: 'audits',
         label: 'Audits / 審計專案',
         href: '/dashboard/business/audits',

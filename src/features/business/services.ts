@@ -313,6 +313,326 @@ export const bmiProjectsApi = {
     api.get(`${BASE_URL}/bmi-projects/summary/`),
 };
 
+// =================================================================
+// Financial PR & IPO Advisory Types
+// =================================================================
+
+export interface ListedClient {
+  id: string;
+  company: string;
+  company_name?: string;
+  stock_code: string;
+  exchange: string;
+  sector?: string;
+  market_cap?: number;
+  status: 'ACTIVE' | 'INACTIVE' | 'PROSPECT' | 'CHURNED';
+  contract_start_date?: string;
+  contract_end_date?: string;
+  annual_retainer?: number;
+  primary_contact?: string;
+  contact_email?: string;
+  contact_phone?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Announcement {
+  id: string;
+  listed_client: string;
+  listed_client_name?: string;
+  stock_code?: string;
+  announcement_type: string;
+  title: string;
+  publish_date: string;
+  deadline?: string;
+  status: string;
+  handler?: string;
+  handler_name?: string;
+  word_count?: number;
+  languages?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaCoverage {
+  id: string;
+  listed_client?: string;
+  listed_client_name?: string;
+  company?: string;
+  company_name?: string;
+  title: string;
+  media_outlet: string;
+  publish_date: string;
+  url?: string;
+  sentiment: 'POSITIVE' | 'NEUTRAL' | 'NEGATIVE';
+  reach?: number;
+  engagement?: number;
+  is_press_release: boolean;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface IPOMandate {
+  id: string;
+  project_name: string;
+  company: string;
+  company_name?: string;
+  stage: string;
+  target_exchange: string;
+  target_board: string;
+  deal_size?: number;
+  deal_size_category: string;
+  fee_percentage?: number;
+  estimated_fee?: number;
+  probability?: number;
+  pitch_date?: string;
+  mandate_date?: string;
+  target_listing_date?: string;
+  actual_listing_date?: string;
+  lead_partner?: string;
+  lead_partner_name?: string;
+  sfc_application_date?: string;
+  sfc_approval_date?: string;
+  is_sfc_approved: boolean;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ServiceRevenue {
+  id: string;
+  company?: string;
+  company_name?: string;
+  service_type: string;
+  period_year: number;
+  period_month: number;
+  amount: number;
+  billable_hours?: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ActiveEngagement {
+  id: string;
+  company: string;
+  company_name?: string;
+  title: string;
+  engagement_type: 'RETAINER' | 'PROJECT' | 'AD_HOC';
+  status: 'ACTIVE' | 'PAUSED' | 'COMPLETED' | 'CANCELLED';
+  start_date: string;
+  end_date?: string;
+  value?: number;
+  progress?: number;
+  lead?: string;
+  lead_name?: string;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientPerformance {
+  id: string;
+  company: string;
+  company_name?: string;
+  period_year: number;
+  period_quarter: number;
+  revenue_generated?: number;
+  satisfaction_score?: number;
+  projects_completed?: number;
+  referrals_made?: number;
+  response_time_hours?: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ClientIndustry {
+  id: string;
+  name: string;
+  code: string;
+  description?: string;
+  color?: string;
+  client_count?: number;
+  total_revenue?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface MediaSentimentRecord {
+  id: string;
+  period_date: string;
+  positive_count: number;
+  neutral_count: number;
+  negative_count: number;
+  total_reach?: number;
+  total_engagement?: number;
+  sentiment_score?: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface RevenueTrend {
+  id: string;
+  period_year: number;
+  period_month: number;
+  total_revenue: number;
+  recurring_revenue?: number;
+  project_revenue?: number;
+  new_clients?: number;
+  churned_clients?: number;
+  notes?: string;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+// =================================================================
+// Financial PR & IPO Advisory APIs
+// =================================================================
+
+// Listed Clients API
+export const listedClientsApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ListedClient[] | PaginatedResponse<ListedClient>>(`${BASE_URL}/listed-clients/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<ListedClient>(`${BASE_URL}/listed-clients/${id}/`),
+  create: (data: Partial<ListedClient>) => api.post<ListedClient>(`${BASE_URL}/listed-clients/`, data),
+  update: (id: string, data: Partial<ListedClient>) => api.patch<ListedClient>(`${BASE_URL}/listed-clients/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/listed-clients/${id}/`),
+  summary: () => api.get(`${BASE_URL}/listed-clients/summary/`),
+};
+
+// Announcements API
+export const announcementsApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<Announcement[] | PaginatedResponse<Announcement>>(`${BASE_URL}/announcements/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<Announcement>(`${BASE_URL}/announcements/${id}/`),
+  create: (data: Partial<Announcement>) => api.post<Announcement>(`${BASE_URL}/announcements/`, data),
+  update: (id: string, data: Partial<Announcement>) => api.patch<Announcement>(`${BASE_URL}/announcements/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/announcements/${id}/`),
+  thisMonth: () => api.get(`${BASE_URL}/announcements/this_month/`),
+};
+
+// Media Coverage API
+export const mediaCoverageApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<MediaCoverage[] | PaginatedResponse<MediaCoverage>>(`${BASE_URL}/media-coverage/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<MediaCoverage>(`${BASE_URL}/media-coverage/${id}/`),
+  create: (data: Partial<MediaCoverage>) => api.post<MediaCoverage>(`${BASE_URL}/media-coverage/`, data),
+  update: (id: string, data: Partial<MediaCoverage>) => api.patch<MediaCoverage>(`${BASE_URL}/media-coverage/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/media-coverage/${id}/`),
+  summary: () => api.get(`${BASE_URL}/media-coverage/summary/`),
+};
+
+// IPO Mandates API
+export const ipoMandatesApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<IPOMandate[] | PaginatedResponse<IPOMandate>>(`${BASE_URL}/ipo-mandates/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<IPOMandate>(`${BASE_URL}/ipo-mandates/${id}/`),
+  create: (data: Partial<IPOMandate>) => api.post<IPOMandate>(`${BASE_URL}/ipo-mandates/`, data),
+  update: (id: string, data: Partial<IPOMandate>) => api.patch<IPOMandate>(`${BASE_URL}/ipo-mandates/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/ipo-mandates/${id}/`),
+  summary: () => api.get(`${BASE_URL}/ipo-mandates/summary/`),
+  dealFunnel: () => api.get(`${BASE_URL}/ipo-mandates/deal_funnel/`),
+};
+
+// Service Revenues API
+export const serviceRevenuesApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ServiceRevenue[] | PaginatedResponse<ServiceRevenue>>(`${BASE_URL}/service-revenues/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<ServiceRevenue>(`${BASE_URL}/service-revenues/${id}/`),
+  create: (data: Partial<ServiceRevenue>) => api.post<ServiceRevenue>(`${BASE_URL}/service-revenues/`, data),
+  update: (id: string, data: Partial<ServiceRevenue>) => api.patch<ServiceRevenue>(`${BASE_URL}/service-revenues/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/service-revenues/${id}/`),
+  byService: (year?: number) => api.get(`${BASE_URL}/service-revenues/by_service/`, { params: { year } }),
+};
+
+// Active Engagements API
+export const engagementsApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ActiveEngagement[] | PaginatedResponse<ActiveEngagement>>(`${BASE_URL}/engagements/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<ActiveEngagement>(`${BASE_URL}/engagements/${id}/`),
+  create: (data: Partial<ActiveEngagement>) => api.post<ActiveEngagement>(`${BASE_URL}/engagements/`, data),
+  update: (id: string, data: Partial<ActiveEngagement>) => api.patch<ActiveEngagement>(`${BASE_URL}/engagements/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/engagements/${id}/`),
+  summary: () => api.get(`${BASE_URL}/engagements/summary/`),
+};
+
+// Client Performance API
+export const clientPerformanceApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ClientPerformance[] | PaginatedResponse<ClientPerformance>>(`${BASE_URL}/client-performance/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<ClientPerformance>(`${BASE_URL}/client-performance/${id}/`),
+  create: (data: Partial<ClientPerformance>) => api.post<ClientPerformance>(`${BASE_URL}/client-performance/`, data),
+  update: (id: string, data: Partial<ClientPerformance>) => api.patch<ClientPerformance>(`${BASE_URL}/client-performance/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/client-performance/${id}/`),
+};
+
+// Client Industries API
+export const clientIndustriesApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<ClientIndustry[] | PaginatedResponse<ClientIndustry>>(`${BASE_URL}/client-industries/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<ClientIndustry>(`${BASE_URL}/client-industries/${id}/`),
+  create: (data: Partial<ClientIndustry>) => api.post<ClientIndustry>(`${BASE_URL}/client-industries/`, data),
+  update: (id: string, data: Partial<ClientIndustry>) => api.patch<ClientIndustry>(`${BASE_URL}/client-industries/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/client-industries/${id}/`),
+};
+
+// Media Sentiment API
+export const mediaSentimentApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<MediaSentimentRecord[] | PaginatedResponse<MediaSentimentRecord>>(`${BASE_URL}/media-sentiment/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<MediaSentimentRecord>(`${BASE_URL}/media-sentiment/${id}/`),
+  create: (data: Partial<MediaSentimentRecord>) => api.post<MediaSentimentRecord>(`${BASE_URL}/media-sentiment/`, data),
+  update: (id: string, data: Partial<MediaSentimentRecord>) => api.patch<MediaSentimentRecord>(`${BASE_URL}/media-sentiment/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/media-sentiment/${id}/`),
+  trend: (days?: number) => api.get(`${BASE_URL}/media-sentiment/trend/`, { params: { days } }),
+};
+
+// Revenue Trends API
+export const revenueTrendsApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<RevenueTrend[] | PaginatedResponse<RevenueTrend>>(`${BASE_URL}/revenue-trends/`, { params });
+    return normalizeResponse(data);
+  },
+  get: (id: string) => api.get<RevenueTrend>(`${BASE_URL}/revenue-trends/${id}/`),
+  create: (data: Partial<RevenueTrend>) => api.post<RevenueTrend>(`${BASE_URL}/revenue-trends/`, data),
+  update: (id: string, data: Partial<RevenueTrend>) => api.patch<RevenueTrend>(`${BASE_URL}/revenue-trends/${id}/`, data),
+  delete: (id: string) => api.delete(`${BASE_URL}/revenue-trends/${id}/`),
+  yearly: () => api.get(`${BASE_URL}/revenue-trends/yearly/`),
+};
+
 // Dashboard API
 export const businessDashboardApi = {
   overview: () => 

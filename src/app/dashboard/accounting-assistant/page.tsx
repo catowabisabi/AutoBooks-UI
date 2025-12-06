@@ -301,7 +301,7 @@ export default function AccountingAssistantPage() {
         'auto',
         true,
         true,
-        (completed, total, currentFile) => {
+        (completed: number, total: number, currentFile: string) => {
           setBatchProgress({ completed, total, currentFile });
         }
       );
@@ -370,11 +370,19 @@ export default function AccountingAssistantPage() {
     try {
       const result = await aiQuery(inputMessage, selectedReceipt?.id);
       
+      // Handle answer which may be string or { en, zh } object
+      const answerContent = typeof result.answer === 'object' && result.answer !== null
+        ? (result.answer as { en: string; zh?: string }).en
+        : (result.answer as string) || 'No response';
+      const answerContentZh = typeof result.answer === 'object' && result.answer !== null
+        ? (result.answer as { en: string; zh?: string }).zh
+        : undefined;
+
       const assistantMessage: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: result.answer?.en || result.answer || 'No response',
-        contentZh: result.answer?.zh,
+        content: answerContent,
+        contentZh: answerContentZh,
         suggestions: result.suggestions,
       };
       
@@ -714,6 +722,166 @@ export default function AccountingAssistantPage() {
                 </CardContent>
               </Card>
             </div>
+            ) : (
+              /* Batch Upload Mode */
+              <Card>
+                <CardHeader>
+                  <CardTitle>
+                    <IconUpload className="inline mr-2 h-5 w-5" />
+                    Batch Upload / 批量上傳
+                  </CardTitle>
+                  <CardDescription>
+                    Upload multiple receipts at once for batch processing
+                    <br />
+                    一次上傳多張收據進行批量處理
+                  </CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Batch File Input */}
+                  <div className="space-y-4">
+                    <div className="border-2 border-dashed rounded-lg p-8 text-center">
+                      <input
+                        type="file"
+                        id="batch-file-input"
+                        multiple
+                        accept="image/*,application/pdf"
+                        onChange={handleBatchFileSelect}
+                        className="hidden"
+                        disabled={isUploading}
+                      />
+                      <label
+                        htmlFor="batch-file-input"
+                        className={`cursor-pointer flex flex-col items-center gap-2 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        <IconFiles className="h-12 w-12 text-muted-foreground" />
+                        <div>
+                          <p className="font-medium">Click to select multiple files</p>
+                          <p className="text-sm text-muted-foreground">點擊選擇多個文件 (最多50個)</p>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Supports: PNG, JPG, JPEG, GIF, WEBP, PDF
+                        </p>
+                      </label>
+                    </div>
+                  </div>
+
+                  {/* Batch Files List */}
+                  {batchFiles.length > 0 && (
+                    <div className="space-y-4">
+                      <div className="flex items-center justify-between">
+                        <h4 className="font-medium">
+                          Selected Files / 已選擇文件 ({batchFiles.length})
+                        </h4>
+                        <Button
+                          onClick={handleBatchUpload}
+                          disabled={isUploading || batchFiles.length === 0}
+                        >
+                          {isUploading ? (
+                            <>
+                              <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
+                              Processing... / 處理中...
+                            </>
+                          ) : (
+                            <>
+                              <IconUpload className="mr-2 h-4 w-4" />
+                              Start Batch Upload / 開始批量上傳
+                            </>
+                          )}
+                        </Button>
+                      </div>
+
+                      {/* Progress Bar */}
+                      {isUploading && batchProgress.total > 0 && (
+                        <div className="space-y-2">
+                          <Progress value={(batchProgress.completed / batchProgress.total) * 100} />
+                          <p className="text-sm text-muted-foreground text-center">
+                            {batchProgress.completed} / {batchProgress.total} - {batchProgress.currentFile}
+                          </p>
+                        </div>
+                      )}
+
+                      {/* File List */}
+                      <div className="border rounded-lg divide-y max-h-60 overflow-auto">
+                        {batchFiles.map((file: File, index: number) => (
+                          <div
+                            key={index}
+                            className="flex items-center justify-between p-3 hover:bg-muted/50"
+                          >
+                            <div className="flex items-center gap-3">
+                              <IconReceipt className="h-4 w-4 text-muted-foreground" />
+                              <div>
+                                <p className="text-sm font-medium">{file.name}</p>
+                                <p className="text-xs text-muted-foreground">
+                                  {(file.size / 1024).toFixed(1)} KB
+                                </p>
+                              </div>
+                            </div>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => removeBatchFile(index)}
+                              disabled={isUploading}
+                            >
+                              <IconX className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Batch Results */}
+                  {batchResults && batchResults.results.length > 0 && (
+                    <div className="space-y-4">
+                      <h4 className="font-medium">
+                        Processing Results / 處理結果
+                      </h4>
+                      <div className="grid gap-2">
+                        {batchResults.results.map((result: { filename: string; status: 'success' | 'error'; receipt_id?: string; error?: string }, index: number) => (
+                          <div
+                            key={index}
+                            className={`flex items-center justify-between p-3 rounded-lg border ${
+                              result.status === 'success'
+                                ? 'bg-green-50 border-green-200 dark:bg-green-950 dark:border-green-800'
+                                : 'bg-red-50 border-red-200 dark:bg-red-950 dark:border-red-800'
+                            }`}
+                          >
+                            <div className="flex items-center gap-3">
+                              {result.status === 'success' ? (
+                                <IconCheck className="h-5 w-5 text-green-600 dark:text-green-400" />
+                              ) : (
+                                <IconX className="h-5 w-5 text-red-600 dark:text-red-400" />
+                              )}
+                              <span className="text-sm font-medium">{result.filename}</span>
+                            </div>
+                            {result.status === 'success' ? (
+                              <Badge variant="outline" className="bg-green-100 dark:bg-green-900">
+                                Success / 成功
+                              </Badge>
+                            ) : (
+                              <Badge variant="destructive">
+                                Failed: {result.error}
+                              </Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                      
+                      {/* Summary */}
+                      <Alert>
+                        <IconBrain className="h-4 w-4" />
+                        <AlertTitle>Batch Summary / 批量摘要</AlertTitle>
+                        <AlertDescription>
+                          {batchResults.successful} of {batchResults.total} receipts processed successfully.
+                          <br />
+                          {batchResults.successful} / {batchResults.total} 張收據處理成功。
+                        </AlertDescription>
+                      </Alert>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Receipts Tab */}

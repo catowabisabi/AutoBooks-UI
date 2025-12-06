@@ -77,59 +77,113 @@ export default function BillableHoursListPage() {
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Mock data for demo
+  const mockData: BillableHour[] = [
+    {
+      id: 'demo-1',
+      employee: 'demo-emp-1',
+      employee_name: '張小明',
+      company: 'demo-company-1',
+      company_name: 'ABC 有限公司',
+      project_reference: 'AUDIT-2024-001',
+      role: 'ACCOUNTANT',
+      base_hourly_rate: 200,
+      hourly_rate_multiplier: 5,
+      effective_rate: 1000,
+      date: '2024-01-15',
+      actual_hours: 8,
+      total_cost: 8000,
+      description: '年度審計 - 應收帳款測試',
+      is_billable: true,
+      is_invoiced: false,
+      is_active: true,
+      created_at: '2024-01-15T00:00:00Z',
+      updated_at: '2024-01-15T00:00:00Z',
+    },
+    {
+      id: 'demo-2',
+      employee: 'demo-emp-2',
+      employee_name: '李美玲',
+      company: 'demo-company-2',
+      company_name: 'XYZ 科技股份有限公司',
+      project_reference: 'TAX-2024-001',
+      role: 'MANAGER',
+      base_hourly_rate: 300,
+      hourly_rate_multiplier: 3,
+      effective_rate: 900,
+      date: '2024-01-16',
+      actual_hours: 4,
+      total_cost: 3600,
+      description: '利得稅申報 - 複核',
+      is_billable: true,
+      is_invoiced: true,
+      is_active: true,
+      created_at: '2024-01-16T00:00:00Z',
+      updated_at: '2024-01-16T00:00:00Z',
+    },
+    {
+      id: 'demo-3',
+      employee: 'demo-emp-3',
+      employee_name: '王大華',
+      company: 'demo-company-3',
+      company_name: 'Hong Kong Trading Ltd.',
+      project_reference: 'AUDIT-2024-002',
+      role: 'DIRECTOR',
+      base_hourly_rate: 500,
+      hourly_rate_multiplier: 2,
+      effective_rate: 1000,
+      date: '2024-01-17',
+      actual_hours: 3,
+      total_cost: 3000,
+      description: '內部審計 - 監督複核',
+      is_billable: true,
+      is_invoiced: false,
+      is_active: true,
+      created_at: '2024-01-17T00:00:00Z',
+      updated_at: '2024-01-17T00:00:00Z',
+    },
+    {
+      id: 'demo-4',
+      employee: 'demo-emp-1',
+      employee_name: '張小明',
+      company: 'demo-company-4',
+      company_name: '大灣區投資控股',
+      project_reference: 'DD-2024-001',
+      role: 'ACCOUNTANT',
+      base_hourly_rate: 200,
+      hourly_rate_multiplier: 5,
+      effective_rate: 1000,
+      date: '2024-01-18',
+      actual_hours: 6,
+      total_cost: 6000,
+      description: '盡職調查 - 財務資料整理',
+      is_billable: true,
+      is_invoiced: false,
+      is_active: true,
+      created_at: '2024-01-18T00:00:00Z',
+      updated_at: '2024-01-18T00:00:00Z',
+    },
+  ];
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const response = await billableHoursApi.list({ ordering: '-date' });
-      setData(response.results || []);
-      setIsUsingMockData(false);
+      const results = response.results || [];
+      
+      // If API returns empty data, use mock data
+      if (results.length === 0) {
+        console.log('[BillableHours] API returned empty, using mock data');
+        setData(mockData);
+        setIsUsingMockData(true);
+      } else {
+        setData(results);
+        setIsUsingMockData(false);
+      }
     } catch (error) {
       console.error('Failed to fetch billable hours:', error);
       setIsUsingMockData(true);
-      setData([
-        {
-          id: 'demo-1',
-          employee: 'demo-emp-1',
-          employee_name: '張小明',
-          company: 'demo-company-1',
-          company_name: 'ABC 有限公司',
-          project_reference: 'AUDIT-2024-001',
-          role: 'ACCOUNTANT',
-          base_hourly_rate: 200,
-          hourly_rate_multiplier: 5,
-          effective_rate: 1000,
-          date: '2024-01-15',
-          actual_hours: 8,
-          total_cost: 8000,
-          description: '年度審計 - 應收帳款測試',
-          is_billable: true,
-          is_invoiced: false,
-          is_active: true,
-          created_at: '2024-01-15T00:00:00Z',
-          updated_at: '2024-01-15T00:00:00Z',
-        },
-        {
-          id: 'demo-2',
-          employee: 'demo-emp-2',
-          employee_name: '李美玲',
-          company: 'demo-company-2',
-          company_name: 'XYZ 科技股份有限公司',
-          project_reference: 'TAX-2024-001',
-          role: 'MANAGER',
-          base_hourly_rate: 300,
-          hourly_rate_multiplier: 3,
-          effective_rate: 900,
-          date: '2024-01-16',
-          actual_hours: 4,
-          total_cost: 3600,
-          description: '利得稅申報 - 複核',
-          is_billable: true,
-          is_invoiced: true,
-          is_active: true,
-          created_at: '2024-01-16T00:00:00Z',
-          updated_at: '2024-01-16T00:00:00Z',
-        },
-      ]);
+      setData(mockData);
     } finally {
       setIsLoading(false);
     }
@@ -267,8 +321,11 @@ export default function BillableHoursListPage() {
   const { table } = useDataTable({
     data,
     columns,
-    pageCount: Math.ceil(data.length / 10) || 1,
+    pageCount: -1,
     shallow: false,
+    manualPagination: false,
+    manualSorting: false,
+    manualFiltering: false,
   });
 
   return (

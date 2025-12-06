@@ -22,6 +22,9 @@ import {
 import { toast } from 'sonner';
 import { IconArrowLeft, IconLoader2 } from '@tabler/icons-react';
 import { taxReturnsApi, companiesApi, TaxReturnCase, Company } from '@/features/business/services';
+import { employeesApi, Employee } from '@/features/hrms/services';
+import { CompanySelect } from '@/components/business/company-select';
+import { EmployeeSelect } from '@/components/business/employee-select';
 
 const TAX_STATUS_OPTIONS = [
   { value: 'PENDING', label: '待處理' },
@@ -34,31 +37,31 @@ const TAX_STATUS_OPTIONS = [
 ];
 
 const TAX_TYPE_OPTIONS = [
-  { value: 'Profits Tax', label: '利得稅' },
-  { value: 'Salaries Tax', label: '薪俸稅' },
-  { value: 'Property Tax', label: '物業稅' },
-  { value: 'Personal Assessment', label: '個人入息課稅' },
-  { value: 'Stamp Duty', label: '印花稅' },
-  { value: 'Other', label: '其他' },
+  { value: 'PROFITS_TAX', label: '利得稅' },
+  { value: 'SALARIES_TAX', label: '薪俸稅' },
+  { value: 'PROPERTY_TAX', label: '物業稅' },
+  { value: 'STAMP_DUTY', label: '印花稅' },
 ];
 
 export default function TaxReturnEditPage() {
   const params = useParams();
   const router = useRouter();
-  const taxReturnId = params.id as string;
-  const isNew = taxReturnId === 'new';
+  const taxReturnId = (params?.id as string) || 'new';
+  const isNew = !params?.id || taxReturnId === 'new';
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [formData, setFormData] = useState<Partial<TaxReturnCase>>({
     company: '',
-    tax_year: '2023/24',
-    tax_type: 'Profits Tax',
+    tax_year: '2024',
+    tax_type: 'PROFITS_TAX',
     status: 'PENDING',
     progress: 0,
     deadline: '',
     tax_amount: 0,
+    handler: '',
     documents_received: false,
     notes: '',
   });
@@ -66,10 +69,21 @@ export default function TaxReturnEditPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const companiesRes = await companiesApi.list();
+        const [companiesRes, employeesRes] = await Promise.all([
+          companiesApi.list(),
+          employeesApi.list({ is_active: true }).catch(() => ({ results: [] })),
+        ]);
         setCompanies(companiesRes.results || []);
+        setEmployees(employeesRes.results || []);
 
         if (!isNew) {
+          // Check if it's a demo ID
+          if (taxReturnId.startsWith('demo-')) {
+            toast.error('這是示範資料，無法編輯。請使用真實資料。');
+            router.push('/dashboard/business/tax-returns');
+            return;
+          }
+          
           setIsLoading(true);
           const taxReturn = await taxReturnsApi.get(taxReturnId);
           setFormData({
@@ -80,25 +94,41 @@ export default function TaxReturnEditPage() {
             progress: taxReturn.progress,
             deadline: taxReturn.deadline || '',
             tax_amount: taxReturn.tax_amount || 0,
+            handler: taxReturn.handler || '',
             documents_received: taxReturn.documents_received,
             notes: taxReturn.notes || '',
           });
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        toast.error('找不到該稅務申報');
         setCompanies([
           { id: 'demo-1', name: 'ABC 有限公司', is_active: true, created_at: '', updated_at: '' },
           { id: 'demo-2', name: 'XYZ 科技股份有限公司', is_active: true, created_at: '', updated_at: '' },
         ]);
+        if (!isNew) {
+          router.push('/dashboard/business/tax-returns');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [taxReturnId, isNew]);
+  }, [taxReturnId, isNew, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.company) {
+      toast.error('請選擇客戶公司');
+      return;
+    }
+    if (!formData.tax_year) {
+      toast.error('請輸入課稅年度');
+      return;
+    }
+    
     setIsSaving(true);
 
     try {
@@ -110,8 +140,10 @@ export default function TaxReturnEditPage() {
         toast.success('稅務申報案件已更新');
       }
       router.push('/dashboard/business/tax-returns');
-    } catch (error) {
-      toast.error(isNew ? '建立失敗' : '更新失敗');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -168,21 +200,23 @@ export default function TaxReturnEditPage() {
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
                   <Label htmlFor='company'>客戶公司 *</Label>
-                  <Select
-                    value={formData.company}
-                    onValueChange={(value) => handleChange('company', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='選擇客戶公司' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CompanySelect
+                    value={formData.company || ''}
+                    onChange={(value) => handleChange('company', value)}
+                    companies={companies}
+                    onCompanyAdded={(company) => setCompanies((prev) => [...prev, company])}
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='handler'>處理人</Label>
+                  <EmployeeSelect
+                    value={formData.handler || ''}
+                    onChange={(value) => handleChange('handler', value)}
+                    employees={employees}
+                    placeholder='搜尋並選擇處理人'
+                    allowClear
+                  />
                 </div>
 
                 <div className='space-y-2'>
@@ -191,7 +225,7 @@ export default function TaxReturnEditPage() {
                     id='tax_year'
                     value={formData.tax_year}
                     onChange={(e) => handleChange('tax_year', e.target.value)}
-                    placeholder='例如：2023/24'
+                    placeholder='例如：2024'
                     required
                   />
                 </div>

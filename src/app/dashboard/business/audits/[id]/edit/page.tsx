@@ -21,6 +21,9 @@ import {
 import { toast } from 'sonner';
 import { IconArrowLeft, IconLoader2 } from '@tabler/icons-react';
 import { auditsApi, companiesApi, AuditProject, Company } from '@/features/business/services';
+import { employeesApi, Employee } from '@/features/hrms/services';
+import { CompanySelect } from '@/components/business/company-select';
+import { EmployeeSelect } from '@/components/business/employee-select';
 
 const AUDIT_STATUS_OPTIONS = [
   { value: 'NOT_STARTED', label: '未開始' },
@@ -33,44 +36,56 @@ const AUDIT_STATUS_OPTIONS = [
 ];
 
 const AUDIT_TYPE_OPTIONS = [
-  { value: 'Annual Audit', label: '年度審計' },
-  { value: 'Tax Audit', label: '稅務審計' },
-  { value: 'Special Audit', label: '專項審計' },
-  { value: 'Internal Audit', label: '內部審計' },
-  { value: 'Compliance Audit', label: '合規審計' },
+  { value: 'FINANCIAL', label: '財務審計' },
+  { value: 'TAX', label: '稅務審計' },
+  { value: 'INTERNAL', label: '內部審計' },
+  { value: 'COMPLIANCE', label: '合規審計' },
 ];
 
 export default function AuditEditPage() {
   const params = useParams();
   const router = useRouter();
-  const auditId = params.id as string;
-  const isNew = auditId === 'new';
+  const auditId = (params?.id as string) || 'new';
+  const isNew = !params?.id || auditId === 'new';
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const [formData, setFormData] = useState<Partial<AuditProject>>({
     company: '',
     fiscal_year: new Date().getFullYear().toString(),
-    audit_type: 'Annual Audit',
+    audit_type: 'FINANCIAL',
     status: 'NOT_STARTED',
     progress: 0,
     start_date: '',
     deadline: '',
     budget_hours: 0,
     actual_hours: 0,
+    assigned_to: '',
     notes: '',
   });
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        // Fetch companies list
-        const companiesRes = await companiesApi.list();
+        // Fetch companies and employees list in parallel
+        const [companiesRes, employeesRes] = await Promise.all([
+          companiesApi.list(),
+          employeesApi.list({ is_active: true }).catch(() => ({ results: [] })),
+        ]);
         setCompanies(companiesRes.results || []);
+        setEmployees(employeesRes.results || []);
 
         // Fetch existing audit data if editing
         if (!isNew) {
+          // Check if it's a demo ID
+          if (auditId.startsWith('demo-')) {
+            toast.error('這是示範資料，無法編輯。請使用真實資料。');
+            router.push('/dashboard/business/audits');
+            return;
+          }
+          
           setIsLoading(true);
           const audit = await auditsApi.get(auditId);
           setFormData({
@@ -83,25 +98,42 @@ export default function AuditEditPage() {
             deadline: audit.deadline || '',
             budget_hours: audit.budget_hours || 0,
             actual_hours: audit.actual_hours || 0,
+            assigned_to: audit.assigned_to || '',
             notes: audit.notes || '',
           });
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        toast.error('找不到該審計專案');
         // Demo companies fallback
         setCompanies([
           { id: 'demo-1', name: 'ABC 有限公司', is_active: true, created_at: '', updated_at: '' },
           { id: 'demo-2', name: 'XYZ 科技股份有限公司', is_active: true, created_at: '', updated_at: '' },
         ]);
+        // Redirect back if not found
+        if (!isNew) {
+          router.push('/dashboard/business/audits');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [auditId, isNew]);
+  }, [auditId, isNew, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.company) {
+      toast.error('請選擇客戶公司');
+      return;
+    }
+    if (!formData.fiscal_year) {
+      toast.error('請輸入會計年度');
+      return;
+    }
+    
     setIsSaving(true);
 
     try {
@@ -113,8 +145,10 @@ export default function AuditEditPage() {
         toast.success('審計專案已更新');
       }
       router.push('/dashboard/business/audits');
-    } catch (error) {
-      toast.error(isNew ? '建立失敗' : '更新失敗');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -171,21 +205,25 @@ export default function AuditEditPage() {
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
                   <Label htmlFor='company'>客戶公司 *</Label>
-                  <Select
-                    value={formData.company}
-                    onValueChange={(value) => handleChange('company', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='選擇客戶公司' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CompanySelect
+                    value={formData.company || ''}
+                    onChange={(value) => handleChange('company', value)}
+                    companies={companies}
+                    onCompanyAdded={(company) => setCompanies((prev) => [...prev, company])}
+                    placeholder='搜尋並選擇客戶公司'
+                    required
+                  />
+                </div>
+
+                <div className='space-y-2'>
+                  <Label htmlFor='assigned_to'>負責人</Label>
+                  <EmployeeSelect
+                    value={formData.assigned_to || ''}
+                    onChange={(value) => handleChange('assigned_to', value)}
+                    employees={employees}
+                    placeholder='搜尋並選擇負責人'
+                    allowClear
+                  />
                 </div>
 
                 <div className='space-y-2'>

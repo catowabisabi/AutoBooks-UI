@@ -42,123 +42,125 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { taxReturnsApi, TaxReturnCase } from '@/features/business/services';
+import { announcementsApi, Announcement } from '@/features/business/services';
 
-const getStatusColor = (status: string) => {
+const getTypeColor = (type: string) => {
   const colors: Record<string, string> = {
-    PENDING: 'secondary',
-    IN_PROGRESS: 'default',
-    UNDER_REVIEW: 'outline',
-    SUBMITTED: 'default',
-    ACCEPTED: 'success',
-    REJECTED: 'destructive',
-    AMENDED: 'outline',
+    RESULTS: 'default',
+    CIRCULAR: 'secondary',
+    ANNOUNCEMENT: 'outline',
+    PRESS_RELEASE: 'success',
+    REGULATORY: 'warning',
+    OTHER: 'secondary',
   };
-  return colors[status] || 'secondary';
+  return colors[type] || 'secondary';
+};
+
+const getTypeLabel = (type: string) => {
+  const labels: Record<string, string> = {
+    RESULTS: '業績公告',
+    CIRCULAR: '通函',
+    ANNOUNCEMENT: '公告',
+    PRESS_RELEASE: '新聞稿',
+    REGULATORY: '監管公告',
+    OTHER: '其他',
+  };
+  return labels[type] || type;
 };
 
 const getStatusLabel = (status: string) => {
   const labels: Record<string, string> = {
-    PENDING: '待處理',
-    IN_PROGRESS: '處理中',
-    UNDER_REVIEW: '審核中',
-    SUBMITTED: '已提交',
-    ACCEPTED: '已接受',
-    REJECTED: '已退回',
-    AMENDED: '已修正',
+    DRAFT: '草稿',
+    IN_PROGRESS: '進行中',
+    REVIEW: '審核中',
+    APPROVED: '已批准',
+    PUBLISHED: '已發布',
   };
   return labels[status] || status;
 };
 
-export default function TaxReturnsListPage() {
+const getStatusColor = (status: string) => {
+  const colors: Record<string, string> = {
+    DRAFT: 'secondary',
+    IN_PROGRESS: 'warning',
+    REVIEW: 'outline',
+    APPROVED: 'default',
+    PUBLISHED: 'success',
+  };
+  return colors[status] || 'secondary';
+};
+
+export default function AnnouncementsPage() {
   const router = useRouter();
-  const [data, setData] = useState<TaxReturnCase[]>([]);
+  const [data, setData] = useState<Announcement[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
-  // Mock data for demo
-  const mockData: TaxReturnCase[] = [
+  const mockData: Announcement[] = [
     {
       id: 'demo-1',
-      company: 'demo-company-1',
-      company_name: 'ABC 有限公司',
-      tax_year: '2023/24',
-      tax_type: 'Profits Tax',
-      progress: 60,
-      status: 'IN_PROGRESS',
-      deadline: '2024-04-30',
+      listed_client: 'demo-client-1',
+      listed_client_name: 'ABC Holdings Ltd.',
+      stock_code: '1234',
+      announcement_type: 'RESULTS',
+      title: '2024年度業績公告',
+      publish_date: '2024-03-15',
+      deadline: '2024-03-10',
+      status: 'PUBLISHED',
       handler: 'demo-user-1',
-      handler_name: '王會計',
-      tax_amount: 150000,
-      documents_received: true,
+      handler_name: '張經理',
+      word_count: 5000,
+      languages: '中英文',
       is_active: true,
-      created_at: '2024-01-01T00:00:00Z',
-      updated_at: '2024-02-01T00:00:00Z',
-    },
-    {
-      id: 'demo-2',
-      company: 'demo-company-2',
-      company_name: 'XYZ 科技股份有限公司',
-      tax_year: '2023/24',
-      tax_type: 'Salaries Tax',
-      progress: 100,
-      status: 'ACCEPTED',
-      deadline: '2024-03-31',
-      submitted_date: '2024-03-15',
-      handler: 'demo-user-2',
-      handler_name: '李經理',
-      tax_amount: 85000,
-      documents_received: true,
-      is_active: true,
-      created_at: '2024-01-01T00:00:00Z',
+      created_at: '2024-02-01T00:00:00Z',
       updated_at: '2024-03-15T00:00:00Z',
     },
     {
-      id: 'demo-3',
-      company: 'demo-company-3',
-      company_name: 'Hong Kong Trading Ltd.',
-      tax_year: '2023/24',
-      tax_type: 'Profits Tax',
-      progress: 30,
-      status: 'PENDING',
-      deadline: '2024-05-31',
-      handler: 'demo-user-1',
-      handler_name: '王會計',
-      tax_amount: 280000,
-      documents_received: false,
+      id: 'demo-2',
+      listed_client: 'demo-client-2',
+      listed_client_name: 'XYZ International',
+      stock_code: '5678',
+      announcement_type: 'CIRCULAR',
+      title: '股東週年大會通函',
+      publish_date: '2024-04-01',
+      deadline: '2024-03-25',
+      status: 'REVIEW',
+      handler: 'demo-user-2',
+      handler_name: '李經理',
+      word_count: 8000,
+      languages: '中英文',
       is_active: true,
-      created_at: '2024-02-01T00:00:00Z',
-      updated_at: '2024-02-15T00:00:00Z',
+      created_at: '2024-03-01T00:00:00Z',
+      updated_at: '2024-03-20T00:00:00Z',
     },
     {
-      id: 'demo-4',
-      company: 'demo-company-4',
-      company_name: '大灣區投資控股',
-      tax_year: '2023/24',
-      tax_type: 'Property Tax',
-      progress: 80,
-      status: 'UNDER_REVIEW',
-      deadline: '2024-04-15',
-      handler: 'demo-user-3',
-      handler_name: '陳主管',
-      tax_amount: 95000,
-      documents_received: true,
+      id: 'demo-3',
+      listed_client: 'demo-client-1',
+      listed_client_name: 'ABC Holdings Ltd.',
+      stock_code: '1234',
+      announcement_type: 'PRESS_RELEASE',
+      title: '新產品發布新聞稿',
+      publish_date: '2024-03-20',
+      status: 'IN_PROGRESS',
+      handler: 'demo-user-1',
+      handler_name: '張經理',
+      word_count: 1500,
+      languages: '中英文',
       is_active: true,
-      created_at: '2024-01-15T00:00:00Z',
-      updated_at: '2024-03-01T00:00:00Z',
+      created_at: '2024-03-10T00:00:00Z',
+      updated_at: '2024-03-18T00:00:00Z',
     },
   ];
 
   const fetchData = async () => {
     setIsLoading(true);
     try {
-      const response = await taxReturnsApi.list({ ordering: '-deadline' });
+      const response = await announcementsApi.list({ ordering: '-publish_date' });
       const results = response.results || [];
       
-      // If API returns empty data, use mock data
       if (results.length === 0) {
-        console.log('[TaxReturns] API returned empty, using mock data');
+        console.log('[Announcements] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
       } else {
@@ -166,7 +168,7 @@ export default function TaxReturnsListPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
-      console.error('Failed to fetch tax returns:', error);
+      console.error('Failed to fetch announcements:', error);
       setIsUsingMockData(true);
       setData(mockData);
     } finally {
@@ -181,8 +183,8 @@ export default function TaxReturnsListPage() {
   const handleDelete = async () => {
     if (!deleteId) return;
     try {
-      await taxReturnsApi.delete(deleteId);
-      toast.success('稅務申報已刪除');
+      await announcementsApi.delete(deleteId);
+      toast.success('公告已刪除');
       fetchData();
     } catch (error) {
       toast.error('刪除失敗');
@@ -190,26 +192,39 @@ export default function TaxReturnsListPage() {
     setDeleteId(null);
   };
 
-  const columns: ColumnDef<TaxReturnCase>[] = [
+  const columns: ColumnDef<Announcement>[] = [
     {
-      accessorKey: 'company_name',
-      header: '客戶公司',
+      accessorKey: 'title',
+      header: '標題',
       cell: ({ row }) => (
         <Link
-          href={`/dashboard/business/tax-returns/${row.original.id}`}
-          className='font-medium text-primary hover:underline'
+          href={`/dashboard/business/announcements/${row.original.id}`}
+          className='font-medium text-primary hover:underline max-w-[300px] truncate block'
         >
-          {row.original.company_name || row.original.company}
+          {row.original.title}
         </Link>
       ),
     },
     {
-      accessorKey: 'tax_year',
-      header: '課稅年度',
+      accessorKey: 'listed_client_name',
+      header: '上市公司',
+      cell: ({ row }) => (
+        <div className='flex flex-col'>
+          <span>{row.original.listed_client_name}</span>
+          <span className='text-xs text-muted-foreground font-mono'>
+            {row.original.stock_code}
+          </span>
+        </div>
+      ),
     },
     {
-      accessorKey: 'tax_type',
-      header: '稅種',
+      accessorKey: 'announcement_type',
+      header: '類型',
+      cell: ({ row }) => (
+        <Badge variant={getTypeColor(row.original.announcement_type) as 'default' | 'secondary' | 'destructive' | 'outline' | 'success' | 'warning'}>
+          {getTypeLabel(row.original.announcement_type)}
+        </Badge>
+      ),
     },
     {
       accessorKey: 'status',
@@ -221,36 +236,11 @@ export default function TaxReturnsListPage() {
       ),
     },
     {
-      accessorKey: 'progress',
-      header: '進度',
-      cell: ({ row }) => (
-        <div className='flex items-center gap-2'>
-          <div className='h-2 w-20 rounded-full bg-muted'>
-            <div
-              className='h-2 rounded-full bg-primary'
-              style={{ width: `${row.original.progress}%` }}
-            />
-          </div>
-          <span className='text-sm text-muted-foreground'>
-            {row.original.progress}%
-          </span>
-        </div>
-      ),
-    },
-    {
-      accessorKey: 'deadline',
-      header: '截止日期',
+      accessorKey: 'publish_date',
+      header: '發布日期',
       cell: ({ row }) =>
-        row.original.deadline
-          ? new Date(row.original.deadline).toLocaleDateString('zh-TW')
-          : '-',
-    },
-    {
-      accessorKey: 'tax_amount',
-      header: '稅額',
-      cell: ({ row }) =>
-        row.original.tax_amount
-          ? `HK$${row.original.tax_amount.toLocaleString()}`
+        row.original.publish_date
+          ? new Date(row.original.publish_date).toLocaleDateString('zh-TW')
           : '-',
     },
     {
@@ -270,7 +260,7 @@ export default function TaxReturnsListPage() {
           <DropdownMenuContent align='end'>
             <DropdownMenuItem
               onClick={() =>
-                router.push(`/dashboard/business/tax-returns/${row.original.id}`)
+                router.push(`/dashboard/business/announcements/${row.original.id}`)
               }
             >
               <IconEye className='mr-2 size-4' />
@@ -278,7 +268,7 @@ export default function TaxReturnsListPage() {
             </DropdownMenuItem>
             <DropdownMenuItem
               onClick={() =>
-                router.push(`/dashboard/business/tax-returns/${row.original.id}/edit`)
+                router.push(`/dashboard/business/announcements/${row.original.id}/edit`)
               }
             >
               <IconEdit className='mr-2 size-4' />
@@ -313,8 +303,8 @@ export default function TaxReturnsListPage() {
       <div className='flex flex-1 flex-col space-y-4'>
         <div className='flex items-center justify-between'>
           <Heading
-            title='稅務申報管理'
-            description='管理所有稅務申報案件、追蹤進度與狀態'
+            title='公告管理'
+            description='管理上市公司公告、通函和新聞稿'
           />
           <div className='flex items-center gap-2'>
             <div className='flex items-center gap-1 text-xs text-muted-foreground'>
@@ -334,11 +324,11 @@ export default function TaxReturnsListPage() {
               </Button>
             </div>
             <Link
-              href='/dashboard/business/tax-returns/new'
+              href='/dashboard/business/announcements/new'
               className={cn(buttonVariants({ variant: 'default' }))}
             >
               <IconPlus className='mr-2 size-4' />
-              新增案件
+              新增公告
             </Link>
           </div>
         </div>
@@ -358,7 +348,7 @@ export default function TaxReturnsListPage() {
           <AlertDialogHeader>
             <AlertDialogTitle>確認刪除</AlertDialogTitle>
             <AlertDialogDescription>
-              確定要刪除此稅務申報案件嗎？此操作無法撤銷。
+              確定要刪除此公告嗎？此操作無法撤銷。
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

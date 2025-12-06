@@ -21,6 +21,7 @@ import {
 import { toast } from 'sonner';
 import { IconArrowLeft, IconLoader2 } from '@tabler/icons-react';
 import { revenueApi, companiesApi, Revenue, Company } from '@/features/business/services';
+import { CompanySelect } from '@/components/business/company-select';
 
 const REVENUE_STATUS_OPTIONS = [
   { value: 'PENDING', label: '待收款' },
@@ -33,8 +34,8 @@ const REVENUE_STATUS_OPTIONS = [
 export default function RevenueEditPage() {
   const params = useParams();
   const router = useRouter();
-  const revenueId = params.id as string;
-  const isNew = revenueId === 'new';
+  const revenueId = (params?.id as string) || 'new';
+  const isNew = !params?.id || revenueId === 'new';
 
   const [isLoading, setIsLoading] = useState(!isNew);
   const [isSaving, setIsSaving] = useState(false);
@@ -61,6 +62,13 @@ export default function RevenueEditPage() {
         setCompanies(companiesRes.results || []);
 
         if (!isNew) {
+          // Check if it's a demo ID
+          if (revenueId.startsWith('demo-')) {
+            toast.error('這是示範資料，無法編輯。請使用真實資料。');
+            router.push('/dashboard/business/revenue');
+            return;
+          }
+          
           setIsLoading(true);
           const revenue = await revenueApi.get(revenueId);
           setFormData({
@@ -80,19 +88,34 @@ export default function RevenueEditPage() {
         }
       } catch (error) {
         console.error('Failed to fetch data:', error);
+        toast.error('找不到該收入記錄');
         setCompanies([
           { id: 'demo-1', name: 'ABC 有限公司', is_active: true, created_at: '', updated_at: '' },
           { id: 'demo-2', name: 'XYZ 科技股份有限公司', is_active: true, created_at: '', updated_at: '' },
         ]);
+        if (!isNew) {
+          router.push('/dashboard/business/revenue');
+        }
       } finally {
         setIsLoading(false);
       }
     };
     fetchData();
-  }, [revenueId, isNew]);
+  }, [revenueId, isNew, router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    // Validate required fields
+    if (!formData.company) {
+      toast.error('請選擇客戶公司');
+      return;
+    }
+    if (!formData.total_amount || formData.total_amount <= 0) {
+      toast.error('請輸入有效的金額');
+      return;
+    }
+    
     setIsSaving(true);
 
     try {
@@ -104,8 +127,10 @@ export default function RevenueEditPage() {
         toast.success('收入記錄已更新');
       }
       router.push('/dashboard/business/revenue');
-    } catch (error) {
-      toast.error(isNew ? '建立失敗' : '更新失敗');
+    } catch (error: any) {
+      console.error('Save error:', error);
+      const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
+      toast.error(message);
     } finally {
       setIsSaving(false);
     }
@@ -165,21 +190,12 @@ export default function RevenueEditPage() {
               <CardContent className='space-y-4'>
                 <div className='space-y-2'>
                   <Label htmlFor='company'>客戶公司 *</Label>
-                  <Select
-                    value={formData.company}
-                    onValueChange={(value) => handleChange('company', value)}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder='選擇客戶公司' />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {companies.map((company) => (
-                        <SelectItem key={company.id} value={company.id}>
-                          {company.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <CompanySelect
+                    value={formData.company || ''}
+                    onChange={(value) => handleChange('company', value)}
+                    companies={companies}
+                    onCompanyAdded={(company) => setCompanies((prev) => [...prev, company])}
+                  />
                 </div>
 
                 <div className='space-y-2'>

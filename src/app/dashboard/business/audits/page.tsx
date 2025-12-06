@@ -78,55 +78,103 @@ export default function AuditsListPage() {
   const [isUsingMockData, setIsUsingMockData] = useState(false);
   const [deleteId, setDeleteId] = useState<string | null>(null);
 
+  // Mock data for demo
+  const mockData: AuditProject[] = [
+    {
+      id: 'demo-1',
+      company: 'demo-company-1',
+      company_name: 'ABC 有限公司',
+      fiscal_year: '2024',
+      audit_type: 'Annual Audit',
+      progress: 75,
+      status: 'FIELDWORK',
+      start_date: '2024-01-15',
+      deadline: '2024-03-31',
+      assigned_to: 'demo-user-1',
+      assigned_to_name: '張經理',
+      budget_hours: 200,
+      actual_hours: 150,
+      is_active: true,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-01-15T00:00:00Z',
+    },
+    {
+      id: 'demo-2',
+      company: 'demo-company-2',
+      company_name: 'XYZ 科技股份有限公司',
+      fiscal_year: '2024',
+      audit_type: 'Tax Audit',
+      progress: 100,
+      status: 'COMPLETED',
+      start_date: '2024-01-01',
+      deadline: '2024-02-28',
+      completion_date: '2024-02-25',
+      assigned_to: 'demo-user-2',
+      assigned_to_name: '李會計師',
+      budget_hours: 100,
+      actual_hours: 95,
+      is_active: true,
+      created_at: '2024-01-01T00:00:00Z',
+      updated_at: '2024-02-25T00:00:00Z',
+    },
+    {
+      id: 'demo-3',
+      company: 'demo-company-3',
+      company_name: 'Hong Kong Trading Ltd.',
+      fiscal_year: '2024',
+      audit_type: 'Internal Audit',
+      progress: 30,
+      status: 'PLANNING',
+      start_date: '2024-02-01',
+      deadline: '2024-04-30',
+      assigned_to: 'demo-user-1',
+      assigned_to_name: '張經理',
+      budget_hours: 150,
+      actual_hours: 45,
+      is_active: true,
+      created_at: '2024-02-01T00:00:00Z',
+      updated_at: '2024-02-15T00:00:00Z',
+    },
+    {
+      id: 'demo-4',
+      company: 'demo-company-4',
+      company_name: '大灣區投資控股',
+      fiscal_year: '2024',
+      audit_type: 'Due Diligence',
+      progress: 50,
+      status: 'REVIEW',
+      start_date: '2024-01-20',
+      deadline: '2024-03-15',
+      assigned_to: 'demo-user-3',
+      assigned_to_name: '王總監',
+      budget_hours: 300,
+      actual_hours: 150,
+      is_active: true,
+      created_at: '2024-01-20T00:00:00Z',
+      updated_at: '2024-02-20T00:00:00Z',
+    },
+  ];
+
   const fetchData = async () => {
     setIsLoading(true);
     try {
       const response = await auditsApi.list({ ordering: '-created_at' });
-      setData(response.results || []);
-      setIsUsingMockData(false);
+      const results = response.results || [];
+      
+      // If API returns empty data, use mock data
+      if (results.length === 0) {
+        console.log('[Audits] API returned empty, using mock data');
+        setData(mockData);
+        setIsUsingMockData(true);
+      } else {
+        setData(results);
+        setIsUsingMockData(false);
+      }
     } catch (error) {
       console.error('Failed to fetch audits:', error);
       setIsUsingMockData(true);
       // Mock data fallback
-      setData([
-        {
-          id: 'demo-1',
-          company: 'demo-company-1',
-          company_name: 'ABC 有限公司',
-          fiscal_year: '2024',
-          audit_type: 'Annual Audit',
-          progress: 75,
-          status: 'FIELDWORK',
-          start_date: '2024-01-15',
-          deadline: '2024-03-31',
-          assigned_to: 'demo-user-1',
-          assigned_to_name: '張經理',
-          budget_hours: 200,
-          actual_hours: 150,
-          is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-01-15T00:00:00Z',
-        },
-        {
-          id: 'demo-2',
-          company: 'demo-company-2',
-          company_name: 'XYZ 科技股份有限公司',
-          fiscal_year: '2024',
-          audit_type: 'Tax Audit',
-          progress: 100,
-          status: 'COMPLETED',
-          start_date: '2024-01-01',
-          deadline: '2024-02-28',
-          completion_date: '2024-02-25',
-          assigned_to: 'demo-user-2',
-          assigned_to_name: '李會計師',
-          budget_hours: 100,
-          actual_hours: 95,
-          is_active: true,
-          created_at: '2024-01-01T00:00:00Z',
-          updated_at: '2024-02-25T00:00:00Z',
-        },
-      ]);
+      setData(mockData);
     } finally {
       setIsLoading(false);
     }
@@ -251,8 +299,11 @@ export default function AuditsListPage() {
   const { table } = useDataTable({
     data,
     columns,
-    pageCount: Math.ceil(data.length / 10) || 1,
+    pageCount: -1, // Client-side pagination, let the table handle it
     shallow: false,
+    manualPagination: false,
+    manualSorting: false,
+    manualFiltering: false,
   });
 
   return (
