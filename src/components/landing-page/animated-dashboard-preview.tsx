@@ -14,12 +14,19 @@ import {
   PieChart,
   Activity
 } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Animated Line Chart Component
 function AnimatedLineChart() {
+  const [mounted, setMounted] = useState(false);
   const [points, setPoints] = useState<number[]>([30, 45, 35, 55, 40, 60, 50, 70, 65, 80, 75, 90]);
   
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
       setPoints(prev => {
         const newPoints = [...prev.slice(1)];
@@ -28,7 +35,7 @@ function AnimatedLineChart() {
       });
     }, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   const pathD = points.map((p, i) => {
     const x = (i / (points.length - 1)) * 100;
@@ -36,12 +43,20 @@ function AnimatedLineChart() {
     return `${i === 0 ? 'M' : 'L'} ${x} ${y}`;
   }).join(' ');
 
+  if (!mounted) {
+    return (
+      <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
+        <rect width="100" height="100" fill="transparent" />
+      </svg>
+    );
+  }
+
   return (
     <svg viewBox="0 0 100 100" className="w-full h-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id="lineGradient" x1="0%" y1="0%" x2="0%" y2="100%">
-          <stop offset="0%" stopColor="hsl(var(--primary))" stopOpacity="0.3" />
-          <stop offset="100%" stopColor="hsl(var(--primary))" stopOpacity="0" />
+          <stop offset="0%" stopColor="#22c55e" stopOpacity="0.4" />
+          <stop offset="100%" stopColor="#22c55e" stopOpacity="0" />
         </linearGradient>
       </defs>
       <motion.path
@@ -54,7 +69,7 @@ function AnimatedLineChart() {
       <motion.path
         d={pathD}
         fill="none"
-        stroke="hsl(var(--primary))"
+        stroke="#22c55e"
         strokeWidth="2"
         strokeLinecap="round"
         initial={{ pathLength: 0 }}
@@ -67,21 +82,30 @@ function AnimatedLineChart() {
 
 // Animated Bar Chart Component
 function AnimatedBarChart() {
+  const [mounted, setMounted] = useState(false);
   const [bars, setBars] = useState([65, 80, 45, 90, 70, 55, 85]);
   
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
       setBars(prev => prev.map(() => Math.floor(Math.random() * 50) + 40));
     }, 3000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   return (
     <div className="flex items-end justify-between h-full gap-1 px-2">
       {bars.map((height, i) => (
         <motion.div
           key={i}
-          className="flex-1 bg-gradient-to-t from-primary/80 to-primary rounded-t"
+          className="flex-1 rounded-t"
+          style={{ 
+            background: `linear-gradient(to top, #3b82f6, #8b5cf6)` 
+          }}
           initial={{ height: 0 }}
           animate={{ height: `${height}%` }}
           transition={{ duration: 0.8, delay: i * 0.1, ease: "easeOut" }}
@@ -91,13 +115,13 @@ function AnimatedBarChart() {
   );
 }
 
-// Animated Donut Chart Component
+// Animated Donut Chart Component with colorful segments
 function AnimatedDonutChart() {
   const segments = [
-    { percent: 35, color: 'hsl(var(--primary))' },
-    { percent: 25, color: 'hsl(var(--primary) / 0.7)' },
-    { percent: 20, color: 'hsl(var(--primary) / 0.5)' },
-    { percent: 20, color: 'hsl(var(--primary) / 0.3)' },
+    { percent: 35, color: '#3b82f6', label: '營運' },  // Blue
+    { percent: 25, color: '#22c55e', label: '薪資' },  // Green  
+    { percent: 20, color: '#f59e0b', label: '行銷' },  // Amber
+    { percent: 20, color: '#ef4444', label: '其他' },  // Red
   ];
 
   let cumulativePercent = 0;
@@ -128,7 +152,7 @@ function AnimatedDonutChart() {
           />
         );
       })}
-      <circle cx="50" cy="50" r="25" fill="hsl(var(--card))" />
+      <circle cx="50" cy="50" r="20" fill="hsl(var(--card))" />
     </svg>
   );
 }
@@ -136,16 +160,22 @@ function AnimatedDonutChart() {
 // Stat Card Component
 function StatCard({ 
   icon: Icon, 
-  label, 
+  labelKey,
+  defaultLabel, 
   value, 
   change, 
-  isPositive 
+  isPositive,
+  mounted,
+  t
 }: { 
   icon: any; 
-  label: string; 
+  labelKey: string;
+  defaultLabel: string;
   value: string; 
   change: string;
   isPositive: boolean;
+  mounted: boolean;
+  t: (key: string) => string;
 }) {
   return (
     <motion.div 
@@ -164,13 +194,31 @@ function StatCard({
         </div>
       </div>
       <p className="text-2xl font-bold">{value}</p>
-      <p className="text-xs text-muted-foreground">{label}</p>
+      <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+        {mounted ? t(labelKey) : defaultLabel}
+      </p>
     </motion.div>
   );
 }
 
 // Transaction Row Component
-function TransactionRow({ name, amount, type, delay }: { name: string; amount: string; type: 'income' | 'expense'; delay: number }) {
+function TransactionRow({ 
+  nameKey, 
+  defaultName, 
+  amount, 
+  type, 
+  delay,
+  mounted,
+  t 
+}: { 
+  nameKey: string;
+  defaultName: string;
+  amount: string; 
+  type: 'income' | 'expense'; 
+  delay: number;
+  mounted: boolean;
+  t: (key: string) => string;
+}) {
   return (
     <motion.div 
       className="flex items-center justify-between py-2 border-b border-border/30 last:border-0"
@@ -180,7 +228,9 @@ function TransactionRow({ name, amount, type, delay }: { name: string; amount: s
     >
       <div className="flex items-center gap-2">
         <div className={`w-2 h-2 rounded-full ${type === 'income' ? 'bg-green-500' : 'bg-red-500'}`} />
-        <span className="text-sm">{name}</span>
+        <span className="text-sm" suppressHydrationWarning>
+          {mounted ? t(nameKey) : defaultName}
+        </span>
       </div>
       <span className={`text-sm font-medium ${type === 'income' ? 'text-green-500' : 'text-red-500'}`}>
         {type === 'income' ? '+' : '-'}{amount}
@@ -190,14 +240,21 @@ function TransactionRow({ name, amount, type, delay }: { name: string; amount: s
 }
 
 export default function AnimatedDashboardPreview() {
+  const { t } = useTranslation();
+  const [mounted, setMounted] = useState(false);
   const [currentView, setCurrentView] = useState(0);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     const interval = setInterval(() => {
       setCurrentView(prev => (prev + 1) % 3);
     }, 5000);
     return () => clearInterval(interval);
-  }, []);
+  }, [mounted]);
 
   return (
     <div className="relative w-full max-w-5xl mx-auto">
@@ -222,10 +279,46 @@ export default function AnimatedDashboardPreview() {
         <div className="p-6 bg-gradient-to-br from-background to-muted/20 min-h-[400px]">
           {/* Stats Row */}
           <div className="grid grid-cols-4 gap-4 mb-6">
-            <StatCard icon={DollarSign} label="總營收" value="$128,450" change="+12.5%" isPositive={true} />
-            <StatCard icon={TrendingUp} label="淨利潤" value="$45,200" change="+8.2%" isPositive={true} />
-            <StatCard icon={FileText} label="待處理發票" value="23" change="-5.1%" isPositive={true} />
-            <StatCard icon={Users} label="活躍客戶" value="156" change="+3.4%" isPositive={true} />
+            <StatCard 
+              icon={DollarSign} 
+              labelKey="landing.dashboard.totalRevenue" 
+              defaultLabel="Total Revenue" 
+              value="$128,450" 
+              change="+12.5%" 
+              isPositive={true}
+              mounted={mounted}
+              t={t}
+            />
+            <StatCard 
+              icon={TrendingUp} 
+              labelKey="landing.dashboard.netProfit" 
+              defaultLabel="Net Profit" 
+              value="$45,200" 
+              change="+8.2%" 
+              isPositive={true}
+              mounted={mounted}
+              t={t}
+            />
+            <StatCard 
+              icon={FileText} 
+              labelKey="landing.dashboard.pendingInvoices" 
+              defaultLabel="Pending Invoices" 
+              value="23" 
+              change="-5.1%" 
+              isPositive={true}
+              mounted={mounted}
+              t={t}
+            />
+            <StatCard 
+              icon={Users} 
+              labelKey="landing.dashboard.activeClients" 
+              defaultLabel="Active Clients" 
+              value="156" 
+              change="+3.4%" 
+              isPositive={true}
+              mounted={mounted}
+              t={t}
+            />
           </div>
 
           {/* Charts Row */}
@@ -239,8 +332,12 @@ export default function AnimatedDashboardPreview() {
             >
               <div className="flex items-center justify-between mb-4">
                 <div>
-                  <h3 className="font-semibold">營收趨勢</h3>
-                  <p className="text-xs text-muted-foreground">過去 12 個月</p>
+                  <h3 className="font-semibold" suppressHydrationWarning>
+                    {mounted ? t('landing.dashboard.revenueTrend') : 'Revenue Trend'}
+                  </h3>
+                  <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+                    {mounted ? t('landing.dashboard.last12Months') : 'Last 12 months'}
+                  </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <BarChart3 className="h-4 w-4 text-muted-foreground" />
@@ -260,7 +357,9 @@ export default function AnimatedDashboardPreview() {
                 transition={{ duration: 0.5, delay: 0.4 }}
               >
                 <div className="flex items-center justify-between mb-2">
-                  <h3 className="text-sm font-semibold">支出分佈</h3>
+                  <h3 className="text-sm font-semibold" suppressHydrationWarning>
+                    {mounted ? t('landing.dashboard.expenseDistribution') : 'Expense Distribution'}
+                  </h3>
                   <PieChart className="h-4 w-4 text-muted-foreground" />
                 </div>
                 <div className="h-24">
@@ -274,10 +373,36 @@ export default function AnimatedDashboardPreview() {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.5, delay: 0.5 }}
               >
-                <h3 className="text-sm font-semibold mb-2">最近交易</h3>
-                <TransactionRow name="客戶付款" amount="$2,450" type="income" delay={0.6} />
-                <TransactionRow name="辦公室租金" amount="$1,200" type="expense" delay={0.7} />
-                <TransactionRow name="軟體銷售" amount="$890" type="income" delay={0.8} />
+                <h3 className="text-sm font-semibold mb-2" suppressHydrationWarning>
+                  {mounted ? t('landing.dashboard.recentTransactions') : 'Recent Transactions'}
+                </h3>
+                <TransactionRow 
+                  nameKey="landing.dashboard.transactions.clientPayment" 
+                  defaultName="Client Payment" 
+                  amount="$2,450" 
+                  type="income" 
+                  delay={0.6}
+                  mounted={mounted}
+                  t={t}
+                />
+                <TransactionRow 
+                  nameKey="landing.dashboard.transactions.officeRent" 
+                  defaultName="Office Rent" 
+                  amount="$1,200" 
+                  type="expense" 
+                  delay={0.7}
+                  mounted={mounted}
+                  t={t}
+                />
+                <TransactionRow 
+                  nameKey="landing.dashboard.transactions.softwareSales" 
+                  defaultName="Software Sales" 
+                  amount="$890" 
+                  type="income" 
+                  delay={0.8}
+                  mounted={mounted}
+                  t={t}
+                />
               </motion.div>
             </div>
           </div>
@@ -290,8 +415,9 @@ export default function AnimatedDashboardPreview() {
         initial={{ scale: 0, rotate: -10 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 1, type: "spring" }}
+        suppressHydrationWarning
       >
-        +$12,450 今日
+        +$12,450 {mounted ? t('landing.dashboard.today') : 'Today'}
       </motion.div>
 
       <motion.div
@@ -299,9 +425,10 @@ export default function AnimatedDashboardPreview() {
         initial={{ scale: 0, rotate: 10 }}
         animate={{ scale: 1, rotate: 0 }}
         transition={{ delay: 1.2, type: "spring" }}
+        suppressHydrationWarning
       >
         <TrendingUp className="h-3 w-3" />
-        AI 分析中...
+        {mounted ? t('landing.dashboard.aiAnalyzing') : 'AI Analyzing...'}
       </motion.div>
     </div>
   );

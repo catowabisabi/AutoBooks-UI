@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import {
   Dialog,
   DialogContent,
@@ -31,8 +31,11 @@ import {
   Target,
   Shield,
   Lightbulb,
+  RefreshCw,
+  Calendar,
 } from 'lucide-react';
 import { ragApi } from '@/lib/api';
+import { useTranslation } from '@/lib/i18n/provider';
 
 interface AnalysisReport {
   id: string;
@@ -90,6 +93,80 @@ interface CompanyData {
 interface AnalysisDialogProps {
   companyData: CompanyData;
   chartData?: Record<string, unknown>;
+}
+
+// Cache interface for storing analysis reports
+interface CachedReport {
+  report: AnalysisReport;
+  cachedAt: string; // ISO date string
+  companyId: string;
+}
+
+// Get today's date as YYYY-MM-DD string
+function getTodayDateString(): string {
+  return new Date().toISOString().split('T')[0];
+}
+
+// Generate cache key for a company
+function getCacheKey(companyName: string): string {
+  return `analysis-report-${companyName.toLowerCase().replace(/\s+/g, '-')}`;
+}
+
+// Check if cache is from today
+function isCacheValid(cachedAt: string): boolean {
+  const cachedDate = cachedAt.split('T')[0];
+  const today = getTodayDateString();
+  return cachedDate === today;
+}
+
+// Save report to localStorage
+function saveReportToCache(companyName: string, report: AnalysisReport): void {
+  try {
+    const cacheKey = getCacheKey(companyName);
+    const cacheData: CachedReport = {
+      report,
+      cachedAt: new Date().toISOString(),
+      companyId: companyName,
+    };
+    localStorage.setItem(cacheKey, JSON.stringify(cacheData));
+  } catch (e) {
+    console.warn('Failed to cache report:', e);
+  }
+}
+
+// Load report from localStorage
+function loadReportFromCache(companyName: string): AnalysisReport | null {
+  try {
+    const cacheKey = getCacheKey(companyName);
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+    
+    const cacheData: CachedReport = JSON.parse(cached);
+    if (!isCacheValid(cacheData.cachedAt)) {
+      // Cache expired, remove it
+      localStorage.removeItem(cacheKey);
+      return null;
+    }
+    
+    return cacheData.report;
+  } catch (e) {
+    console.warn('Failed to load cached report:', e);
+    return null;
+  }
+}
+
+// Get cache timestamp for display
+function getCacheTimestamp(companyName: string): string | null {
+  try {
+    const cacheKey = getCacheKey(companyName);
+    const cached = localStorage.getItem(cacheKey);
+    if (!cached) return null;
+    
+    const cacheData: CachedReport = JSON.parse(cached);
+    return cacheData.cachedAt;
+  } catch {
+    return null;
+  }
 }
 
 // Helper function to get industry name
@@ -237,52 +314,99 @@ function parseAIResponse(response: string): Partial<AnalysisReport> | null {
 }
 
 export function AnalysisDialog({ companyData }: AnalysisDialogProps) {
+  const { t, locale } = useTranslation();
   const [isOpen, setIsOpen] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [report, setReport] = useState<AnalysisReport | null>(null);
   const [language, setLanguage] = useState<'en' | 'zh'>('zh');
   const [progress, setProgress] = useState(0);
+  const [cacheTime, setCacheTime] = useState<string | null>(null);
+  const [isFromCache, setIsFromCache] = useState(false);
 
-  const generateAnalysis = useCallback(async () => {
+  // Sync language with app locale
+  useEffect(() => {
+    setLanguage(locale === 'zh-TW' ? 'zh' : 'en');
+  }, [locale]);
+
+  // Load cached report on mount
+  useEffect(() => {
+    const cached = loadReportFromCache(companyData.name);
+    if (cached) {
+      setReport(cached);
+      setIsFromCache(true);
+      setCacheTime(getCacheTimestamp(companyData.name));
+    }
+  }, [companyData.name]);
+
+  const generateAnalysis = useCallback(async (forceRegenerate = false) => {
+    // Check cache first unless force regenerate
+    if (!forceRegenerate) {
+      const cached = loadReportFromCache(companyData.name);
+      if (cached) {
+        setReport(cached);
+        setIsFromCache(true);
+        setCacheTime(getCacheTimestamp(companyData.name));
+        return;
+      }
+    }
+
     setIsLoading(true);
+    setIsFromCache(false);
     setProgress(10);
     
     try {
-      // 準備詳細的分析提示
+      // Bilingual analysis prompt - generate both EN and ZH in one request
       const analysisQuery = `
-作為專業的商業分析師，請分析以下公司數據並生成詳細的分析報告。
+As a professional business analyst, analyze the following company data and generate a detailed bilingual analysis report.
 
-公司信息:
-- 名稱: ${companyData.name}
-- 行業類型: ${companyData.type === 'accounting' ? '會計審計' : companyData.type === 'financial-pr' ? '財經公關' : 'IPO顧問'}
-- 貨幣: ${companyData.currency}
+IMPORTANT: Generate BOTH English AND Traditional Chinese content for ALL sections.
 
-公司統計數據:
+Company Information:
+- Name: ${companyData.name}
+- Industry Type: ${companyData.type === 'accounting' ? 'Accounting & Audit / 會計審計' : companyData.type === 'financial-pr' ? 'Financial PR / 財經公關' : 'IPO Advisory / IPO顧問'}
+- Currency: ${companyData.currency}
+
+Company Statistics:
 ${JSON.stringify(companyData.stats, null, 2)}
 
-服務細分:
+Service Breakdown:
 ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
 
-請提供以下分析內容:
+Please provide the following analysis in BOTH English and Traditional Chinese:
 
-1. **執行摘要** (約200字，分別用英文和中文)
-   - 整體業績評估
-   - 關鍵優勢
-   - 主要挑戰
+1. **Executive Summary** (approximately 200 words each language)
+   - Overall performance assessment
+   - Key strengths
+   - Main challenges
 
-2. **業績預測**
-   - 基於當前數據預測未來3個月的趨勢
+2. **Key Metrics Analysis**
+   - 4-5 key performance indicators
+   - Status assessment (good/warning/critical)
+   - Insights for each metric
 
-3. **戰略建議**
-   - 3個高優先級建議
-   - 預期影響
+3. **Industry Comparison**
+   - How the company compares to industry averages
+   - Percentile rankings
 
-請用繁體中文回應，提供具體、可行的建議。
+4. **Strategic Recommendations**
+   - 3 prioritized recommendations (high/medium/low)
+   - Expected impact for each
+
+5. **Risk Assessment**
+   - Key risk categories
+   - Risk levels (low/medium/high)
+
+6. **Forecast**
+   - 3-month projections for key metrics
+   - Confidence levels
+
+Format the response as a structured JSON with bilingual content where applicable.
+請同時用英文和繁體中文提供具體、可行的分析和建議。
 `;
 
       setProgress(30);
       
-      // 使用後端 RAG chat API
+      // Use backend RAG chat API
       const response = await ragApi.chat(analysisQuery, {
         category: 'business-analysis',
         provider: 'openai',
@@ -290,25 +414,36 @@ ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
 
       setProgress(70);
 
-      // 嘗試解析 AI 回應
+      // Try to parse AI response
       const aiAnalysis = response.response;
       
-      // 生成報告結構，將 AI 分析整合進去
+      // Generate report structure, integrating AI analysis
       const generatedReport = generateMockReport(companyData, aiAnalysis);
       
       setProgress(100);
       setReport(generatedReport);
       
+      // Save to cache
+      saveReportToCache(companyData.name, generatedReport);
+      setCacheTime(new Date().toISOString());
+      
     } catch (err) {
       console.error('Analysis error:', err);
-      // 如果 API 失敗，使用本地生成的 mock 報告
+      // If API fails, use locally generated mock report
       const mockReport = generateMockReport(companyData);
       setReport(mockReport);
+      // Still cache the mock report
+      saveReportToCache(companyData.name, mockReport);
+      setCacheTime(new Date().toISOString());
     } finally {
       setIsLoading(false);
       setProgress(0);
     }
   }, [companyData]);
+
+  const handleRegenerate = useCallback(() => {
+    generateAnalysis(true); // Force regenerate
+  }, [generateAnalysis]);
 
   const downloadPDF = useCallback(async () => {
     if (!report) return;
@@ -380,17 +515,23 @@ ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
           }}
         >
           <Sparkles className="h-4 w-4" />
-          AI 分析
+          {language === 'zh' ? 'AI 分析' : 'AI Analysis'}
         </Button>
       </DialogTrigger>
       <DialogContent className="max-w-4xl max-h-[90vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Sparkles className="h-5 w-5 text-purple-500" />
-            AI 智能分析報告
+            {language === 'zh' ? 'AI 智能分析報告' : 'AI Analysis Report'}
           </DialogTitle>
-          <DialogDescription>
-            {companyData.name} - {report?.company.industry || '生成中...'}
+          <DialogDescription className="flex items-center justify-between">
+            <span>{companyData.name} - {report?.company.industry || (language === 'zh' ? '生成中...' : 'Generating...')}</span>
+            {cacheTime && isFromCache && (
+              <span className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Calendar className="h-3 w-3" />
+                {language === 'zh' ? '快取於' : 'Cached at'} {new Date(cacheTime).toLocaleTimeString()}
+              </span>
+            )}
           </DialogDescription>
         </DialogHeader>
 
@@ -399,12 +540,16 @@ ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
             <Loader2 className="h-12 w-12 animate-spin text-purple-500" />
             <div className="text-center">
               <p className="text-lg font-medium">
-                {progress < 30 ? '正在收集公司數據...' : 
-                 progress < 70 ? 'AI 正在分析數據...' : 
-                 '正在生成報告...'}
+                {progress < 30 
+                  ? (language === 'zh' ? '正在收集公司數據...' : 'Collecting company data...') 
+                  : progress < 70 
+                  ? (language === 'zh' ? 'AI 正在分析數據...' : 'AI analyzing data...') 
+                  : (language === 'zh' ? '正在生成報告...' : 'Generating report...')}
               </p>
               <p className="text-sm text-muted-foreground">
-                使用 AI 智能引擎分析您的業務表現
+                {language === 'zh' 
+                  ? '使用 AI 智能引擎分析您的業務表現' 
+                  : 'Using AI engine to analyze your business performance'}
               </p>
             </div>
             <Progress value={progress || 20} className="w-64" />
@@ -430,25 +575,30 @@ ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
                 >
                   English
                 </Button>
+                {isFromCache && (
+                  <Badge variant="secondary" className="text-xs gap-1">
+                    <Calendar className="h-3 w-3" />
+                    {language === 'zh' ? '今日快取' : 'Cached Today'}
+                  </Badge>
+                )}
               </div>
               <div className="flex items-center gap-2">
                 <Badge variant="outline" className="text-xs">
                   {report.id}
                 </Badge>
                 <Button 
-                  variant="ghost" 
+                  variant="outline" 
                   size="sm" 
-                  onClick={() => {
-                    setReport(null);
-                    generateAnalysis();
-                  }}
-                  title="重新生成報告"
+                  onClick={handleRegenerate}
+                  title={language === 'zh' ? '重新生成報告' : 'Regenerate Report'}
+                  className="gap-1"
                 >
-                  <Sparkles className="h-4 w-4" />
+                  <RefreshCw className="h-4 w-4" />
+                  {language === 'zh' ? '重新生成' : 'Regenerate'}
                 </Button>
                 <Button variant="outline" size="sm" onClick={downloadPDF}>
                   <Download className="h-4 w-4 mr-2" />
-                  下載 PDF
+                  {language === 'zh' ? '下載 PDF' : 'Download PDF'}
                 </Button>
               </div>
             </div>
@@ -457,23 +607,23 @@ ${JSON.stringify(companyData.serviceBreakdown, null, 2)}
               <TabsList className="grid w-full grid-cols-5">
                 <TabsTrigger value="summary" className="gap-1">
                   <FileText className="h-3 w-3" />
-                  摘要
+                  {language === 'zh' ? '摘要' : 'Summary'}
                 </TabsTrigger>
                 <TabsTrigger value="metrics" className="gap-1">
                   <BarChart3 className="h-3 w-3" />
-                  指標
+                  {language === 'zh' ? '指標' : 'Metrics'}
                 </TabsTrigger>
                 <TabsTrigger value="comparison" className="gap-1">
                   <Globe className="h-3 w-3" />
-                  對比
+                  {language === 'zh' ? '對比' : 'Compare'}
                 </TabsTrigger>
                 <TabsTrigger value="recommendations" className="gap-1">
                   <Lightbulb className="h-3 w-3" />
-                  建議
+                  {language === 'zh' ? '建議' : 'Advice'}
                 </TabsTrigger>
                 <TabsTrigger value="risk" className="gap-1">
                   <Shield className="h-3 w-3" />
-                  風險
+                  {language === 'zh' ? '風險' : 'Risk'}
                 </TabsTrigger>
               </TabsList>
 

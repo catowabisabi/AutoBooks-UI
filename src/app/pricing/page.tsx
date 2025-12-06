@@ -32,6 +32,7 @@ export default function PricingPage() {
       featuresKey: 'landing.pricing.free.features',
       defaultName: 'AutoBooks Free',
       defaultPrice: '0',
+      defaultYearlyPrice: '0',
       defaultDesc: 'Perfect for individuals or small startups',
       defaultFeatures: [
         '10 AI features per day',
@@ -51,6 +52,7 @@ export default function PricingPage() {
       featuresKey: 'landing.pricing.plus.features',
       defaultName: 'AutoBooks+',
       defaultPrice: '38.88',
+      defaultYearlyPrice: '28.88',
       defaultDesc: 'For growing small businesses',
       defaultFeatures: [
         '50 AI features per day',
@@ -71,6 +73,7 @@ export default function PricingPage() {
       featuresKey: 'landing.pricing.pro.features',
       defaultName: 'AutoBooks Pro',
       defaultPrice: '58.88',
+      defaultYearlyPrice: '48.88',
       defaultDesc: 'For mid-sized businesses needing full features',
       defaultFeatures: [
         '200 AI features per day',
@@ -92,6 +95,7 @@ export default function PricingPage() {
       featuresKey: 'landing.pricing.proPlus.features',
       defaultName: 'AutoBooks Pro+',
       defaultPrice: '178.88',
+      defaultYearlyPrice: '148.88',
       defaultDesc: 'For large businesses or accounting firms',
       defaultFeatures: [
         'Unlimited AI features',
@@ -114,6 +118,7 @@ export default function PricingPage() {
       featuresKey: 'landing.pricing.enterpriseInfo.features',
       defaultName: 'AutoBooks Enterprise',
       defaultPrice: 'Contact Us',
+      defaultYearlyPrice: 'Contact Us',
       defaultDesc: 'Tailored solutions for large enterprises',
       defaultFeatures: [
         'All Pro+ features',
@@ -133,10 +138,12 @@ export default function PricingPage() {
     if (plan.enterprise) {
       return mounted ? t(plan.priceKey) : plan.defaultPrice;
     }
+    if (isYearly) {
+      return plan.defaultYearlyPrice;
+    }
     const basePrice = parseFloat(mounted ? t(plan.priceKey) : plan.defaultPrice);
     if (isNaN(basePrice) || basePrice === 0) return '0';
-    const price = isYearly ? (basePrice * 0.8).toFixed(2) : basePrice.toFixed(2);
-    return price;
+    return basePrice.toFixed(2);
   };
 
   const getFeatures = (plan: typeof plans[0]): string[] => {

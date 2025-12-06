@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
   Calculator,
@@ -14,6 +14,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/provider';
+import AnimatedAIChart from './animated-ai-chart';
 
 // 5 unique animation variants
 const animationVariants = {
@@ -99,7 +100,7 @@ interface FeaturePointProps {
 }
 
 function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index, mounted, t }: FeaturePointProps) {
-  const ref = React.useRef(null);
+  const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const animationKey = animationKeys[index % animationKeys.length];
   
@@ -160,8 +161,6 @@ function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index,
     </motion.div>
   );
 }
-
-import React from 'react';
 
 const LandingPageFeatureSection = () => {
   const { t } = useTranslation();
@@ -277,8 +276,14 @@ const LandingPageFeatureSection = () => {
           </p>
         </motion.div>
 
-        {/* Features List - Single Column with Animated Points */}
-        <div className="max-w-3xl mx-auto">
+        {/* Two Column Layout - AI Chart + Features */}
+        <div className="grid lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+          {/* Left Column - AI Chart Animation */}
+          <div className="hidden lg:flex justify-center items-start sticky top-24">
+            <AnimatedAIChart />
+          </div>
+
+          {/* Right Column - Features List */}
           <div className="space-y-2">
             {features.map((feature, index) => (
               <FeaturePoint
@@ -294,6 +299,11 @@ const LandingPageFeatureSection = () => {
               />
             ))}
           </div>
+        </div>
+
+        {/* Mobile AI Chart - shown below features on mobile */}
+        <div className="lg:hidden mt-12 flex justify-center">
+          <AnimatedAIChart />
         </div>
       </div>
     </section>

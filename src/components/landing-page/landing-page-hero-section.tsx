@@ -21,9 +21,9 @@ const LandingPageHeroSection = () => {
   }, []);
 
   const trustPoints = [
-    { zh: '免費試用 14 天', en: '14-day free trial' },
-    { zh: '無需信用卡', en: 'No credit card required' },
-    { zh: '隨時取消', en: 'Cancel anytime' }
+    { key: 'landing.hero.trustPoints.freeTrial', default: '14-day free trial' },
+    { key: 'landing.hero.trustPoints.noCard', default: 'No credit card required' },
+    { key: 'landing.hero.trustPoints.cancelAnytime', default: 'Cancel anytime' }
   ];
 
   return (
@@ -118,7 +118,7 @@ const LandingPageHeroSection = () => {
                 <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 size={16} className="text-green-500" />
                   <span suppressHydrationWarning>
-                    {mounted ? point.zh : point.en}
+                    {mounted ? t(point.key) : point.default}
                   </span>
                 </div>
               ))}

@@ -716,7 +716,43 @@
       "getStarted": "Start Free Trial",
       "exploreFeatures": "Watch 1-Min Demo",
       "learnMore": "Learn More",
-      "trustedBy": "Trusted by accounting firms and SMEs"
+      "trustedBy": "Trusted by accounting firms and SMEs",
+      "trustPoints": {
+        "freeTrial": "14-day free trial",
+        "noCard": "No credit card required",
+        "cancelAnytime": "Cancel anytime"
+      }
+    },
+    "dashboard": {
+      "totalRevenue": "Total Revenue",
+      "netProfit": "Net Profit",
+      "pendingInvoices": "Pending Invoices",
+      "activeClients": "Active Clients",
+      "revenueTrend": "Revenue Trend",
+      "last12Months": "Last 12 months",
+      "expenseDistribution": "Expense Distribution",
+      "recentTransactions": "Recent Transactions",
+      "today": "Today",
+      "aiAnalyzing": "AI Analyzing...",
+      "transactions": {
+        "clientPayment": "Client Payment",
+        "officeRent": "Office Rent",
+        "softwareSales": "Software Sales"
+      }
+    },
+    "aiChat": {
+      "title": "AutoBooks AI",
+      "prompt1": "Analyzing cash flow patterns...",
+      "prompt2": "Detecting anomalies in expenses...",
+      "prompt3": "Forecasting next quarter revenue...",
+      "liveData": "Live Financial Data",
+      "revenue": "Revenue",
+      "expenses": "Expenses",
+      "profit": "Profit",
+      "forecast": "Forecast",
+      "monthlyRevenue": "Monthly",
+      "trend": "Trend",
+      "insight": "💡 Marketing spend 15% above target"
     },
     "features": {
       "title": "Why Choose",
@@ -752,6 +788,7 @@
       "title": "Frequently Asked",
       "titleHighlight": "Questions",
       "subtitle": "Got questions? We've got answers. Explore our most common inquiries about AutoBooks ERP.",
+      "faqTitle": "Frequently Asked Questions",
       "q1": "What types of companies is AutoBooks suitable for?",
       "a1": "Whether you're a startup, SME, or enterprise group, AutoBooks fits perfectly. We've optimized specifically for Hong Kong and Greater China businesses, supporting multi-currency, multi-company consolidation, and full compliance with local tax regulations.",
       "q2": "Is my financial data secure?",
@@ -761,7 +798,16 @@
       "q4": "Can it integrate with my existing systems?",
       "a4": "Of course! AutoBooks provides open APIs that integrate seamlessly with common banks, e-commerce platforms, and POS systems. Our technical team can also create custom integration solutions for you.",
       "q5": "Can I cancel my subscription anytime?",
-      "a5": "Yes, no long-term contracts required. You can upgrade, downgrade, or cancel your subscription at any time. After cancellation, your data can still be exported and saved."
+      "a5": "Yes, no long-term contracts required. You can upgrade, downgrade, or cancel your subscription at any time. After cancellation, your data can still be exported and saved.",
+      "q6": "How accurate is the AI?",
+      "a6": "Our AI boasts 99% accuracy in expense categorization and invoice processing. Through machine learning, it gets smarter with use and can even predict cash flow trends to help you make better decisions.",
+      "q7": "Do you support multiple currencies?",
+      "a7": "Yes! We support 150+ global currencies with real-time exchange rate updates. Multi-currency transactions are automatically converted with exchange gains/losses calculated in consolidated reports.",
+      "q8": "Can I manage multiple companies?",
+      "a8": "Absolutely. AutoBooks allows you to manage unlimited companies under one account. Easily switch between entities and generate consolidated reports with intercompany eliminations.",
+      "emailLabel": "Email",
+      "phoneLabel": "Phone",
+      "locationLabel": "Location"
     },
     "contact": {
       "title": "Get in",

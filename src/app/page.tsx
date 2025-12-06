@@ -3,7 +3,6 @@ import LandingPageHeroSection from '@/components/landing-page/landing-page-hero-
 import LandingPageFeatureSection from '@/components/landing-page/landing-page-feature-section';
 import StatsSection from '@/components/landing-page/stats-section';
 import FAQsSection from '@/components/landing-page/landing-page-faqs-section';
-import ContactSection from '@/components/landing-page/landing-page-contact-section';
 import LandingPageFooter from '@/components/landing-page/landing-page-footer';
 import LandingPageScrollToTopButton from '@/components/landing-page/landing-page-scroll-to-top-button';
 
@@ -19,9 +18,6 @@ export default function LandingPage() {
         </section>
         <section id='faqs'>
           <FAQsSection />
-        </section>
-        <section id='contact'>
-          <ContactSection />
         </section>
       </main>
       <LandingPageFooter />
