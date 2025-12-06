@@ -39,6 +39,7 @@ import { cn } from '@/lib/utils';
 import { aiApi, assistantsApi } from '@/lib/api';
 import { MultiFileUploader, FileWithStatus, DOCUMENT_ACCEPT_TYPES } from '@/components/multi-file-uploader';
 import { toast } from 'sonner';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Types
 type DocumentType = 'pdf' | 'doc' | 'txt' | 'image' | 'excel' | 'csv';
@@ -100,13 +101,13 @@ const documentTypeIcons: Record<DocumentType, { icon: typeof IconFile; color: st
   csv: { icon: IconFileSpreadsheet, color: 'text-emerald-600' },
 };
 
-// Initial folders
-const initialFolders: Folder[] = [
-  { id: 'all', name: 'All Documents / 所有文件', documents: 0 },
-  { id: 'receipts', name: 'Receipts / 收據', documents: 0 },
-  { id: 'invoices', name: 'Invoices / 發票', documents: 0 },
-  { id: 'contracts', name: 'Contracts / 合約', documents: 0 },
-  { id: 'reports', name: 'Reports / 報表', documents: 0 },
+// Initial folders - will be initialized with translations in component
+const getInitialFolders = (t: (key: string) => string): Folder[] => [
+  { id: 'all', name: t('documentAssistant.allDocuments'), documents: 0 },
+  { id: 'receipts', name: t('documentAssistant.receipts'), documents: 0 },
+  { id: 'invoices', name: t('documentAssistant.invoices'), documents: 0 },
+  { id: 'contracts', name: t('documentAssistant.contracts'), documents: 0 },
+  { id: 'reports', name: t('documentAssistant.reports'), documents: 0 },
 ];
 
 // Document Item Component
@@ -114,9 +115,10 @@ interface DocumentItemProps {
   document: ProcessedDocument;
   onSelect: (document: ProcessedDocument) => void;
   onDelete: (document: ProcessedDocument) => void;
+  t: (key: string) => string;
 }
 
-function DocumentItem({ document, onSelect, onDelete }: DocumentItemProps) {
+function DocumentItem({ document, onSelect, onDelete, t }: DocumentItemProps) {
   const typeConfig = documentTypeIcons[document.type];
   const Icon = typeConfig.icon;
 
@@ -141,10 +143,10 @@ function DocumentItem({ document, onSelect, onDelete }: DocumentItemProps) {
                 <IconLoader2 className='h-4 w-4 animate-spin text-blue-500' />
               )}
               {document.status === 'error' && (
-                <Badge variant='destructive' className='text-xs'>Error</Badge>
+                <Badge variant='destructive' className='text-xs'>{t('documentAssistant.error')}</Badge>
               )}
               {document.status === 'ready' && document.documentId && (
-                <Badge variant='outline' className='text-xs'>Ready</Badge>
+                <Badge variant='outline' className='text-xs'>{t('documentAssistant.ready')}</Badge>
               )}
             </div>
             <div className='text-muted-foreground mt-1 flex text-xs gap-2'>
@@ -239,7 +241,8 @@ function ChatMessage({ message }: ChatMessageProps) {
 }
 
 export default function DocumentAssistantPage() {
-  const [folders, setFolders] = useState(initialFolders);
+  const { t } = useTranslation();
+  const [folders, setFolders] = useState(() => getInitialFolders(t));
   const [documents, setDocuments] = useState<ProcessedDocument[]>([]);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentFolder, setCurrentFolder] = useState('all');
@@ -470,7 +473,7 @@ export default function DocumentAssistantPage() {
         {/* Folders Sidebar */}
         <div className='border-border mr-4 w-[250px] overflow-y-auto border-r pr-2'>
           <div className='mb-4 flex items-center justify-between'>
-            <h3 className='font-medium'>Folders / 資料夾</h3>
+            <h3 className='font-medium'>{t('documentAssistant.folders')}</h3>
             <Button onClick={handleCreateFolder} size='sm' variant='ghost'>
               <IconPlus className='h-4 w-4' />
             </Button>
@@ -538,11 +541,11 @@ export default function DocumentAssistantPage() {
               <TabsList>
                 <TabsTrigger value='documents'>
                   <IconFile className='h-4 w-4 mr-2' />
-                  Documents / 文件
+                  {t('documentAssistant.documentsTab')}
                 </TabsTrigger>
                 <TabsTrigger value='upload'>
                   <IconUpload className='h-4 w-4 mr-2' />
-                  Upload / 上傳
+                  {t('documentAssistant.uploadTab')}
                 </TabsTrigger>
               </TabsList>
 
@@ -551,7 +554,7 @@ export default function DocumentAssistantPage() {
                   <div className='relative w-64'>
                     <IconSearch className='text-muted-foreground absolute top-2.5 left-2.5 h-4 w-4' />
                     <Input
-                      placeholder='Search documents... / 搜尋文件...'
+                      placeholder={t('documentAssistant.searchDocuments')}
                       className='pl-8'
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
@@ -560,7 +563,7 @@ export default function DocumentAssistantPage() {
                 )}
                 <Button onClick={() => setActiveTab('upload')}>
                   <IconUpload className='mr-2 h-4 w-4' />
-                  Upload / 上傳
+                  {t('documentAssistant.uploadTab')}
                 </Button>
               </div>
             </div>
@@ -576,6 +579,7 @@ export default function DocumentAssistantPage() {
                         document={document}
                         onSelect={handleSelectDocument}
                         onDelete={handleDeleteDocument}
+                        t={t}
                       />
                     ))
                   ) : (
@@ -583,12 +587,12 @@ export default function DocumentAssistantPage() {
                       <IconFile className='h-12 w-12 text-muted-foreground mb-4' />
                       <p className='text-muted-foreground mb-4'>
                         {searchQuery 
-                          ? 'No documents found / 找不到文件'
-                          : 'No documents uploaded yet / 尚未上傳文件'}
+                          ? t('documentAssistant.noDocumentsFound')
+                          : t('documentAssistant.noDocuments')}
                       </p>
                       <Button onClick={() => setActiveTab('upload')}>
                         <IconUpload className='mr-2 h-4 w-4' />
-                        Upload Documents / 上傳文件
+                        {t('documentAssistant.uploadDocument')}
                       </Button>
                     </div>
                   )}
@@ -602,30 +606,26 @@ export default function DocumentAssistantPage() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <IconUpload className='h-5 w-5' />
-                    Bulk Document Upload / 批量上傳文件
+                    {t('documentAssistant.bulkUpload')}
                   </CardTitle>
                   <CardDescription>
-                    Upload multiple files at once. Supported formats: PDF, Excel, Word, Images, CSV, TXT
-                    <br />
-                    支援批量上傳：PDF、Excel、Word、圖片、CSV、TXT
+                    {t('documentAssistant.supportedFormats')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className='space-y-4'>
                   {/* Default Query */}
                   <div className='space-y-2'>
                     <label className='text-sm font-medium'>
-                      Default Query (Optional) / 預設查詢（選填）
+                      {t('documentAssistant.defaultQueryLabel')}
                     </label>
                     <Textarea
-                      placeholder='Enter a query to run on all uploaded documents, e.g., "Extract all amounts and dates" / 輸入要對所有文件執行的查詢，例如「提取所有金額和日期」'
+                      placeholder={t('documentAssistant.defaultQueryPlaceholder')}
                       value={defaultQuery}
                       onChange={(e) => setDefaultQuery(e.target.value)}
                       className='min-h-[80px]'
                     />
                     <p className='text-xs text-muted-foreground'>
-                      If empty, an automatic query will be generated based on file type.
-                      <br />
-                      若為空，將根據檔案類型自動生成查詢。
+                      {t('documentAssistant.defaultQueryHint')}
                     </p>
                   </div>
 
@@ -662,12 +662,12 @@ export default function DocumentAssistantPage() {
           <SheetHeader className='border-border shrink-0 border-b p-4'>
             <SheetTitle className='flex items-center gap-2'>
               <IconRobot className='h-5 w-5' />
-              Document Assistant / 文件助手
+              {t('documentAssistant.title')}
             </SheetTitle>
             <SheetDescription>
               {selectedDocument 
-                ? `Analyzing: ${selectedDocument.name}`
-                : 'Ask questions about your documents / 詢問有關文件的問題'}
+                ? `${t('documentAssistant.analyzing')}: ${selectedDocument.name}`
+                : t('documentAssistant.description')}
             </SheetDescription>
             {selectedDocument && (
               <Button
@@ -677,7 +677,7 @@ export default function DocumentAssistantPage() {
                 className='mt-2'
               >
                 <IconX className='h-4 w-4 mr-1' />
-                Clear selection / 清除選擇
+                {t('documentAssistant.clearSelection')}
               </Button>
             )}
           </SheetHeader>
@@ -687,11 +687,9 @@ export default function DocumentAssistantPage() {
               {messages.length === 0 ? (
                 <div className='flex flex-col items-center justify-center h-full text-center text-muted-foreground py-8'>
                   <IconMessage className='h-12 w-12 mb-4' />
-                  <p>Start a conversation / 開始對話</p>
+                  <p>{t('documentAssistant.startConversation')}</p>
                   <p className='text-sm mt-2'>
-                    Select a document from the list or ask a general question.
-                    <br />
-                    從列表中選擇文件或提出一般問題。
+                    {t('documentAssistant.selectDocument')}
                   </p>
                 </div>
               ) : (
@@ -702,7 +700,7 @@ export default function DocumentAssistantPage() {
               {isLoading && (
                 <div className='flex items-center gap-2 text-muted-foreground p-3'>
                   <IconLoader2 className='h-4 w-4 animate-spin' />
-                  <span>Thinking... / 思考中...</span>
+                  <span>{t('documentAssistant.thinking')}</span>
                 </div>
               )}
               <div ref={messagesEndRef} />
@@ -712,7 +710,7 @@ export default function DocumentAssistantPage() {
           <div className='border-border mt-auto shrink-0 border-t p-4'>
             <div className='flex gap-2'>
               <Input
-                placeholder='Ask about your documents... / 詢問有關文件...'
+                placeholder={t('documentAssistant.askAboutDocument')}
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}

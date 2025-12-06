@@ -31,6 +31,7 @@ import { Filter, Search, SortAsc, SortDesc, X, Plus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getStatusColor } from './expense-card';
 import Link from 'next/link';
+import { useTranslation } from '@/lib/i18n/provider';
 
 type ExpenseStatus = 'Pending' | 'Approved' | 'Rejected';
 
@@ -90,6 +91,7 @@ type SortField = 'merchantName' | 'claimedAmount' | 'status';
 type SortOrder = 'asc' | 'desc';
 
 export default function ExpenseList() {
+  const { t } = useTranslation();
   const router = useRouter();
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState<ExpenseStatus | 'all'>(
@@ -157,7 +159,7 @@ export default function ExpenseList() {
     <div className='flex min-h-[80vh] flex-col'>
       <div className='mb-6 space-y-6'>
         <div className='flex items-center justify-between'>
-          <h2 className='text-2xl font-bold'>Expense List</h2>
+          <h2 className='text-2xl font-bold'>{t('expenses.title')}</h2>
 
           {/* Create New Expense Button */}
           <Button
@@ -166,7 +168,7 @@ export default function ExpenseList() {
             variant='default'
           >
             <Plus className='h-4 w-4' />
-            Add New Expense
+            {t('expenses.addExpense')}
           </Button>
         </div>
 
@@ -174,7 +176,7 @@ export default function ExpenseList() {
           <div className='relative w-full sm:w-64'>
             <Search className='text-muted-foreground absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2' />
             <Input
-              placeholder='Search expenses'
+              placeholder={t('expenses.search')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className='pl-9'
@@ -192,10 +194,10 @@ export default function ExpenseList() {
               <SelectValue>{statusFilter}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='all'>All</SelectItem>
-              <SelectItem value='Pending'>Pending</SelectItem>
-              <SelectItem value='Approved'>Approved</SelectItem>
-              <SelectItem value='Rejected'>Rejected</SelectItem>
+              <SelectItem value='all'>{t('expenses.all')}</SelectItem>
+              <SelectItem value='Pending'>{t('expenses.pending')}</SelectItem>
+              <SelectItem value='Approved'>{t('expenses.approved')}</SelectItem>
+              <SelectItem value='Rejected'>{t('expenses.rejected')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -212,9 +214,9 @@ export default function ExpenseList() {
               <SelectValue>{sortField}</SelectValue>
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value='merchantName'>Merchant</SelectItem>
-              <SelectItem value='claimedAmount'>Amount</SelectItem>
-              <SelectItem value='status'>Status</SelectItem>
+              <SelectItem value='merchantName'>{t('expenses.merchant')}</SelectItem>
+              <SelectItem value='claimedAmount'>{t('common.amount')}</SelectItem>
+              <SelectItem value='status'>{t('common.status')}</SelectItem>
             </SelectContent>
           </Select>
 
@@ -239,7 +241,7 @@ export default function ExpenseList() {
               }}
             >
               <X className='mr-2 h-4 w-4' />
-              Clear
+              {t('expenses.clear')}
             </Button>
           )}
         </div>
@@ -292,12 +294,12 @@ export default function ExpenseList() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Merchant</TableHead>
-                  <TableHead>Invoice</TableHead>
-                  <TableHead>Amount</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Description</TableHead>
-                  <TableHead>Actions</TableHead>
+                  <TableHead>{t('expenses.merchant')}</TableHead>
+                  <TableHead>{t('expenses.invoice')}</TableHead>
+                  <TableHead>{t('common.amount')}</TableHead>
+                  <TableHead>{t('common.status')}</TableHead>
+                  <TableHead>{t('expenses.description')}</TableHead>
+                  <TableHead>{t('common.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>

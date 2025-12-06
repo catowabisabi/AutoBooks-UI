@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useMemo, useRef, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -80,14 +81,14 @@ import { useToast } from '@/hooks/use-toast';
 
 // Session Type Configuration
 const SESSION_TYPES = {
-  STRATEGY: { label: 'Strategy', icon: Target, color: 'bg-blue-500' },
-  PITCH_WRITER: { label: 'Pitch Writer', icon: Briefcase, color: 'bg-purple-500' },
-  MARKET_ANALYSIS: { label: 'Market Analysis', icon: PieChart, color: 'bg-green-500' },
-  CAMPAIGN_BREAKDOWN: { label: 'Campaign', icon: Megaphone, color: 'bg-orange-500' },
-  IDEA_GENERATOR: { label: 'Ideas', icon: Lightbulb, color: 'bg-yellow-500' },
-  FINANCIAL_PLANNING: { label: 'Financial', icon: DollarSign, color: 'bg-emerald-500' },
-  RISK_ASSESSMENT: { label: 'Risk', icon: Shield, color: 'bg-red-500' },
-  PROCESS_OPTIMIZATION: { label: 'Process', icon: Zap, color: 'bg-cyan-500' },
+  STRATEGY: { labelKey: 'brainstormingAssistant.sessionTypes.strategy', icon: Target, color: 'bg-blue-500' },
+  PITCH_WRITER: { labelKey: 'brainstormingAssistant.sessionTypes.pitchWriter', icon: Briefcase, color: 'bg-purple-500' },
+  MARKET_ANALYSIS: { labelKey: 'brainstormingAssistant.sessionTypes.marketAnalysis', icon: PieChart, color: 'bg-green-500' },
+  CAMPAIGN_BREAKDOWN: { labelKey: 'brainstormingAssistant.sessionTypes.campaign', icon: Megaphone, color: 'bg-orange-500' },
+  IDEA_GENERATOR: { labelKey: 'brainstormingAssistant.sessionTypes.ideas', icon: Lightbulb, color: 'bg-yellow-500' },
+  FINANCIAL_PLANNING: { labelKey: 'brainstormingAssistant.sessionTypes.financial', icon: DollarSign, color: 'bg-emerald-500' },
+  RISK_ASSESSMENT: { labelKey: 'brainstormingAssistant.sessionTypes.risk', icon: Shield, color: 'bg-red-500' },
+  PROCESS_OPTIMIZATION: { labelKey: 'brainstormingAssistant.sessionTypes.process', icon: Zap, color: 'bg-cyan-500' },
 };
 
 // Session Card Component
@@ -100,6 +101,7 @@ function SessionCard({
   isSelected: boolean;
   onClick: () => void;
 }) {
+  const { t } = useTranslation();
   const typeConfig = SESSION_TYPES[session.session_type as keyof typeof SESSION_TYPES] || SESSION_TYPES.STRATEGY;
   const TypeIcon = typeConfig.icon;
 
@@ -135,7 +137,7 @@ function SessionCard({
             {new Date(session.created_at).toLocaleDateString()}
           </div>
           <Badge variant="outline" className="text-xs">
-            {typeConfig.label}
+            {t(typeConfig.labelKey)}
           </Badge>
         </div>
       </CardContent>
@@ -222,6 +224,7 @@ function CreateSessionDialog({
   onSubmit: (data: CreateSessionData) => void;
   isSubmitting: boolean;
 }) {
+  const { t } = useTranslation();
   const [title, setTitle] = useState('');
   const [prompt, setPrompt] = useState('');
   const [sessionType, setSessionType] = useState<SessionType>('STRATEGY');
@@ -248,26 +251,26 @@ function CreateSessionDialog({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Brain className="h-5 w-5 text-purple-500" />
-            New Brainstorm Session
+            {t('brainstormingAssistant.newSession')}
           </DialogTitle>
           <DialogDescription>
-            Start a new brainstorming session. AI will help generate ideas based on your prompt.
+            {t('brainstormingAssistant.newSessionDescription')}
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">Session Title</Label>
+            <Label htmlFor="title">{t('brainstormingAssistant.sessionTitle')}</Label>
             <Input
               id="title"
-              placeholder="e.g., Q3 Marketing Strategy"
+              placeholder={t('brainstormingAssistant.sessionTitlePlaceholder')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="type">Session Type</Label>
+            <Label htmlFor="type">{t('brainstormingAssistant.sessionType')}</Label>
             <Select value={sessionType} onValueChange={(v) => setSessionType(v as SessionType)}>
               <SelectTrigger>
                 <SelectValue />
@@ -279,7 +282,7 @@ function CreateSessionDialog({
                     <SelectItem key={key} value={key}>
                       <div className="flex items-center gap-2">
                         <Icon className="h-4 w-4" />
-                        {config.label}
+                        {t(config.labelKey)}
                       </div>
                     </SelectItem>
                   );
@@ -289,10 +292,10 @@ function CreateSessionDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="prompt">Prompt & Background</Label>
+            <Label htmlFor="prompt">{t('brainstormingAssistant.prompt')}</Label>
             <Textarea
               id="prompt"
-              placeholder="Describe the problem, situation, or topic you want to brainstorm about..."
+              placeholder={t('brainstormingAssistant.promptPlaceholder')}
               value={prompt}
               onChange={(e) => setPrompt(e.target.value)}
               rows={4}
@@ -300,10 +303,10 @@ function CreateSessionDialog({
           </div>
 
           <div className="grid gap-2">
-            <Label htmlFor="outcome">Target Outcome (Optional)</Label>
+            <Label htmlFor="outcome">{t('brainstormingAssistant.targetOutcome')}</Label>
             <Input
               id="outcome"
-              placeholder="What do you want to achieve?"
+              placeholder={t('brainstormingAssistant.targetOutcomePlaceholder')}
               value={targetOutcome}
               onChange={(e) => setTargetOutcome(e.target.value)}
             />
@@ -312,11 +315,11 @@ function CreateSessionDialog({
 
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || !title.trim() || !prompt.trim()}>
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Create Session
+            {t('brainstormingAssistant.createSession')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -340,6 +343,7 @@ function SessionDetailPanel({
   onRateIdea: (ideaId: string, rating: 'up' | 'down') => void;
   isGenerating: boolean;
 }) {
+  const { t } = useTranslation();
   const typeConfig = SESSION_TYPES[session.session_type as keyof typeof SESSION_TYPES] || SESSION_TYPES.STRATEGY;
   const TypeIcon = typeConfig.icon;
 
@@ -397,9 +401,9 @@ function SessionDetailPanel({
             <h2 className="text-lg font-semibold">{session.title}</h2>
             <p className="text-sm text-muted-foreground mt-1">{session.prompt}</p>
             <div className="flex items-center gap-3 mt-2">
-              <Badge variant="outline">{typeConfig.label}</Badge>
+              <Badge variant="outline">{t(typeConfig.labelKey)}</Badge>
               <span className="text-xs text-muted-foreground">
-                {ideas.length} ideas
+                {ideas.length} {t('brainstormingAssistant.ideas')}
               </span>
               <span className="text-xs text-muted-foreground">
                 Created {new Date(session.created_at).toLocaleDateString()}
@@ -416,7 +420,7 @@ function SessionDetailPanel({
             ) : (
               <Sparkles className="h-4 w-4 mr-2" />
             )}
-            Generate Ideas
+            {isGenerating ? t('brainstormingAssistant.generating') : t('brainstormingAssistant.generateIdeas')}
           </Button>
         </div>
       </div>
@@ -427,7 +431,7 @@ function SessionDetailPanel({
           <div className="p-3 border-b">
             <h3 className="text-sm font-medium flex items-center gap-2">
               <Lightbulb className="h-4 w-4" />
-              Ideas ({ideas.length})
+              {t('brainstormingAssistant.ideas')} ({ideas.length})
             </h3>
           </div>
           <ScrollArea className="h-[calc(100%-45px)]">
@@ -439,8 +443,8 @@ function SessionDetailPanel({
               ) : ideas.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
                   <Lightbulb className="h-12 w-12 mb-2" />
-                  <p className="text-sm">No ideas yet</p>
-                  <p className="text-xs">Click "Generate Ideas" to get started</p>
+                  <p className="text-sm">{t('brainstormingAssistant.noIdeasYet')}</p>
+                  <p className="text-xs">{t('brainstormingAssistant.clickGenerateIdeas')}</p>
                 </div>
               ) : (
                 ideas.map(idea => (
@@ -460,14 +464,14 @@ function SessionDetailPanel({
           <div className="p-3 border-b">
             <h3 className="text-sm font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
-              AI Discussion
+              {t('brainstormingAssistant.aiDiscussion')}
             </h3>
           </div>
           <ScrollArea className="flex-1 p-3">
             <div className="space-y-3">
               {chatMessages.length === 0 && (
                 <p className="text-xs text-muted-foreground text-center py-8">
-                  Chat with AI to explore ideas deeper
+                  {t('brainstormingAssistant.chatWithAI')}
                 </p>
               )}
               {chatMessages.map((msg, idx) => (
@@ -494,7 +498,7 @@ function SessionDetailPanel({
           <div className="p-3 border-t">
             <div className="flex gap-2">
               <Input
-                placeholder="Discuss ideas..."
+                placeholder={t('brainstormingAssistant.discussIdeas')}
                 value={chatInput}
                 onChange={(e) => setChatInput(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleChat()}
@@ -514,6 +518,7 @@ function SessionDetailPanel({
 
 // Main Brainstorming Page
 export default function BrainstormingAssistantPageV2() {
+  const { t } = useTranslation();
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
@@ -586,21 +591,21 @@ export default function BrainstormingAssistantPageV2() {
           <div>
             <h1 className="text-2xl font-bold flex items-center gap-2">
               <Brain className="h-7 w-7 text-purple-500" />
-              Brainstorming Assistant
+              {t('brainstormingAssistant.title')}
             </h1>
             <p className="text-muted-foreground">
-              AI-powered ideation and creative problem solving
+              {t('brainstormingAssistant.description')}
             </p>
           </div>
           <div className="flex items-center gap-3">
             <div className="flex gap-2">
               <Badge variant="outline" className="gap-1">
                 <FolderOpen className="h-3 w-3" />
-                {stats.totalSessions} Sessions
+                {stats.totalSessions} {t('brainstormingAssistant.sessions')}
               </Badge>
               <Badge variant="outline" className="gap-1">
                 <Lightbulb className="h-3 w-3" />
-                {stats.totalIdeas} Ideas
+                {stats.totalIdeas} {t('brainstormingAssistant.ideas')}
               </Badge>
             </div>
             <Button variant="outline" size="icon" onClick={() => refetchSessions()}>
@@ -608,7 +613,7 @@ export default function BrainstormingAssistantPageV2() {
             </Button>
             <Button onClick={() => setCreateDialogOpen(true)}>
               <Plus className="h-4 w-4 mr-2" />
-              New Session
+              {t('brainstormingAssistant.newSession')}
             </Button>
           </div>
         </div>
@@ -621,7 +626,7 @@ export default function BrainstormingAssistantPageV2() {
             <div className="relative">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
-                placeholder="Search sessions..."
+                placeholder={t('brainstormingAssistant.searchSessions')}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="pl-9"
@@ -638,7 +643,7 @@ export default function BrainstormingAssistantPageV2() {
               ) : filteredSessions.length === 0 ? (
                 <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
                   <Brain className="h-12 w-12 mb-2" />
-                  <p className="text-sm">No sessions yet</p>
+                  <p className="text-sm">{t('brainstormingAssistant.noSessions')}</p>
                   <Button
                     variant="outline"
                     size="sm"
@@ -646,7 +651,7 @@ export default function BrainstormingAssistantPageV2() {
                     onClick={() => setCreateDialogOpen(true)}
                   >
                     <Plus className="h-4 w-4 mr-1" />
-                    Create Session
+                    {t('brainstormingAssistant.createSession')}
                   </Button>
                 </div>
               ) : (
@@ -677,14 +682,14 @@ export default function BrainstormingAssistantPageV2() {
           ) : (
             <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
               <Brain className="h-20 w-20 mb-4" />
-              <h2 className="text-xl font-medium">Select a Session</h2>
-              <p className="text-sm mt-1">Choose a session from the sidebar or create a new one</p>
+              <h2 className="text-xl font-medium">{t('brainstormingAssistant.selectSession')}</h2>
+              <p className="text-sm mt-1">{t('brainstormingAssistant.selectSessionDescription')}</p>
               <Button
                 className="mt-4"
                 onClick={() => setCreateDialogOpen(true)}
               >
                 <Plus className="h-4 w-4 mr-2" />
-                New Brainstorm Session
+                {t('brainstormingAssistant.newSession')}
               </Button>
             </div>
           )}

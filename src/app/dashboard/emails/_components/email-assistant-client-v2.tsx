@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useTranslation } from '@/lib/i18n/provider';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { useToast } from '@/hooks/use-toast';
 import {
@@ -69,17 +70,17 @@ import { aiApi } from '@/lib/api';
 
 // Email Category Configuration with Icons
 const EMAIL_CATEGORIES = {
-  PAYMENT_REMINDER: { label: 'Payment Reminder', icon: DollarSign, color: 'bg-red-100 text-red-800' },
-  PROJECT_FOLLOWUP: { label: 'Project Follow-up', icon: FileText, color: 'bg-blue-100 text-blue-800' },
-  TAX_DOC_REQUEST: { label: 'Tax Document', icon: Receipt, color: 'bg-amber-100 text-amber-800' },
-  MEETING_CONFIRM: { label: 'Meeting', icon: Calendar, color: 'bg-purple-100 text-purple-800' },
-  INVOICE_SENT: { label: 'Invoice', icon: DollarSign, color: 'bg-green-100 text-green-800' },
-  EVENT_INVITE: { label: 'Event Invite', icon: Megaphone, color: 'bg-pink-100 text-pink-800' },
-  IPO_RELEASE: { label: 'IPO Release', icon: Building, color: 'bg-indigo-100 text-indigo-800' },
-  BILLING_ISSUE: { label: 'Billing Issue', icon: AlertTriangle, color: 'bg-orange-100 text-orange-800' },
-  DOCUMENT_MISSING: { label: 'Missing Document', icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800' },
-  APPRECIATION: { label: 'Appreciation', icon: Heart, color: 'bg-rose-100 text-rose-800' },
-  GENERAL: { label: 'General', icon: Mail, color: 'bg-gray-100 text-gray-800' },
+  PAYMENT_REMINDER: { labelKey: 'emailAssistant.emailCategories.paymentReminder', icon: DollarSign, color: 'bg-red-100 text-red-800' },
+  PROJECT_FOLLOWUP: { labelKey: 'emailAssistant.emailCategories.projectFollowup', icon: FileText, color: 'bg-blue-100 text-blue-800' },
+  TAX_DOC_REQUEST: { labelKey: 'emailAssistant.emailCategories.taxDocRequest', icon: Receipt, color: 'bg-amber-100 text-amber-800' },
+  MEETING_CONFIRM: { labelKey: 'emailAssistant.emailCategories.meetingConfirm', icon: Calendar, color: 'bg-purple-100 text-purple-800' },
+  INVOICE_SENT: { labelKey: 'emailAssistant.emailCategories.invoiceSent', icon: DollarSign, color: 'bg-green-100 text-green-800' },
+  EVENT_INVITE: { labelKey: 'emailAssistant.emailCategories.eventInvite', icon: Megaphone, color: 'bg-pink-100 text-pink-800' },
+  IPO_RELEASE: { labelKey: 'emailAssistant.emailCategories.ipoRelease', icon: Building, color: 'bg-indigo-100 text-indigo-800' },
+  BILLING_ISSUE: { labelKey: 'emailAssistant.emailCategories.billingIssue', icon: AlertTriangle, color: 'bg-orange-100 text-orange-800' },
+  DOCUMENT_MISSING: { labelKey: 'emailAssistant.emailCategories.documentMissing', icon: AlertCircle, color: 'bg-yellow-100 text-yellow-800' },
+  APPRECIATION: { labelKey: 'emailAssistant.emailCategories.appreciation', icon: Heart, color: 'bg-rose-100 text-rose-800' },
+  GENERAL: { labelKey: 'emailAssistant.emailCategories.general', icon: Mail, color: 'bg-gray-100 text-gray-800' },
 };
 
 type EmailFolder = 'all' | 'unread' | 'starred' | 'sent' | 'archived' | 'trash' | string;
@@ -122,26 +123,28 @@ function EmailSidebar({
   onSelectFolder,
   unreadCount,
   onToggle,
+  t,
 }: {
   accounts: EmailAccount[];
   selectedFolder: EmailFolder;
   onSelectFolder: (folder: EmailFolder) => void;
   unreadCount: number;
   onToggle: () => void;
+  t: (key: string) => string;
 }) {
   const folders = [
-    { id: 'all', label: 'All Mail', icon: Inbox, count: undefined },
-    { id: 'unread', label: 'Unread', icon: Mail, count: unreadCount },
-    { id: 'starred', label: 'Starred', icon: Star, count: undefined },
-    { id: 'sent', label: 'Sent', icon: Send, count: undefined },
-    { id: 'archived', label: 'Archived', icon: Archive, count: undefined },
-    { id: 'trash', label: 'Trash', icon: Trash2, count: undefined },
+    { id: 'all', label: t('emailAssistant.allMail'), icon: Inbox, count: undefined },
+    { id: 'unread', label: t('emailAssistant.unread'), icon: Mail, count: unreadCount },
+    { id: 'starred', label: t('emailAssistant.starred'), icon: Star, count: undefined },
+    { id: 'sent', label: t('emailAssistant.sent'), icon: Send, count: undefined },
+    { id: 'archived', label: t('emailAssistant.archived'), icon: Archive, count: undefined },
+    { id: 'trash', label: t('emailAssistant.trash'), icon: Trash2, count: undefined },
   ];
 
   return (
     <div className="w-60 h-full flex flex-col border-r bg-muted/30">
       <div className="p-4 border-b flex items-center justify-between">
-        <h2 className="font-semibold text-lg">Email</h2>
+        <h2 className="font-semibold text-lg">{t('emailAssistant.title')}</h2>
         <Button variant="ghost" size="icon" className="md:hidden" onClick={onToggle}>
           <Menu className="h-4 w-4" />
         </Button>
@@ -172,7 +175,7 @@ function EmailSidebar({
       <Separator className="my-2" />
 
       <div className="p-2">
-        <p className="text-xs text-muted-foreground px-2 mb-2">Accounts</p>
+        <p className="text-xs text-muted-foreground px-2 mb-2">{t('emailAssistant.accounts')}</p>
         {accounts.map(account => (
           <Button
             key={account.id}
@@ -192,7 +195,7 @@ function EmailSidebar({
       <Separator className="my-2" />
 
       <div className="p-2">
-        <p className="text-xs text-muted-foreground px-2 mb-2">Categories</p>
+        <p className="text-xs text-muted-foreground px-2 mb-2">{t('emailAssistant.categories')}</p>
         <ScrollArea className="h-[200px]">
           {Object.entries(EMAIL_CATEGORIES).slice(0, -1).map(([key, config]) => {
             const Icon = config.icon;
@@ -204,7 +207,7 @@ function EmailSidebar({
                 onClick={() => onSelectFolder(key)}
               >
                 <Icon className="h-3 w-3 mr-2" />
-                <span className="truncate text-xs">{config.label}</span>
+                <span className="truncate text-xs">{t(config.labelKey)}</span>
               </Button>
             );
           })}
@@ -215,16 +218,18 @@ function EmailSidebar({
 }
 
 // Email List Item
-function EmailListItem({
+function EmailListItemComponent({
   email,
   isSelected,
   onSelect,
   onStar,
+  t,
 }: {
   email: EmailListItem;
   isSelected: boolean;
   onSelect: () => void;
   onStar: () => void;
+  t: (key: string) => string;
 }) {
   const category = EMAIL_CATEGORIES[email.category as keyof typeof EMAIL_CATEGORIES] || EMAIL_CATEGORIES.GENERAL;
   const CategoryIcon = category.icon;
@@ -261,7 +266,7 @@ function EmailListItem({
         <div className="flex items-center gap-2 mt-1">
           <Badge variant="outline" className={cn("text-xs py-0 h-5", category.color)}>
             <CategoryIcon className="h-3 w-3 mr-1" />
-            {category.label}
+            {t(category.labelKey)}
           </Badge>
           {email.priority === 'HIGH' && (
             <Badge variant="destructive" className="text-xs py-0 h-5">Urgent</Badge>
@@ -292,12 +297,14 @@ function EmailList({
   onSelectEmail,
   onStarEmail,
   onRefresh,
+  t,
 }: {
   emails: Email[];
   isLoading: boolean;
   selectedEmail: Email | null;
   onSelectEmail: (email: Email) => void;
   onStarEmail: (id: string) => void;
+  t: (key: string) => string;
   onRefresh: () => void;
 }) {
   const [searchQuery, setSearchQuery] = useState('');
@@ -336,7 +343,7 @@ function EmailList({
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
-            placeholder="Search emails..."
+            placeholder={t('emailAssistant.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-9"
@@ -351,16 +358,17 @@ function EmailList({
         {filteredEmails.length === 0 ? (
           <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
             <Mail className="h-12 w-12 mb-2" />
-            <p>No emails found</p>
+            <p>{t('emailAssistant.noEmails')}</p>
           </div>
         ) : (
           filteredEmails.map(email => (
-            <EmailListItem
+            <EmailListItemComponent
               key={email.id}
               email={email}
               isSelected={selectedEmail?.id === email.id}
               onSelect={() => onSelectEmail(email)}
               onStar={() => onStarEmail(email.id)}
+              t={t}
             />
           ))
         )}
@@ -376,12 +384,14 @@ function EmailDetail({
   onDelete,
   onGenerateReply,
   isGeneratingReply,
+  t,
 }: {
   email: Email;
   onArchive: () => void;
   onDelete: () => void;
   onGenerateReply: () => void;
   isGeneratingReply: boolean;
+  t: (key: string) => string;
 }) {
   const category = EMAIL_CATEGORIES[email.category as keyof typeof EMAIL_CATEGORIES] || EMAIL_CATEGORIES.GENERAL;
   const CategoryIcon = category.icon;
@@ -392,7 +402,7 @@ function EmailDetail({
         <div className="flex items-center gap-2">
           <Badge variant="outline" className={cn("text-xs", category.color)}>
             <CategoryIcon className="h-3 w-3 mr-1" />
-            {category.label}
+            {t(category.labelKey)}
           </Badge>
           {email.priority === 'HIGH' && (
             <Badge variant="destructive">Urgent</Badge>
@@ -625,6 +635,7 @@ function AIChatPanel({
 
 // Main Email Assistant Client Component
 export default function EmailAssistantClientV2() {
+  const { t } = useTranslation();
   const [selectedFolder, setSelectedFolder] = useState<EmailFolder>('all');
   const [selectedEmail, setSelectedEmail] = useState<Email | null>(null);
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -732,6 +743,7 @@ export default function EmailAssistantClientV2() {
           onSelectFolder={setSelectedFolder}
           unreadCount={unreadCount}
           onToggle={() => setSidebarOpen(!sidebarOpen)}
+          t={t}
         />
       )}
 
@@ -745,6 +757,7 @@ export default function EmailAssistantClientV2() {
               onDelete={handleDelete}
               onGenerateReply={handleGenerateReply}
               isGeneratingReply={generateReplyMutation.isPending}
+              t={t}
             />
           ) : (
             <EmailList
@@ -754,6 +767,7 @@ export default function EmailAssistantClientV2() {
               onSelectEmail={handleSelectEmail}
               onStarEmail={handleStarEmail}
               onRefresh={() => refetchEmails()}
+              t={t}
             />
           )}
         </div>
@@ -767,6 +781,7 @@ export default function EmailAssistantClientV2() {
               onSelectEmail={handleSelectEmail}
               onStarEmail={handleStarEmail}
               onRefresh={() => refetchEmails()}
+              t={t}
             />
           </ResizablePanel>
 
@@ -780,11 +795,12 @@ export default function EmailAssistantClientV2() {
                 onDelete={handleDelete}
                 onGenerateReply={handleGenerateReply}
                 isGeneratingReply={generateReplyMutation.isPending}
+                t={t}
               />
             ) : (
               <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
                 <Mail className="h-16 w-16 mb-4" />
-                <p className="text-lg">Select an email to view</p>
+                <p className="text-lg">{t('emailAssistant.selectEmail')}</p>
                 <p className="text-sm">
                   {filteredEmails.length} emails in {selectedFolder === 'all' ? 'inbox' : selectedFolder}
                 </p>

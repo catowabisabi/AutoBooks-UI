@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useRef, useCallback, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -102,42 +103,44 @@ interface UploadProgress {
   messageZh?: string;
 }
 
-// Processing steps
-const processingSteps = [
-  { key: 'upload', en: 'Uploading image', zh: '上傳圖片' },
-  { key: 'analyze', en: 'AI analyzing receipt', zh: 'AI 分析收據' },
-  { key: 'categorize', en: 'Auto-categorizing expense', zh: '自動分類費用' },
-  { key: 'journal', en: 'Generating journal entry', zh: '生成會計分錄' },
-  { key: 'review', en: 'AI reviewing for errors', zh: 'AI 檢查錯誤' },
+// Processing steps - keys for translation
+const processingStepKeys = [
+  { key: 'upload', i18nKey: 'accountingAssistant.steps.uploading' },
+  { key: 'analyze', i18nKey: 'accountingAssistant.steps.analyzing' },
+  { key: 'categorize', i18nKey: 'accountingAssistant.steps.categorizing' },
+  { key: 'journal', i18nKey: 'accountingAssistant.steps.generatingJournal' },
+  { key: 'review', i18nKey: 'accountingAssistant.steps.reviewing' },
 ];
 
-// Expense categories with translations
-const expenseCategories = [
-  { value: 'MEALS', en: 'Meals & Entertainment', zh: '餐飲娛樂' },
-  { value: 'TRANSPORT', en: 'Transportation', zh: '交通運輸' },
-  { value: 'SUPPLIES', en: 'Office Supplies', zh: '辦公用品' },
-  { value: 'UTILITIES', en: 'Utilities', zh: '水電費' },
-  { value: 'RENT', en: 'Rent', zh: '租金' },
-  { value: 'SERVICES', en: 'Professional Services', zh: '專業服務' },
-  { value: 'EQUIPMENT', en: 'Equipment', zh: '設備' },
-  { value: 'TRAVEL', en: 'Travel', zh: '差旅' },
-  { value: 'INSURANCE', en: 'Insurance', zh: '保險' },
-  { value: 'OTHER', en: 'Other', zh: '其他' },
+// Expense categories with translation keys
+const expenseCategoryKeys = [
+  { value: 'MEALS', i18nKey: 'accountingAssistant.categories.meals' },
+  { value: 'TRANSPORT', i18nKey: 'accountingAssistant.categories.transport' },
+  { value: 'SUPPLIES', i18nKey: 'accountingAssistant.categories.supplies' },
+  { value: 'UTILITIES', i18nKey: 'accountingAssistant.categories.utilities' },
+  { value: 'RENT', i18nKey: 'accountingAssistant.categories.rent' },
+  { value: 'SERVICES', i18nKey: 'accountingAssistant.categories.services' },
+  { value: 'EQUIPMENT', i18nKey: 'accountingAssistant.categories.equipment' },
+  { value: 'TRAVEL', i18nKey: 'accountingAssistant.categories.travel' },
+  { value: 'INSURANCE', i18nKey: 'accountingAssistant.categories.insurance' },
+  { value: 'OTHER', i18nKey: 'accountingAssistant.categories.other' },
 ];
 
-// Status badges
-const statusConfig: Record<string, { color: string; en: string; zh: string }> = {
-  PENDING: { color: 'secondary', en: 'Pending', zh: '待處理' },
-  ANALYZING: { color: 'warning', en: 'Analyzing', zh: '分析中' },
-  ANALYZED: { color: 'info', en: 'Analyzed', zh: '已分析' },
-  CATEGORIZED: { color: 'info', en: 'Categorized', zh: '已分類' },
-  JOURNAL_CREATED: { color: 'success', en: 'Journal Created', zh: '已建分錄' },
-  APPROVED: { color: 'success', en: 'Approved', zh: '已核准' },
-  REJECTED: { color: 'destructive', en: 'Rejected', zh: '已拒絕' },
-  ERROR: { color: 'destructive', en: 'Error', zh: '錯誤' },
+// Status badges with translation keys
+const statusConfigKeys: Record<string, { color: string; i18nKey: string }> = {
+  PENDING: { color: 'secondary', i18nKey: 'accountingAssistant.status.pending' },
+  ANALYZING: { color: 'warning', i18nKey: 'accountingAssistant.status.analyzing' },
+  ANALYZED: { color: 'info', i18nKey: 'accountingAssistant.status.analyzed' },
+  CATEGORIZED: { color: 'info', i18nKey: 'accountingAssistant.status.categorized' },
+  JOURNAL_CREATED: { color: 'success', i18nKey: 'accountingAssistant.status.journalCreated' },
+  APPROVED: { color: 'success', i18nKey: 'accountingAssistant.status.approved' },
+  REJECTED: { color: 'destructive', i18nKey: 'accountingAssistant.status.rejected' },
+  ERROR: { color: 'destructive', i18nKey: 'accountingAssistant.status.error' },
 };
 
 export default function AccountingAssistantPage() {
+  const { t } = useTranslation();
+  
   // State
   const [activeTab, setActiveTab] = useState('upload');
   const [isUploading, setIsUploading] = useState(false);
@@ -245,19 +248,18 @@ export default function AccountingAssistantPage() {
     if (!selectedFile) return;
     
     setIsUploading(true);
-    setUploadProgress({ step: 'upload', progress: 10, message: 'Uploading...', messageZh: '上傳中...' });
+    setUploadProgress({ step: 'upload', progress: 10, message: t('accountingAssistant.steps.uploading') });
     
     try {
       // Upload and process
       const result = await uploadReceipt(selectedFile, 'auto', true, true);
       
       // Simulate progress updates
-      for (let i = 0; i < processingSteps.length; i++) {
+      for (let i = 0; i < processingStepKeys.length; i++) {
         setUploadProgress({
-          step: processingSteps[i].key,
-          progress: ((i + 1) / processingSteps.length) * 100,
-          message: processingSteps[i].en,
-          messageZh: processingSteps[i].zh,
+          step: processingStepKeys[i].key,
+          progress: ((i + 1) / processingStepKeys.length) * 100,
+          message: t(processingStepKeys[i].i18nKey),
         });
         await new Promise(resolve => setTimeout(resolve, 500));
       }
@@ -270,8 +272,7 @@ export default function AccountingAssistantPage() {
       setUploadProgress({
         step: 'error',
         progress: 0,
-        message: error.message || 'Upload failed',
-        messageZh: '上傳失敗',
+        message: error.message || t('accountingAssistant.uploadFailed'),
       });
     } finally {
       setIsUploading(false);
@@ -450,16 +451,14 @@ export default function AccountingAssistantPage() {
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">Accounting Assistant / 會計助手</h1>
+            <h1 className="text-3xl font-bold tracking-tight">{t('accountingAssistant.title')}</h1>
             <p className="text-muted-foreground">
-              AI-powered receipt scanning, categorization, and accounting automation
-              <br />
-              AI 驅動的收據掃描、分類和會計自動化
+              {t('accountingAssistant.description')}
             </p>
           </div>
           <Button variant="outline" onClick={() => { loadReceipts(); loadStats(); }}>
             <IconRefresh className="mr-2 h-4 w-4" />
-            Refresh / 重新整理
+            {t('accountingAssistant.refresh')}
           </Button>
         </div>
 
@@ -469,7 +468,7 @@ export default function AccountingAssistantPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Receipts / 總收據數
+                  {t('accountingAssistant.stats.totalReceipts')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -479,7 +478,7 @@ export default function AccountingAssistantPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Total Amount / 總金額
+                  {t('accountingAssistant.stats.totalAmount')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -491,7 +490,7 @@ export default function AccountingAssistantPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Pending Approval / 待審核
+                  {t('accountingAssistant.stats.pendingApproval')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -503,7 +502,7 @@ export default function AccountingAssistantPage() {
             <Card>
               <CardHeader className="pb-2">
                 <CardTitle className="text-sm font-medium text-muted-foreground">
-                  Recent (30 days) / 近30天
+                  {t('accountingAssistant.stats.recent30Days')}
                 </CardTitle>
               </CardHeader>
               <CardContent>
@@ -518,23 +517,23 @@ export default function AccountingAssistantPage() {
           <TabsList className="grid w-full grid-cols-5">
             <TabsTrigger value="upload">
               <IconUpload className="mr-2 h-4 w-4" />
-              Upload / 上傳
+              {t('accountingAssistant.uploadTab')}
             </TabsTrigger>
             <TabsTrigger value="receipts">
               <IconReceipt className="mr-2 h-4 w-4" />
-              Receipts / 收據
+              {t('accountingAssistant.receiptsTab')}
             </TabsTrigger>
             <TabsTrigger value="compare">
               <IconArrowsExchange className="mr-2 h-4 w-4" />
-              Compare / 比對
+              {t('accountingAssistant.compareTab')}
             </TabsTrigger>
             <TabsTrigger value="reports">
               <IconReport className="mr-2 h-4 w-4" />
-              Reports / 報表
+              {t('accountingAssistant.reportsTab')}
             </TabsTrigger>
             <TabsTrigger value="ai-chat">
               <IconRobot className="mr-2 h-4 w-4" />
-              AI Chat / AI 對話
+              {t('accountingAssistant.chatTab')}
             </TabsTrigger>
           </TabsList>
 
@@ -547,14 +546,14 @@ export default function AccountingAssistantPage() {
                 onClick={() => setUploadMode('single')}
               >
                 <IconUpload className="mr-2 h-4 w-4" />
-                Single Upload / 單張上傳
+                {t('accountingAssistant.singleUpload')}
               </Button>
               <Button
                 variant={uploadMode === 'batch' ? 'default' : 'outline'}
                 onClick={() => setUploadMode('batch')}
               >
                 <IconFiles className="mr-2 h-4 w-4" />
-                Batch Upload / 批量上傳
+                {t('accountingAssistant.batchUpload')}
               </Button>
             </div>
 
@@ -565,12 +564,10 @@ export default function AccountingAssistantPage() {
                   <CardHeader>
                     <CardTitle>
                       <IconUpload className="inline mr-2 h-5 w-5" />
-                      Upload Receipt / 上傳收據
+                      {t('accountingAssistant.uploadReceipt')}
                     </CardTitle>
                     <CardDescription>
-                      Upload a receipt image for AI analysis and automatic categorization
-                      <br />
-                      上傳收據圖片進行 AI 分析和自動分類
+                      {t('accountingAssistant.uploadDescription')}
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="space-y-4">
@@ -584,9 +581,7 @@ export default function AccountingAssistantPage() {
                         <div className="space-y-2">
                           <IconUpload className="mx-auto h-12 w-12 text-muted-foreground" />
                           <p className="text-sm text-muted-foreground">
-                            Click to upload or drag and drop
-                            <br />
-                            點擊上傳或拖放
+                            {t('accountingAssistant.clickToUpload')}
                           </p>
                           <p className="text-xs text-muted-foreground">
                             PNG, JPG, HEIC up to 10MB
@@ -606,7 +601,7 @@ export default function AccountingAssistantPage() {
                       <div className="space-y-2">
                         <Progress value={uploadProgress.progress} />
                       <p className="text-sm text-muted-foreground text-center">
-                        {uploadProgress.message} / {uploadProgress.messageZh}
+                        {uploadProgress.message}
                       </p>
                     </div>
                   )}
@@ -619,12 +614,12 @@ export default function AccountingAssistantPage() {
                     {isUploading ? (
                       <>
                         <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Processing... / 處理中...
+                        {t('accountingAssistant.processing')}
                       </>
                     ) : (
                       <>
                         <IconBrain className="mr-2 h-4 w-4" />
-                        Analyze with AI / AI 分析
+                        {t('accountingAssistant.analyzeWithAI')}
                       </>
                     )}
                   </Button>
@@ -636,7 +631,7 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconReceipt className="inline mr-2 h-5 w-5" />
-                    Analysis Result / 分析結果
+                    {t('accountingAssistant.analysisResult')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -647,12 +642,12 @@ export default function AccountingAssistantPage() {
                         {processingResult.status === 'success' ? (
                           <Badge variant="default" className="bg-green-500">
                             <IconCheck className="mr-1 h-3 w-3" />
-                            Success / 成功
+                            {t('accountingAssistant.success')}
                           </Badge>
                         ) : (
                           <Badge variant="destructive">
                             <IconX className="mr-1 h-3 w-3" />
-                            Error / 錯誤
+                            {t('accountingAssistant.error')}
                           </Badge>
                         )}
                       </div>
@@ -662,24 +657,23 @@ export default function AccountingAssistantPage() {
                         <div className="space-y-3">
                           <div className="grid grid-cols-2 gap-2 text-sm">
                             <div>
-                              <Label className="text-muted-foreground">Vendor / 商家</Label>
+                              <Label className="text-muted-foreground">{t('accountingAssistant.merchant')}</Label>
                               <p className="font-medium">{processingResult.receipt.vendor_name || '-'}</p>
                             </div>
                             <div>
-                              <Label className="text-muted-foreground">Date / 日期</Label>
+                              <Label className="text-muted-foreground">{t('accountingAssistant.date')}</Label>
                               <p className="font-medium">{processingResult.receipt.receipt_date || '-'}</p>
                             </div>
                             <div>
-                              <Label className="text-muted-foreground">Amount / 金額</Label>
+                              <Label className="text-muted-foreground">{t('accountingAssistant.amount')}</Label>
                               <p className="font-medium">
                                 {processingResult.receipt.currency} {processingResult.receipt.total_amount?.toLocaleString()}
                               </p>
                             </div>
                             <div>
-                              <Label className="text-muted-foreground">Category / 類別</Label>
+                              <Label className="text-muted-foreground">{t('accountingAssistant.category')}</Label>
                               <p className="font-medium">
-                                {expenseCategories.find(c => c.value === processingResult.receipt?.category)?.zh || 
-                                 processingResult.receipt.category || '-'}
+                                {t(expenseCategoryKeys.find(c => c.value === processingResult.receipt?.category)?.i18nKey || 'accountingAssistant.categories.other')}
                               </p>
                             </div>
                           </div>
@@ -688,7 +682,7 @@ export default function AccountingAssistantPage() {
                           {processingResult.receipt.ai_suggestions && processingResult.receipt.ai_suggestions.length > 0 && (
                             <Alert>
                               <IconBrain className="h-4 w-4" />
-                              <AlertTitle>AI Suggestions / AI 建議</AlertTitle>
+                              <AlertTitle>{t('accountingAssistant.aiSuggestions')}</AlertTitle>
                               <AlertDescription>
                                 <ul className="list-disc list-inside text-sm">
                                   {processingResult.receipt.ai_suggestions.map((suggestion: any, index: number) => (
@@ -702,7 +696,7 @@ export default function AccountingAssistantPage() {
                           {/* Confidence Score */}
                           {processingResult.receipt.ai_confidence_score && (
                             <div>
-                              <Label className="text-muted-foreground">AI Confidence / AI 信心度</Label>
+                              <Label className="text-muted-foreground">{t('accountingAssistant.aiConfidence')}</Label>
                               <Progress value={processingResult.receipt.ai_confidence_score} className="mt-1" />
                               <p className="text-xs text-right text-muted-foreground mt-1">
                                 {processingResult.receipt.ai_confidence_score}%
@@ -715,8 +709,7 @@ export default function AccountingAssistantPage() {
                   ) : (
                     <div className="text-center text-muted-foreground py-8">
                       <IconReceipt className="mx-auto h-12 w-12 mb-2" />
-                      <p>Upload a receipt to see the analysis</p>
-                      <p className="text-sm">上傳收據以查看分析結果</p>
+                      <p>{t('accountingAssistant.uploadToSeeAnalysis')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -728,12 +721,10 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconUpload className="inline mr-2 h-5 w-5" />
-                    Batch Upload / 批量上傳
+                    {t('accountingAssistant.batchUpload')}
                   </CardTitle>
                   <CardDescription>
-                    Upload multiple receipts at once for batch processing
-                    <br />
-                    一次上傳多張收據進行批量處理
+                    {t('accountingAssistant.batchUploadDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
@@ -755,8 +746,7 @@ export default function AccountingAssistantPage() {
                       >
                         <IconFiles className="h-12 w-12 text-muted-foreground" />
                         <div>
-                          <p className="font-medium">Click to select multiple files</p>
-                          <p className="text-sm text-muted-foreground">點擊選擇多個文件 (最多50個)</p>
+                          <p className="font-medium">{t('accountingAssistant.clickToSelectMultiple')}</p>
                         </div>
                         <p className="text-xs text-muted-foreground mt-2">
                           Supports: PNG, JPG, JPEG, GIF, WEBP, PDF
@@ -770,7 +760,7 @@ export default function AccountingAssistantPage() {
                     <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <h4 className="font-medium">
-                          Selected Files / 已選擇文件 ({batchFiles.length})
+                          {t('accountingAssistant.selectedFiles')} ({batchFiles.length})
                         </h4>
                         <Button
                           onClick={handleBatchUpload}
@@ -779,12 +769,12 @@ export default function AccountingAssistantPage() {
                           {isUploading ? (
                             <>
                               <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                              Processing... / 處理中...
+                              {t('accountingAssistant.processing')}
                             </>
                           ) : (
                             <>
                               <IconUpload className="mr-2 h-4 w-4" />
-                              Start Batch Upload / 開始批量上傳
+                              {t('accountingAssistant.startBatchUpload')}
                             </>
                           )}
                         </Button>
@@ -834,7 +824,7 @@ export default function AccountingAssistantPage() {
                   {batchResults && batchResults.results.length > 0 && (
                     <div className="space-y-4">
                       <h4 className="font-medium">
-                        Processing Results / 處理結果
+                        {t('accountingAssistant.processingResults')}
                       </h4>
                       <div className="grid gap-2">
                         {batchResults.results.map((result: { filename: string; status: 'success' | 'error'; receipt_id?: string; error?: string }, index: number) => (
@@ -856,11 +846,11 @@ export default function AccountingAssistantPage() {
                             </div>
                             {result.status === 'success' ? (
                               <Badge variant="outline" className="bg-green-100 dark:bg-green-900">
-                                Success / 成功
+                                {t('accountingAssistant.success')}
                               </Badge>
                             ) : (
                               <Badge variant="destructive">
-                                Failed: {result.error}
+                                {t('accountingAssistant.failed')}: {result.error}
                               </Badge>
                             )}
                           </div>
@@ -870,11 +860,9 @@ export default function AccountingAssistantPage() {
                       {/* Summary */}
                       <Alert>
                         <IconBrain className="h-4 w-4" />
-                        <AlertTitle>Batch Summary / 批量摘要</AlertTitle>
+                        <AlertTitle>{t('accountingAssistant.batchSummary')}</AlertTitle>
                         <AlertDescription>
-                          {batchResults.successful} of {batchResults.total} receipts processed successfully.
-                          <br />
-                          {batchResults.successful} / {batchResults.total} 張收據處理成功。
+                          {t('accountingAssistant.batchSummaryText', { successful: batchResults.successful, total: batchResults.total })}
                         </AlertDescription>
                       </Alert>
                     </div>
@@ -890,12 +878,10 @@ export default function AccountingAssistantPage() {
               <CardHeader>
                 <CardTitle>
                   <IconReceipt className="inline mr-2 h-5 w-5" />
-                  Receipt List / 收據列表
+                  {t('accountingAssistant.receiptList')}
                 </CardTitle>
                 <CardDescription>
-                  View and manage all uploaded receipts
-                  <br />
-                  查看和管理所有上傳的收據
+                  {t('accountingAssistant.receiptListDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -906,19 +892,18 @@ export default function AccountingAssistantPage() {
                 ) : receipts.length === 0 ? (
                   <div className="text-center text-muted-foreground py-8">
                     <IconReceipt className="mx-auto h-12 w-12 mb-2" />
-                    <p>No receipts found</p>
-                    <p className="text-sm">尚無收據記錄</p>
+                    <p>{t('accountingAssistant.noReceipts')}</p>
                   </div>
                 ) : (
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Date / 日期</TableHead>
-                        <TableHead>Vendor / 商家</TableHead>
-                        <TableHead>Category / 類別</TableHead>
-                        <TableHead className="text-right">Amount / 金額</TableHead>
-                        <TableHead>Status / 狀態</TableHead>
-                        <TableHead>Actions / 操作</TableHead>
+                        <TableHead>{t('accountingAssistant.date')}</TableHead>
+                        <TableHead>{t('accountingAssistant.merchant')}</TableHead>
+                        <TableHead>{t('accountingAssistant.category')}</TableHead>
+                        <TableHead className="text-right">{t('accountingAssistant.amount')}</TableHead>
+                        <TableHead>{t('accountingAssistant.statusLabel')}</TableHead>
+                        <TableHead>{t('accountingAssistant.actions')}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -927,14 +912,14 @@ export default function AccountingAssistantPage() {
                           <TableCell>{receipt.receipt_date || '-'}</TableCell>
                           <TableCell>{receipt.vendor_name || '-'}</TableCell>
                           <TableCell>
-                            {expenseCategories.find(c => c.value === receipt.category)?.zh || receipt.category || '-'}
+                            {t(expenseCategoryKeys.find(c => c.value === receipt.category)?.i18nKey || 'accountingAssistant.categories.other')}
                           </TableCell>
                           <TableCell className="text-right font-medium">
                             {receipt.currency} {receipt.total_amount?.toLocaleString()}
                           </TableCell>
                           <TableCell>
-                            <Badge variant={statusConfig[receipt.status]?.color as any || 'secondary'}>
-                              {statusConfig[receipt.status]?.zh || receipt.status}
+                            <Badge variant={statusConfigKeys[receipt.status]?.color as any || 'secondary'}>
+                              {t(statusConfigKeys[receipt.status]?.i18nKey || 'accountingAssistant.status.pending')}
                             </Badge>
                           </TableCell>
                           <TableCell>
@@ -966,12 +951,10 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconFileSpreadsheet className="inline mr-2 h-5 w-5" />
-                    Upload Excel for Comparison / 上傳 Excel 進行比對
+                    {t('accountingAssistant.uploadExcel')}
                   </CardTitle>
                   <CardDescription>
-                    Compare your Excel records with database entries
-                    <br />
-                    將您的 Excel 記錄與資料庫項目進行比對
+                    {t('accountingAssistant.uploadExcelDescription')}
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-4">
@@ -988,9 +971,7 @@ export default function AccountingAssistantPage() {
                       <div className="space-y-2">
                         <IconFileSpreadsheet className="mx-auto h-12 w-12 text-muted-foreground" />
                         <p className="text-sm text-muted-foreground">
-                          Click to upload Excel file
-                          <br />
-                          點擊上傳 Excel 檔案
+                          {t('accountingAssistant.clickToUploadExcel')}
                         </p>
                         <p className="text-xs text-muted-foreground">.xlsx, .xls</p>
                       </div>
@@ -1012,12 +993,12 @@ export default function AccountingAssistantPage() {
                     {isComparing ? (
                       <>
                         <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Comparing... / 比對中...
+                        {t('accountingAssistant.comparing')}
                       </>
                     ) : (
                       <>
                         <IconArrowsExchange className="mr-2 h-4 w-4" />
-                        Start Comparison / 開始比對
+                        {t('accountingAssistant.startComparison')}
                       </>
                     )}
                   </Button>
@@ -1029,7 +1010,7 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconChartBar className="inline mr-2 h-5 w-5" />
-                    Comparison Results / 比對結果
+                    {t('accountingAssistant.comparisonResults')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -1039,20 +1020,20 @@ export default function AccountingAssistantPage() {
                       <div className="grid grid-cols-2 gap-4">
                         <div className="text-center p-4 bg-muted rounded-lg">
                           <p className="text-2xl font-bold text-green-500">{comparisonResult.summary?.matched_count || 0}</p>
-                          <p className="text-sm text-muted-foreground">Matched / 匹配</p>
+                          <p className="text-sm text-muted-foreground">{t('accountingAssistant.matched')}</p>
                         </div>
                         <div className="text-center p-4 bg-muted rounded-lg">
                           <p className="text-2xl font-bold text-red-500">
                             {(comparisonResult.summary?.missing_in_db_count || 0) + (comparisonResult.summary?.missing_in_excel_count || 0)}
                           </p>
-                          <p className="text-sm text-muted-foreground">Differences / 差異</p>
+                          <p className="text-sm text-muted-foreground">{t('accountingAssistant.differences')}</p>
                         </div>
                       </div>
                       
                       {/* Health Score */}
                       {comparisonResult.comparison?.health_score !== undefined && (
                         <div>
-                          <Label className="text-muted-foreground">Data Health Score / 資料健康度</Label>
+                          <Label className="text-muted-foreground">{t('accountingAssistant.dataHealthScore')}</Label>
                           <Progress value={comparisonResult.comparison.health_score} className="mt-1" />
                           <p className="text-xs text-right text-muted-foreground mt-1">
                             {comparisonResult.comparison.health_score}%
@@ -1064,7 +1045,7 @@ export default function AccountingAssistantPage() {
                       {comparisonResult.ai_analysis && (
                         <Alert>
                           <IconBrain className="h-4 w-4" />
-                          <AlertTitle>AI Analysis / AI 分析</AlertTitle>
+                          <AlertTitle>{t('accountingAssistant.aiAnalysis')}</AlertTitle>
                           <AlertDescription className="text-sm whitespace-pre-wrap">
                             {typeof comparisonResult.ai_analysis === 'string' 
                               ? comparisonResult.ai_analysis 
@@ -1076,8 +1057,7 @@ export default function AccountingAssistantPage() {
                   ) : (
                     <div className="text-center text-muted-foreground py-8">
                       <IconArrowsExchange className="mx-auto h-12 w-12 mb-2" />
-                      <p>Upload an Excel file to compare</p>
-                      <p className="text-sm">上傳 Excel 檔案以進行比對</p>
+                      <p>{t('accountingAssistant.uploadExcelToCompare')}</p>
                     </div>
                   )}
                 </CardContent>
@@ -1093,20 +1073,20 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconReport className="inline mr-2 h-5 w-5" />
-                    Create Report / 建立報表
+                    {t('accountingAssistant.createReport')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="space-y-2">
-                    <Label>Report Title / 報表標題</Label>
+                    <Label>{t('accountingAssistant.reportTitle')}</Label>
                     <Input
-                      placeholder="Monthly Expense Report / 月度費用報表"
+                      placeholder={t('accountingAssistant.reportTitlePlaceholder')}
                       value={reportTitle}
                       onChange={(e) => setReportTitle(e.target.value)}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Period Start / 開始日期</Label>
+                    <Label>{t('accountingAssistant.periodStart')}</Label>
                     <Input
                       type="date"
                       value={reportPeriod.start}
@@ -1114,7 +1094,7 @@ export default function AccountingAssistantPage() {
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label>Period End / 結束日期</Label>
+                    <Label>{t('accountingAssistant.periodEnd')}</Label>
                     <Input
                       type="date"
                       value={reportPeriod.end}
@@ -1129,12 +1109,12 @@ export default function AccountingAssistantPage() {
                     {isCreatingReport ? (
                       <>
                         <IconLoader2 className="mr-2 h-4 w-4 animate-spin" />
-                        Creating... / 建立中...
+                        {t('accountingAssistant.creating')}
                       </>
                     ) : (
                       <>
                         <IconFileSpreadsheet className="mr-2 h-4 w-4" />
-                        Generate Report / 生成報表
+                        {t('accountingAssistant.generateReport')}
                       </>
                     )}
                   </Button>
@@ -1146,25 +1126,24 @@ export default function AccountingAssistantPage() {
                 <CardHeader>
                   <CardTitle>
                     <IconFileText className="inline mr-2 h-5 w-5" />
-                    Reports / 報表列表
+                    {t('accountingAssistant.reportsList')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
                   {reports.length === 0 ? (
                     <div className="text-center text-muted-foreground py-8">
                       <IconReport className="mx-auto h-12 w-12 mb-2" />
-                      <p>No reports created yet</p>
-                      <p className="text-sm">尚未建立任何報表</p>
+                      <p>{t('accountingAssistant.noReports')}</p>
                     </div>
                   ) : (
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead>Title / 標題</TableHead>
-                          <TableHead>Period / 期間</TableHead>
-                          <TableHead className="text-right">Amount / 金額</TableHead>
-                          <TableHead>Status / 狀態</TableHead>
-                          <TableHead>Actions / 操作</TableHead>
+                          <TableHead>{t('accountingAssistant.titleLabel')}</TableHead>
+                          <TableHead>{t('accountingAssistant.period')}</TableHead>
+                          <TableHead className="text-right">{t('accountingAssistant.amount')}</TableHead>
+                          <TableHead>{t('accountingAssistant.statusLabel')}</TableHead>
+                          <TableHead>{t('accountingAssistant.actions')}</TableHead>
                         </TableRow>
                       </TableHeader>
                       <TableBody>
@@ -1179,7 +1158,7 @@ export default function AccountingAssistantPage() {
                             </TableCell>
                             <TableCell>
                               <Badge variant={report.status === 'APPROVED' ? 'default' : 'secondary'}>
-                                {report.status === 'APPROVED' ? '已核准' : report.status === 'DRAFT' ? '草稿' : report.status}
+                                {report.status === 'APPROVED' ? t('accountingAssistant.status.approved') : report.status === 'DRAFT' ? t('accountingAssistant.status.draft') : report.status}
                               </Badge>
                             </TableCell>
                             <TableCell>
@@ -1203,12 +1182,10 @@ export default function AccountingAssistantPage() {
               <CardHeader>
                 <CardTitle>
                   <IconRobot className="inline mr-2 h-5 w-5" />
-                  AI Accounting Assistant / AI 會計助手
+                  {t('accountingAssistant.aiAssistant')}
                 </CardTitle>
                 <CardDescription>
-                  Ask questions about accounting, receipts, or get suggestions
-                  <br />
-                  詢問有關會計、收據的問題，或獲取建議
+                  {t('accountingAssistant.aiAssistantDescription')}
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex-1 flex flex-col">
@@ -1218,14 +1195,13 @@ export default function AccountingAssistantPage() {
                     {messages.length === 0 && (
                       <div className="text-center text-muted-foreground py-8">
                         <IconMessageCircle className="mx-auto h-12 w-12 mb-4" />
-                        <p className="mb-2">Start a conversation with the AI assistant</p>
-                        <p className="text-sm mb-4">開始與 AI 助手對話</p>
+                        <p className="mb-2">{t('accountingAssistant.startConversation')}</p>
                         <div className="flex flex-wrap gap-2 justify-center">
                           {[
-                            'How should I categorize office supplies?',
-                            '如何處理營業稅？',
-                            'What is double-entry bookkeeping?',
-                            '差旅費報銷流程是什麼？',
+                            t('accountingAssistant.sampleQuestion1'),
+                            t('accountingAssistant.sampleQuestion2'),
+                            t('accountingAssistant.sampleQuestion3'),
+                            t('accountingAssistant.sampleQuestion4'),
                           ].map((prompt, i) => (
                             <Button
                               key={i}
@@ -1258,7 +1234,7 @@ export default function AccountingAssistantPage() {
                           )}
                           {message.suggestions && message.suggestions.length > 0 && (
                             <div className="mt-3 pt-3 border-t border-border/50">
-                              <p className="text-xs font-medium mb-2">Suggestions / 建議:</p>
+                              <p className="text-xs font-medium mb-2">{t('accountingAssistant.suggestionsLabel')}:</p>
                               <ul className="text-sm space-y-1">
                                 {message.suggestions.map((s, i) => (
                                   <li key={i}>• {s.title}: {s.description}</li>
@@ -1285,7 +1261,7 @@ export default function AccountingAssistantPage() {
                 {/* Input Area */}
                 <div className="flex gap-2 pt-4 border-t">
                   <Input
-                    placeholder="Ask a question about accounting... / 詢問會計相關問題..."
+                    placeholder={t('accountingAssistant.askQuestion')}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
                     onKeyPress={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -1303,39 +1279,39 @@ export default function AccountingAssistantPage() {
         <Dialog open={showReceiptDialog} onOpenChange={setShowReceiptDialog}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Receipt Details / 收據詳情</DialogTitle>
+              <DialogTitle>{t('accountingAssistant.receiptDetails')}</DialogTitle>
             </DialogHeader>
             {selectedReceipt && (
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <Label className="text-muted-foreground">Vendor / 商家</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.merchant')}</Label>
                     <p className="font-medium">{selectedReceipt.vendor_name || '-'}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Date / 日期</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.date')}</Label>
                     <p className="font-medium">{selectedReceipt.receipt_date || '-'}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Receipt No. / 收據號碼</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.receiptNo')}</Label>
                     <p className="font-medium">{selectedReceipt.receipt_number || '-'}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Category / 類別</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.category')}</Label>
                     <p className="font-medium">
-                      {expenseCategories.find(c => c.value === selectedReceipt.category)?.zh || selectedReceipt.category || '-'}
+                      {t(expenseCategoryKeys.find(c => c.value === selectedReceipt.category)?.i18nKey || 'accountingAssistant.categories.other')}
                     </p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Subtotal / 小計</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.subtotal')}</Label>
                     <p className="font-medium">{selectedReceipt.currency} {selectedReceipt.subtotal?.toLocaleString()}</p>
                   </div>
                   <div>
-                    <Label className="text-muted-foreground">Tax / 稅額</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.tax')}</Label>
                     <p className="font-medium">{selectedReceipt.currency} {selectedReceipt.tax_amount?.toLocaleString()}</p>
                   </div>
                   <div className="col-span-2">
-                    <Label className="text-muted-foreground">Total / 總計</Label>
+                    <Label className="text-muted-foreground">{t('accountingAssistant.total')}</Label>
                     <p className="text-xl font-bold">{selectedReceipt.currency} {selectedReceipt.total_amount?.toLocaleString()}</p>
                   </div>
                 </div>
@@ -1343,7 +1319,7 @@ export default function AccountingAssistantPage() {
                 {/* Journal Entry */}
                 {selectedReceipt.journal_entry_data && (
                   <div className="border rounded-lg p-4">
-                    <h4 className="font-medium mb-2">Journal Entry / 會計分錄</h4>
+                    <h4 className="font-medium mb-2">{t('accountingAssistant.journalEntry')}</h4>
                     <pre className="text-xs bg-muted p-2 rounded overflow-auto">
                       {JSON.stringify(selectedReceipt.journal_entry_data, null, 2)}
                     </pre>
@@ -1356,15 +1332,15 @@ export default function AccountingAssistantPage() {
                 <>
                   <Button variant="outline" onClick={() => handleCreateJournal(selectedReceipt.id)}>
                     <IconFileText className="mr-2 h-4 w-4" />
-                    Create Journal / 建立分錄
+                    {t('accountingAssistant.createEntry')}
                   </Button>
                   <Button variant="outline" onClick={() => handleGetAiReview(selectedReceipt.id)}>
                     <IconBrain className="mr-2 h-4 w-4" />
-                    AI Review / AI 審核
+                    {t('accountingAssistant.aiReview')}
                   </Button>
                   <Button onClick={() => handleApproveReceipt(selectedReceipt.id)}>
                     <IconCheck className="mr-2 h-4 w-4" />
-                    Approve / 核准
+                    {t('accountingAssistant.approve')}
                   </Button>
                 </>
               )}

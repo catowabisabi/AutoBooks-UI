@@ -36,6 +36,7 @@ import {
   exportInvoicesToExcel,
   InvoiceData,
 } from '@/lib/export-utils';
+import { useTranslation } from '@/lib/i18n/provider';
 
 // Define the invoice type
 type Invoice = {
@@ -126,6 +127,7 @@ const invoices: Invoice[] = [
 
 export default function InvoiceList() {
   const router = useRouter();
+  const { t } = useTranslation();
   const [data] = useState<Invoice[]>(invoices);
 
   // 轉換為匯出格式
@@ -169,15 +171,15 @@ export default function InvoiceList() {
   const columns: ColumnDef<Invoice>[] = [
     {
       accessorKey: 'invoiceNumber',
-      header: 'Invoice #'
+      header: t('invoices.invoiceNumber')
     },
     {
       accessorKey: 'client',
-      header: 'Client'
+      header: t('invoices.client')
     },
     {
       accessorKey: 'amount',
-      header: 'Amount',
+      header: t('invoices.amount'),
       cell: ({ row }) => {
         const amount = parseFloat(row.getValue('amount'));
         const formatted = new Intl.NumberFormat('en-US', {
@@ -189,7 +191,7 @@ export default function InvoiceList() {
     },
     {
       accessorKey: 'issueDate',
-      header: 'Issue Date',
+      header: t('invoices.issueDate'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('issueDate'));
         return <div>{date.toLocaleDateString()}</div>;
@@ -197,7 +199,7 @@ export default function InvoiceList() {
     },
     {
       accessorKey: 'dueDate',
-      header: 'Due Date',
+      header: t('invoices.dueDate'),
       cell: ({ row }) => {
         const date = new Date(row.getValue('dueDate'));
         return <div>{date.toLocaleDateString()}</div>;
@@ -205,7 +207,7 @@ export default function InvoiceList() {
     },
     {
       accessorKey: 'status',
-      header: 'Status',
+      header: t('invoices.status'),
       cell: ({ row }) => {
         const status = row.getValue('status') as string;
         return (
@@ -242,7 +244,7 @@ export default function InvoiceList() {
                 }
               >
                 <IconEye className='mr-2 h-4 w-4' />
-                View Details / 檢視詳情
+                {t('invoices.viewDetails')}
               </DropdownMenuItem>
               <DropdownMenuItem
                 onClick={() =>
@@ -250,12 +252,12 @@ export default function InvoiceList() {
                 }
               >
                 <IconEdit className='mr-2 h-4 w-4' />
-                Edit / 編輯
+                {t('invoices.edit')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={() => handleDownloadPDF(invoice)}>
                 <IconFileTypePdf className='mr-2 h-4 w-4 text-red-500' />
-                Download PDF / 下載 PDF
+                {t('invoices.downloadPdf')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={() => {
                 const exportData = convertToExportFormat(invoice);
@@ -263,12 +265,12 @@ export default function InvoiceList() {
                 toast.success('發票已匯出為 Excel');
               }}>
                 <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
-                Export Excel / 匯出 Excel
+                {t('invoices.exportExcel')}
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem className='text-destructive'>
                 <IconTrash className='mr-2 h-4 w-4' />
-                Delete / 刪除
+                {t('invoices.delete')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -289,8 +291,8 @@ export default function InvoiceList() {
     <div className='space-y-4'>
       <div className='flex items-start justify-between'>
         <Heading
-          title='Invoice Management / 發票管理'
-          description='Create and manage invoices, track payments, and export to PDF/Excel. / 建立和管理發票、追蹤付款、匯出 PDF/Excel。'
+          title={t('invoices.title')}
+          description={t('invoices.description')}
         />
         <div className='flex items-center gap-2'>
           {/* 匯出按鈕 */}
@@ -298,17 +300,17 @@ export default function InvoiceList() {
             <DropdownMenuTrigger asChild>
               <Button variant='outline'>
                 <IconDownload className='mr-2 h-4 w-4' />
-                Export / 匯出
+                {t('invoices.export')}
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align='end'>
               <DropdownMenuItem onClick={handleExportAllToExcel}>
                 <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
-                Export All to Excel / 全部匯出 Excel
+                {t('invoices.exportAll')}
               </DropdownMenuItem>
               <DropdownMenuItem onClick={handleExportSelectedToExcel}>
                 <IconFileSpreadsheet className='mr-2 h-4 w-4 text-green-600' />
-                Export Selected to Excel / 匯出選取項目
+                {t('invoices.exportSelected')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -317,7 +319,7 @@ export default function InvoiceList() {
             href='/dashboard/finance/invoices/new'
             className={cn(buttonVariants(), 'text-xs md:text-sm')}
           >
-            <IconPlus className='mr-2 h-4 w-4' /> Create Invoice / 新增發票
+            <IconPlus className='mr-2 h-4 w-4' /> {t('invoices.createInvoice')}
           </Link>
         </div>
       </div>

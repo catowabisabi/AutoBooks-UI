@@ -66,6 +66,7 @@ import {
   type CreateTaskData,
 } from '@/features/ai-assistants';
 import { useToast } from '@/hooks/use-toast';
+import { useTranslation } from '@/lib/i18n/provider';
 
 interface ChatMessage {
   id: string;
@@ -74,25 +75,53 @@ interface ChatMessage {
   timestamp: string;
 }
 
-// Task status configuration
-const TASK_STATUS_CONFIG = {
-  TODO: { label: 'To Do', icon: Circle, color: 'text-gray-400', bg: 'bg-gray-100' },
-  IN_PROGRESS: { label: 'In Progress', icon: Play, color: 'text-blue-500', bg: 'bg-blue-100 text-blue-800' },
-  BLOCKED: { label: 'Blocked', icon: Pause, color: 'text-yellow-500', bg: 'bg-yellow-100 text-yellow-800' },
-  DONE: { label: 'Done', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-100 text-green-800' },
-  CANCELLED: { label: 'Cancelled', icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-100 text-red-800' },
+// Task status configuration (icons and colors only - labels are translated)
+const TASK_STATUS_CONFIG_BASE = {
+  TODO: { icon: Circle, color: 'text-gray-400', bg: 'bg-gray-100' },
+  IN_PROGRESS: { icon: Play, color: 'text-blue-500', bg: 'bg-blue-100 text-blue-800' },
+  BLOCKED: { icon: Pause, color: 'text-yellow-500', bg: 'bg-yellow-100 text-yellow-800' },
+  DONE: { icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-100 text-green-800' },
+  CANCELLED: { icon: AlertCircle, color: 'text-red-500', bg: 'bg-red-100 text-red-800' },
 };
 
-const TASK_PRIORITY_CONFIG = {
-  LOW: { label: 'Low', color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
-  MEDIUM: { label: 'Medium', color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
-  HIGH: { label: 'High', color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
-  CRITICAL: { label: 'Critical', color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
+const getTaskStatusConfig = (t: (key: string) => string) => ({
+  TODO: { ...TASK_STATUS_CONFIG_BASE.TODO, label: t('plannerAssistant.status.todo') },
+  IN_PROGRESS: { ...TASK_STATUS_CONFIG_BASE.IN_PROGRESS, label: t('plannerAssistant.status.inProgress') },
+  BLOCKED: { ...TASK_STATUS_CONFIG_BASE.BLOCKED, label: t('plannerAssistant.status.blocked') },
+  DONE: { ...TASK_STATUS_CONFIG_BASE.DONE, label: t('plannerAssistant.status.done') },
+  CANCELLED: { ...TASK_STATUS_CONFIG_BASE.CANCELLED, label: t('plannerAssistant.status.cancelled') },
+});
+
+const TASK_PRIORITY_CONFIG_BASE = {
+  LOW: { color: 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200' },
+  MEDIUM: { color: 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200' },
+  HIGH: { color: 'bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-200' },
+  CRITICAL: { color: 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200' },
 };
 
-const TASK_CATEGORIES = [
+const getTaskPriorityConfig = (t: (key: string) => string) => ({
+  LOW: { ...TASK_PRIORITY_CONFIG_BASE.LOW, label: t('plannerAssistant.priorities.low') },
+  MEDIUM: { ...TASK_PRIORITY_CONFIG_BASE.MEDIUM, label: t('plannerAssistant.priorities.medium') },
+  HIGH: { ...TASK_PRIORITY_CONFIG_BASE.HIGH, label: t('plannerAssistant.priorities.high') },
+  CRITICAL: { ...TASK_PRIORITY_CONFIG_BASE.CRITICAL, label: t('plannerAssistant.priorities.critical') },
+});
+
+const TASK_CATEGORY_KEYS = [
   'AUDIT', 'TAX', 'IPO', 'FINANCIAL_PR', 'COMPLIANCE', 'MEETING', 'REPORT', 'CLIENT', 'INTERNAL', 'OTHER'
-];
+] as const;
+
+const getTaskCategories = (t: (key: string) => string) => ({
+  AUDIT: t('plannerAssistant.categories.audit'),
+  TAX: t('plannerAssistant.categories.tax'),
+  IPO: t('plannerAssistant.categories.ipo'),
+  FINANCIAL_PR: t('plannerAssistant.categories.financialPr'),
+  COMPLIANCE: t('plannerAssistant.categories.compliance'),
+  MEETING: t('plannerAssistant.categories.meeting'),
+  REPORT: t('plannerAssistant.categories.report'),
+  CLIENT: t('plannerAssistant.categories.client'),
+  INTERNAL: t('plannerAssistant.categories.internal'),
+  OTHER: t('plannerAssistant.categories.other'),
+});
 
 // Task List Item Component
 function TaskListItem({
@@ -100,15 +129,19 @@ function TaskListItem({
   onToggleStatus,
   onDelete,
   onEdit,
+  statusConfig: TASK_STATUS_CONFIG,
+  priorityConfig: TASK_PRIORITY_CONFIG,
 }: {
   task: PlannerTask;
   onToggleStatus: () => void;
   onDelete: () => void;
   onEdit: () => void;
+  statusConfig: ReturnType<typeof getTaskStatusConfig>;
+  priorityConfig: ReturnType<typeof getTaskPriorityConfig>;
 }) {
-  const statusConfig = TASK_STATUS_CONFIG[task.status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.TODO;
-  const priorityConfig = TASK_PRIORITY_CONFIG[task.priority as keyof typeof TASK_PRIORITY_CONFIG] || TASK_PRIORITY_CONFIG.MEDIUM;
-  const StatusIcon = statusConfig.icon;
+  const statusCfg = TASK_STATUS_CONFIG[task.status as keyof typeof TASK_STATUS_CONFIG] || TASK_STATUS_CONFIG.TODO;
+  const priorityCfg = TASK_PRIORITY_CONFIG[task.priority as keyof typeof TASK_PRIORITY_CONFIG] || TASK_PRIORITY_CONFIG.MEDIUM;
+  const StatusIcon = statusCfg.icon;
 
   const isOverdue = task.due_date && new Date(task.due_date) < new Date() && task.status !== 'DONE';
 
@@ -120,7 +153,7 @@ function TaskListItem({
     )}>
       <div className="flex items-start gap-3">
         <button onClick={onToggleStatus} className="mt-1">
-          <StatusIcon className={cn("h-5 w-5", statusConfig.color)} />
+          <StatusIcon className={cn("h-5 w-5", statusCfg.color)} />
         </button>
         
         <div className="flex-1 min-w-0">
@@ -131,8 +164,8 @@ function TaskListItem({
             )}>
               {task.title}
             </span>
-            <Badge className={priorityConfig.color} variant="secondary">
-              {priorityConfig.label}
+            <Badge className={priorityCfg.color} variant="secondary">
+              {priorityCfg.label}
             </Badge>
             {task.ai_generated && (
               <Badge variant="secondary" className="text-xs gap-1">
@@ -186,11 +219,15 @@ function CreateTaskDialog({
   onOpenChange,
   onSubmit,
   isSubmitting,
+  t,
+  priorityConfig: TASK_PRIORITY_CONFIG,
 }: {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onSubmit: (task: CreateTaskData) => void;
   isSubmitting: boolean;
+  t: (key: string) => string;
+  priorityConfig: ReturnType<typeof getTaskPriorityConfig>;
 }) {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -217,28 +254,28 @@ function CreateTaskDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Create New Task</DialogTitle>
+          <DialogTitle>{t('plannerAssistant.createTask')}</DialogTitle>
           <DialogDescription>
-            Add a new task to your planner. Set priorities and due dates.
+            {t('plannerAssistant.createTaskDescription')}
           </DialogDescription>
         </DialogHeader>
         
         <div className="grid gap-4 py-4">
           <div className="grid gap-2">
-            <Label htmlFor="title">Task Title</Label>
+            <Label htmlFor="title">{t('plannerAssistant.taskTitle')}</Label>
             <Input
               id="title"
-              placeholder="Enter task title..."
+              placeholder={t('plannerAssistant.enterTaskTitle')}
               value={title}
               onChange={(e) => setTitle(e.target.value)}
             />
           </div>
           
           <div className="grid gap-2">
-            <Label htmlFor="description">Description</Label>
+            <Label htmlFor="description">{t('plannerAssistant.taskDescription')}</Label>
             <Textarea
               id="description"
-              placeholder="Task description..."
+              placeholder={t('plannerAssistant.taskDescriptionPlaceholder')}
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={3}
@@ -247,7 +284,7 @@ function CreateTaskDialog({
           
           <div className="grid gap-4">
             <div className="grid gap-2">
-              <Label htmlFor="priority">Priority</Label>
+              <Label htmlFor="priority">{t('plannerAssistant.priority')}</Label>
               <Select value={priority} onValueChange={(v) => setPriority(v as TaskPriority)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -261,7 +298,7 @@ function CreateTaskDialog({
             </div>
             
             <div className="grid gap-2">
-              <Label htmlFor="due_date">Due Date</Label>
+              <Label htmlFor="due_date">{t('plannerAssistant.dueDate')}</Label>
               <Input
                 id="due_date"
                 type="date"
@@ -274,11 +311,11 @@ function CreateTaskDialog({
         
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
-            Cancel
+            {t('common.cancel')}
           </Button>
           <Button onClick={handleSubmit} disabled={isSubmitting || !title.trim()}>
             {isSubmitting ? <Loader2 className="h-4 w-4 animate-spin mr-2" /> : null}
-            Create Task
+            {t('plannerAssistant.createTask')}
           </Button>
         </DialogFooter>
       </DialogContent>
@@ -340,10 +377,16 @@ function EventsSidebar({ events, isLoading }: { events: ScheduleEvent[]; isLoadi
 
 // Main Planner Assistant Page
 export default function PlannerAssistantPageV2() {
+  const { t } = useTranslation();
   const [createDialogOpen, setCreateDialogOpen] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('ALL');
   const [filterPriority, setFilterPriority] = useState<string>('ALL');
   const [sortBy, setSortBy] = useState<'due_date' | 'priority' | 'ai_score'>('due_date');
+  
+  // Translated configs
+  const TASK_STATUS_CONFIG = useMemo(() => getTaskStatusConfig(t), [t]);
+  const TASK_PRIORITY_CONFIG = useMemo(() => getTaskPriorityConfig(t), [t]);
+  const TASK_CATEGORIES = useMemo(() => getTaskCategories(t), [t]);
   
   // Chat state
   const [messages, setMessages] = useState<ChatMessage[]>([
@@ -519,22 +562,22 @@ export default function PlannerAssistantPageV2() {
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Planner Assistant</h1>
-          <p className="text-muted-foreground">Organize your work and manage deadlines efficiently</p>
+          <h1 className="text-2xl font-bold">{t('plannerAssistant.title')}</h1>
+          <p className="text-muted-foreground">{t('plannerAssistant.description')}</p>
         </div>
         <div className="flex gap-2">
           <Badge variant="outline" className="gap-1">
             <Target className="h-3 w-3" />
-            {stats.total - stats.completed} Active
+            {stats.total - stats.completed} {t('plannerAssistant.active')}
           </Badge>
           <Badge variant="outline" className="gap-1">
             <AlertCircle className="h-3 w-3" />
-            {stats.urgent} Urgent
+            {stats.urgent} {t('plannerAssistant.urgent')}
           </Badge>
           {stats.overdue > 0 && (
             <Badge variant="destructive" className="gap-1">
               <Clock className="h-3 w-3" />
-              {stats.overdue} Overdue
+              {stats.overdue} {t('plannerAssistant.overdue')}
             </Badge>
           )}
         </div>
@@ -548,7 +591,7 @@ export default function PlannerAssistantPageV2() {
               <ListTodo className="h-5 w-5 text-blue-500" />
               <div>
                 <p className="text-2xl font-bold">{stats.total}</p>
-                <p className="text-xs text-muted-foreground">Total Tasks</p>
+                <p className="text-xs text-muted-foreground">{t('plannerAssistant.totalTasks')}</p>
               </div>
             </div>
           </CardContent>
@@ -559,7 +602,7 @@ export default function PlannerAssistantPageV2() {
               <Play className="h-5 w-5 text-yellow-500" />
               <div>
                 <p className="text-2xl font-bold">{stats.inProgress}</p>
-                <p className="text-xs text-muted-foreground">In Progress</p>
+                <p className="text-xs text-muted-foreground">{t('plannerAssistant.status.inProgress')}</p>
               </div>
             </div>
           </CardContent>
@@ -570,7 +613,7 @@ export default function PlannerAssistantPageV2() {
               <CheckCircle2 className="h-5 w-5 text-green-500" />
               <div>
                 <p className="text-2xl font-bold">{stats.completed}</p>
-                <p className="text-xs text-muted-foreground">Completed</p>
+                <p className="text-xs text-muted-foreground">{t('plannerAssistant.completed')}</p>
               </div>
             </div>
           </CardContent>
@@ -583,7 +626,7 @@ export default function PlannerAssistantPageV2() {
                 <p className="text-2xl font-bold">
                   {Math.round((stats.completed / (stats.total || 1)) * 100)}%
                 </p>
-                <p className="text-xs text-muted-foreground">Completion</p>
+                <p className="text-xs text-muted-foreground">{t('plannerAssistant.completion')}</p>
               </div>
             </div>
           </CardContent>
@@ -598,9 +641,9 @@ export default function PlannerAssistantPageV2() {
               <div>
                 <CardTitle className="flex items-center gap-2">
                   <Calendar className="h-5 w-5" />
-                  Tasks
+                  {t('plannerAssistant.tasks')}
                 </CardTitle>
-                <CardDescription>Your upcoming tasks and deadlines</CardDescription>
+                <CardDescription>{t('plannerAssistant.tasksDescription')}</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -614,14 +657,14 @@ export default function PlannerAssistantPageV2() {
                   ) : (
                     <Sparkles className="h-4 w-4 mr-1 text-purple-500" />
                   )}
-                  AI Prioritize
+                  {t('plannerAssistant.aiPrioritize')}
                 </Button>
                 <Button variant="outline" size="icon" onClick={() => refetchTasks()}>
                   <RefreshCw className="h-4 w-4" />
                 </Button>
                 <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
                   <Plus className="h-4 w-4 mr-1" />
-                  Add Task
+                  {t('plannerAssistant.addTask')}
                 </Button>
               </div>
             </div>
@@ -631,10 +674,10 @@ export default function PlannerAssistantPageV2() {
               <Select value={filterStatus} onValueChange={setFilterStatus}>
                 <SelectTrigger className="w-[140px] h-8">
                   <Filter className="h-3 w-3 mr-1" />
-                  <SelectValue placeholder="Status" />
+                  <SelectValue placeholder={t('plannerAssistant.status.label')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Status</SelectItem>
+                  <SelectItem value="ALL">{t('plannerAssistant.allStatus')}</SelectItem>
                   {Object.entries(TASK_STATUS_CONFIG).map(([key, config]) => (
                     <SelectItem key={key} value={key}>{config.label}</SelectItem>
                   ))}
@@ -643,10 +686,10 @@ export default function PlannerAssistantPageV2() {
               
               <Select value={filterPriority} onValueChange={setFilterPriority}>
                 <SelectTrigger className="w-[140px] h-8">
-                  <SelectValue placeholder="Priority" />
+                  <SelectValue placeholder={t('plannerAssistant.priority')} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="ALL">All Priority</SelectItem>
+                  <SelectItem value="ALL">{t('plannerAssistant.allPriority')}</SelectItem>
                   {Object.entries(TASK_PRIORITY_CONFIG).map(([key, config]) => (
                     <SelectItem key={key} value={key}>{config.label}</SelectItem>
                   ))}
@@ -659,9 +702,9 @@ export default function PlannerAssistantPageV2() {
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="due_date">Due Date</SelectItem>
-                  <SelectItem value="priority">Priority</SelectItem>
-                  <SelectItem value="ai_score">AI Score</SelectItem>
+                  <SelectItem value="due_date">{t('plannerAssistant.dueDate')}</SelectItem>
+                  <SelectItem value="priority">{t('plannerAssistant.priority')}</SelectItem>
+                  <SelectItem value="ai_score">{t('plannerAssistant.aiScore')}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -680,7 +723,7 @@ export default function PlannerAssistantPageV2() {
                   {filteredTasks.length === 0 ? (
                     <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
                       <ListTodo className="h-12 w-12 mb-2" />
-                      <p>No tasks found</p>
+                      <p>{t('plannerAssistant.noTasks')}</p>
                       <Button 
                         variant="outline" 
                         size="sm" 
@@ -688,7 +731,7 @@ export default function PlannerAssistantPageV2() {
                         onClick={() => setCreateDialogOpen(true)}
                       >
                         <Plus className="h-4 w-4 mr-1" />
-                        Create Task
+                        {t('plannerAssistant.createTask')}
                       </Button>
                     </div>
                   ) : (
@@ -699,6 +742,8 @@ export default function PlannerAssistantPageV2() {
                         onToggleStatus={() => handleToggleStatus(task)}
                         onDelete={() => handleDeleteTask(task.id)}
                         onEdit={() => {/* TODO: Edit dialog */}}
+                        statusConfig={TASK_STATUS_CONFIG}
+                        priorityConfig={TASK_PRIORITY_CONFIG}
                       />
                     ))
                   )}
@@ -715,7 +760,7 @@ export default function PlannerAssistantPageV2() {
             <CardHeader className="pb-3">
               <CardTitle className="text-sm flex items-center gap-2">
                 <CalendarDays className="h-4 w-4" />
-                Upcoming Events
+                {t('plannerAssistant.upcomingEvents')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -728,7 +773,7 @@ export default function PlannerAssistantPageV2() {
             <CardHeader className="pb-2">
               <CardTitle className="text-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-purple-500" />
-                AI Assistant
+                {t('plannerAssistant.aiChat')}
               </CardTitle>
             </CardHeader>
             <CardContent className="flex-1 flex flex-col overflow-hidden p-3">
@@ -759,7 +804,7 @@ export default function PlannerAssistantPageV2() {
               
               <div className="flex gap-2 mt-3 pt-3 border-t">
                 <Input
-                  placeholder="Ask for help..."
+                  placeholder={t('plannerAssistant.askForHelp')}
                   value={newMessage}
                   onChange={(e) => setNewMessage(e.target.value)}
                   onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
@@ -785,6 +830,8 @@ export default function PlannerAssistantPageV2() {
         onOpenChange={setCreateDialogOpen}
         onSubmit={handleCreateTask}
         isSubmitting={createTaskMutation.isPending}
+        t={t}
+        priorityConfig={TASK_PRIORITY_CONFIG}
       />
     </div>
   );

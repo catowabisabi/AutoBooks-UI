@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -58,25 +59,39 @@ import {
 } from '@tabler/icons-react';
 import { getAccounts, getChartOfAccounts, createAccount, updateAccount, Account } from '../services';
 
-// Account type configurations
-const accountTypes = [
-  { value: 'ASSET', label: 'Asset / 資產', icon: IconWallet, color: 'bg-blue-500' },
-  { value: 'LIABILITY', label: 'Liability / 負債', icon: IconCreditCard, color: 'bg-red-500' },
-  { value: 'EQUITY', label: 'Equity / 權益', icon: IconBuildingBank, color: 'bg-purple-500' },
-  { value: 'REVENUE', label: 'Revenue / 收入', icon: IconReportMoney, color: 'bg-green-500' },
-  { value: 'EXPENSE', label: 'Expense / 費用', icon: IconReceipt, color: 'bg-orange-500' },
+// Account type icon and color configurations (labels added in component with i18n)
+const accountTypeConfigs = [
+  { value: 'ASSET', icon: IconWallet, color: 'bg-blue-500' },
+  { value: 'LIABILITY', icon: IconCreditCard, color: 'bg-red-500' },
+  { value: 'EQUITY', icon: IconBuildingBank, color: 'bg-purple-500' },
+  { value: 'REVENUE', icon: IconReportMoney, color: 'bg-green-500' },
+  { value: 'EXPENSE', icon: IconReceipt, color: 'bg-orange-500' },
 ];
+
+// Helper to get account type label key
+const getAccountTypeLabelKey = (value: string): string => {
+  const keyMap: Record<string, string> = {
+    'ASSET': 'chartOfAccounts.types.asset',
+    'LIABILITY': 'chartOfAccounts.types.liability',
+    'EQUITY': 'chartOfAccounts.types.equity',
+    'REVENUE': 'chartOfAccounts.types.revenue',
+    'EXPENSE': 'chartOfAccounts.types.expense',
+  };
+  return keyMap[value] || value;
+};
 
 interface AccountTreeItemProps {
   account: Account;
   level: number;
   onEdit: (account: Account) => void;
+  accountTypes: Array<{ value: string; label: string; icon: any; color: string }>;
+  t: (key: string) => string;
 }
 
-function AccountTreeItem({ account, level, onEdit }: AccountTreeItemProps) {
+function AccountTreeItem({ account, level, onEdit, accountTypes, t }: AccountTreeItemProps) {
   const [isOpen, setIsOpen] = useState(level < 2);
   const hasChildren = account.children && account.children.length > 0;
-  const typeConfig = accountTypes.find(t => t.value === account.account_type);
+  const typeConfig = accountTypes.find(type => type.value === account.account_type);
   const Icon = typeConfig?.icon || IconWallet;
 
   return (
@@ -125,6 +140,8 @@ function AccountTreeItem({ account, level, onEdit }: AccountTreeItemProps) {
               account={child}
               level={level + 1}
               onEdit={onEdit}
+              accountTypes={accountTypes}
+              t={t}
             />
           ))}
         </div>
@@ -134,6 +151,14 @@ function AccountTreeItem({ account, level, onEdit }: AccountTreeItemProps) {
 }
 
 export default function AccountsPage() {
+  const { t } = useTranslation();
+  
+  // Account types with i18n labels
+  const accountTypes = accountTypeConfigs.map(config => ({
+    ...config,
+    label: t(getAccountTypeLabelKey(config.value)),
+  }));
+  
   const [accounts, setAccounts] = useState<Account[]>([]);
   const [chartOfAccounts, setChartOfAccounts] = useState<Account[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -262,22 +287,20 @@ export default function AccountsPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight">
-              Chart of Accounts / 會計科目表
+              {t('chartOfAccounts.title')}
             </h1>
             <p className="text-muted-foreground">
-              Manage your chart of accounts and account hierarchy
-              <br />
-              管理您的會計科目表和科目層級
+              {t('chartOfAccounts.description')}
             </p>
           </div>
           <div className="flex gap-2">
             <Button variant="outline" onClick={loadData}>
               <IconRefresh className="mr-2 h-4 w-4" />
-              Refresh / 重新整理
+              {t('common.refresh')}
             </Button>
             <Button onClick={() => setShowCreateDialog(true)}>
               <IconPlus className="mr-2 h-4 w-4" />
-              Add Account / 新增科目
+              {t('chartOfAccounts.addAccount')}
             </Button>
           </div>
         </div>
@@ -310,7 +333,7 @@ export default function AccountsPage() {
           <div className="relative flex-1 max-w-md">
             <IconSearch className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search accounts... / 搜尋科目..."
+              placeholder={t('common.search')}
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-9"
@@ -319,10 +342,10 @@ export default function AccountsPage() {
           <Select value={filterType} onValueChange={setFilterType}>
             <SelectTrigger className="w-[200px]">
               <IconFilter className="mr-2 h-4 w-4" />
-              <SelectValue placeholder="Filter by type" />
+              <SelectValue placeholder={t('chartOfAccounts.filterByType')} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="all">All Types / 所有類型</SelectItem>
+              <SelectItem value="all">{t('chartOfAccounts.allTypes')}</SelectItem>
               {accountTypes.map((type) => (
                 <SelectItem key={type.value} value={type.value}>
                   {type.label}
@@ -336,14 +359,14 @@ export default function AccountsPage() {
               size="sm"
               onClick={() => setViewMode('tree')}
             >
-              Tree / 樹狀
+              {t('chartOfAccounts.treeView')}
             </Button>
             <Button
               variant={viewMode === 'list' ? 'secondary' : 'ghost'}
               size="sm"
               onClick={() => setViewMode('list')}
             >
-              List / 列表
+              {t('chartOfAccounts.listView')}
             </Button>
           </div>
         </div>
@@ -352,7 +375,7 @@ export default function AccountsPage() {
         <Card>
           <CardHeader>
             <CardTitle>
-              {filterType === 'all' ? 'All Accounts / 所有科目' : accountTypes.find(t => t.value === filterType)?.label}
+              {filterType === 'all' ? t('chartOfAccounts.allAccounts') : accountTypes.find(type => type.value === filterType)?.label}
             </CardTitle>
           </CardHeader>
           <CardContent className="p-0">
@@ -368,6 +391,8 @@ export default function AccountsPage() {
                     account={account}
                     level={0}
                     onEdit={handleEdit}
+                    accountTypes={accountTypes}
+                    t={t}
                   />
                 ))}
               </div>
@@ -375,12 +400,12 @@ export default function AccountsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Code / 代碼</TableHead>
-                    <TableHead>Name / 名稱</TableHead>
-                    <TableHead>Type / 類型</TableHead>
-                    <TableHead className="text-right">Balance / 餘額</TableHead>
-                    <TableHead>Status / 狀態</TableHead>
-                    <TableHead>Actions / 操作</TableHead>
+                    <TableHead>{t('chartOfAccounts.accountCode')}</TableHead>
+                    <TableHead>{t('chartOfAccounts.accountName')}</TableHead>
+                    <TableHead>{t('chartOfAccounts.accountType')}</TableHead>
+                    <TableHead className="text-right">{t('chartOfAccounts.currentBalance')}</TableHead>
+                    <TableHead>{t('common.status')}</TableHead>
+                    <TableHead>{t('common.actions')}</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -404,7 +429,7 @@ export default function AccountsPage() {
                       </TableCell>
                       <TableCell>
                         <Badge variant={account.is_active ? 'default' : 'secondary'}>
-                          {account.is_active ? 'Active / 啟用' : 'Inactive / 停用'}
+                          {account.is_active ? t('common.active') : t('common.inactive')}
                         </Badge>
                       </TableCell>
                       <TableCell>
@@ -424,14 +449,14 @@ export default function AccountsPage() {
         <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Create Account / 新增科目</DialogTitle>
+              <DialogTitle>{t('chartOfAccounts.addAccount')}</DialogTitle>
               <DialogDescription>
-                Add a new account to your chart of accounts
+                {t('chartOfAccounts.addAccountDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Code / 代碼</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountCode')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.code}
@@ -440,7 +465,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Name / 名稱</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountName')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.name}
@@ -449,7 +474,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">中文名稱</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountNameZh')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.name_zh}
@@ -458,7 +483,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Type / 類型</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountType')}</Label>
                 <Select
                   value={formData.account_type}
                   onValueChange={(v) => setFormData({ ...formData, account_type: v })}
@@ -476,22 +501,22 @@ export default function AccountsPage() {
                 </Select>
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Description</Label>
+                <Label className="text-right">{t('common.description')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.description}
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                  placeholder="Optional description"
+                  placeholder={t('chartOfAccounts.optionalDescription')}
                 />
               </div>
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowCreateDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleCreate} disabled={isSubmitting || !formData.code || !formData.name}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Create / 建立
+                {t('common.create')}
               </Button>
             </DialogFooter>
           </DialogContent>
@@ -501,14 +526,14 @@ export default function AccountsPage() {
         <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Edit Account / 編輯科目</DialogTitle>
+              <DialogTitle>{t('chartOfAccounts.editAccount')}</DialogTitle>
               <DialogDescription>
-                Update account information
+                {t('chartOfAccounts.editAccountDescription')}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Code / 代碼</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountCode')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.code}
@@ -516,7 +541,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Name / 名稱</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountName')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.name}
@@ -524,7 +549,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">中文名稱</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountNameZh')}</Label>
                 <Input
                   className="col-span-3"
                   value={formData.name_zh}
@@ -532,7 +557,7 @@ export default function AccountsPage() {
                 />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label className="text-right">Type / 類型</Label>
+                <Label className="text-right">{t('chartOfAccounts.accountType')}</Label>
                 <Select
                   value={formData.account_type}
                   onValueChange={(v) => setFormData({ ...formData, account_type: v })}
@@ -552,11 +577,11 @@ export default function AccountsPage() {
             </div>
             <DialogFooter>
               <Button variant="outline" onClick={() => { setShowEditDialog(false); resetForm(); }}>
-                Cancel / 取消
+                {t('common.cancel')}
               </Button>
               <Button onClick={handleUpdate} disabled={isSubmitting}>
                 {isSubmitting ? <IconLoader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Update / 更新
+                {t('common.update')}
               </Button>
             </DialogFooter>
           </DialogContent>
