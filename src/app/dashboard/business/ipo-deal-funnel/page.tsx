@@ -137,7 +137,10 @@ export default function IPODealFunnelPage() {
       setIsLoading(true);
       try {
         const result = await ipoDealFunnelApi.list();
-        setData(result.results || result);
+        console.log('IPO Deal Funnel API result:', result);
+        // Handle both array and paginated response
+        const items = Array.isArray(result) ? result : (result.results || []);
+        setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO deal funnel:', error);
         toast.error('無法載入交易漏斗資料，使用模擬數據');

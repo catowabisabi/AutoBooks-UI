@@ -114,7 +114,10 @@ export default function IPOTimelineProgressPage() {
       setIsLoading(true);
       try {
         const result = await ipoTimelineProgressApi.list();
-        setData(result.results || result);
+        console.log('IPO Timeline Progress API result:', result);
+        // Handle both array and paginated response
+        const items = Array.isArray(result) ? result : (result.results || []);
+        setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO timeline progress:', error);
         toast.error('無法載入IPO進度資料，使用模擬數據');

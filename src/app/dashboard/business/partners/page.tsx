@@ -171,7 +171,10 @@ export default function BusinessPartnersPage() {
       setIsLoading(true);
       try {
         const result = await businessPartnersApi.list();
-        setData(result.results || result);
+        console.log('Business Partners API result:', result);
+        // Handle both array and paginated response
+        const items = Array.isArray(result) ? result : (result.results || []);
+        setData(items);
       } catch (error) {
         console.error('Failed to fetch business partners:', error);
         toast.error('無法載入合作夥伴資料，使用模擬數據');

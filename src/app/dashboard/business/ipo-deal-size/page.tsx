@@ -121,7 +121,10 @@ export default function IPODealSizePage() {
       setIsLoading(true);
       try {
         const result = await ipoDealSizeApi.list();
-        setData(result.results || result);
+        console.log('IPO Deal Size API result:', result);
+        // Handle both array and paginated response
+        const items = Array.isArray(result) ? result : (result.results || []);
+        setData(items);
       } catch (error) {
         console.error('Failed to fetch IPO deal size:', error);
         toast.error('無法載入交易規模資料，使用模擬數據');
