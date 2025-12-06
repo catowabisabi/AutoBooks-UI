@@ -532,52 +532,71 @@ export default function AccountingAssistantPage() {
 
           {/* Upload Tab */}
           <TabsContent value="upload" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Upload Area */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>
-                    <IconUpload className="inline mr-2 h-5 w-5" />
-                    Upload Receipt / 上傳收據
-                  </CardTitle>
-                  <CardDescription>
-                    Upload a receipt image for AI analysis and automatic categorization
-                    <br />
-                    上傳收據圖片進行 AI 分析和自動分類
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div
-                    className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
-                    onClick={() => fileInputRef.current?.click()}
-                  >
-                    {previewUrl ? (
-                      <img src={previewUrl} alt="Preview" className="max-h-48 mx-auto" />
-                    ) : (
+            {/* Upload Mode Toggle */}
+            <div className="flex gap-2 mb-4">
+              <Button
+                variant={uploadMode === 'single' ? 'default' : 'outline'}
+                onClick={() => setUploadMode('single')}
+              >
+                <IconUpload className="mr-2 h-4 w-4" />
+                Single Upload / 單張上傳
+              </Button>
+              <Button
+                variant={uploadMode === 'batch' ? 'default' : 'outline'}
+                onClick={() => setUploadMode('batch')}
+              >
+                <IconFiles className="mr-2 h-4 w-4" />
+                Batch Upload / 批量上傳
+              </Button>
+            </div>
+
+            {uploadMode === 'single' ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {/* Single Upload Area */}
+                <Card>
+                  <CardHeader>
+                    <CardTitle>
+                      <IconUpload className="inline mr-2 h-5 w-5" />
+                      Upload Receipt / 上傳收據
+                    </CardTitle>
+                    <CardDescription>
+                      Upload a receipt image for AI analysis and automatic categorization
+                      <br />
+                      上傳收據圖片進行 AI 分析和自動分類
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div
+                      className="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer hover:border-primary transition-colors"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      {previewUrl ? (
+                        <img src={previewUrl} alt="Preview" className="max-h-48 mx-auto" />
+                      ) : (
+                        <div className="space-y-2">
+                          <IconUpload className="mx-auto h-12 w-12 text-muted-foreground" />
+                          <p className="text-sm text-muted-foreground">
+                            Click to upload or drag and drop
+                            <br />
+                            點擊上傳或拖放
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            PNG, JPG, HEIC up to 10MB
+                          </p>
+                        </div>
+                      )}
+                    </div>
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleFileSelect}
+                    />
+                    
+                    {uploadProgress && (
                       <div className="space-y-2">
-                        <IconUpload className="mx-auto h-12 w-12 text-muted-foreground" />
-                        <p className="text-sm text-muted-foreground">
-                          Click to upload or drag and drop
-                          <br />
-                          點擊上傳或拖放
-                        </p>
-                        <p className="text-xs text-muted-foreground">
-                          PNG, JPG, HEIC up to 10MB
-                        </p>
-                      </div>
-                    )}
-                  </div>
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept="image/*"
-                    className="hidden"
-                    onChange={handleFileSelect}
-                  />
-                  
-                  {uploadProgress && (
-                    <div className="space-y-2">
-                      <Progress value={uploadProgress.progress} />
+                        <Progress value={uploadProgress.progress} />
                       <p className="text-sm text-muted-foreground text-center">
                         {uploadProgress.message} / {uploadProgress.messageZh}
                       </p>
