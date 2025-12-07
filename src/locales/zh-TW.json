@@ -2034,6 +2034,37 @@
       "suggestionReady": "我根據您的描述準備了一些建議，請點擊「套用」使用這些設定！",
       "show": "顯示 AI 助手",
       "hide": "隱藏 AI 助手"
+    },
+    "welcome": {
+      "title": "歡迎使用腦力激盪助手",
+      "description": "AI 驅動的創意發想工具，幫助您快速生成創新點子、規劃策略、分析市場。選擇一個會議類型開始，或讓 AI 助手幫您設定。",
+      "sessionTypes": "選擇會議類型",
+      "recentSessions": "最近的會議",
+      "tips": "快速入門提示",
+      "tip1": "點擊「新建會議」，使用 AI 助手用對話方式幫您生成會議設定",
+      "tip2": "選擇適合的會議類型，讓 AI 生成更精準的點子",
+      "tip3": "為喜歡的點子按讚或儲存，方便日後查閱"
+    },
+    "invite": {
+      "button": "邀請團隊",
+      "title": "邀請團隊成員",
+      "description": "邀請團隊成員加入「{session}」會議，一起腦力激盪。",
+      "byEmail": "電郵",
+      "byUserId": "用戶ID",
+      "byNickname": "暱稱",
+      "byDepartment": "部門",
+      "emailPlaceholder": "輸入電子郵件地址...",
+      "userIdPlaceholder": "輸入用戶 ID...",
+      "nicknamePlaceholder": "輸入用戶暱稱...",
+      "departmentPlaceholder": "輸入部門名稱...",
+      "userFound": "用戶已找到",
+      "userNotFound": "找不到此用戶",
+      "notFound": "找不到用戶",
+      "notFoundDescription": "找不到「{value}」對應的用戶，請確認輸入是否正確。",
+      "noValidMembers": "沒有可邀請的成員",
+      "sendInvites": "發送邀請",
+      "sent": "邀請已發送",
+      "sentDescription": "已成功發送 {count} 個邀請"
     }
   },
   "invoices": {

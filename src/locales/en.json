@@ -1983,6 +1983,37 @@
       "suggestionReady": "I've prepared some suggestions based on your description. Click \"Apply\" to use these settings!",
       "show": "Show AI Assistant",
       "hide": "Hide AI Assistant"
+    },
+    "welcome": {
+      "title": "Welcome to Brainstorming Assistant",
+      "description": "AI-powered creative tool to help you quickly generate innovative ideas, plan strategies, and analyze markets. Choose a session type to start, or let the AI assistant help you set up.",
+      "sessionTypes": "Choose Session Type",
+      "recentSessions": "Recent Sessions",
+      "tips": "Quick Start Tips",
+      "tip1": "Click \"New Session\" and use the AI assistant to generate session settings through conversation",
+      "tip2": "Choose the right session type for more accurate AI-generated ideas",
+      "tip3": "Like or save your favorite ideas for easy access later"
+    },
+    "invite": {
+      "button": "Invite Team",
+      "title": "Invite Team Members",
+      "description": "Invite team members to join the \"{session}\" session for collaborative brainstorming.",
+      "byEmail": "Email",
+      "byUserId": "User ID",
+      "byNickname": "Nickname",
+      "byDepartment": "Department",
+      "emailPlaceholder": "Enter email address...",
+      "userIdPlaceholder": "Enter user ID...",
+      "nicknamePlaceholder": "Enter user nickname...",
+      "departmentPlaceholder": "Enter department name...",
+      "userFound": "User found",
+      "userNotFound": "User not found",
+      "notFound": "User not found",
+      "notFoundDescription": "Could not find user for \"{value}\". Please verify the input.",
+      "noValidMembers": "No valid members to invite",
+      "sendInvites": "Send Invites",
+      "sent": "Invitations sent",
+      "sentDescription": "Successfully sent {count} invitation(s)"
     }
   },
   "invoices": {

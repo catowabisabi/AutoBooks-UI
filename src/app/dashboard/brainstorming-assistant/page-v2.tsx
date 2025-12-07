@@ -41,6 +41,12 @@ import {
   Copy,
   Check,
   Download,
+  Users,
+  UserPlus,
+  Mail,
+  AtSign,
+  Building2,
+  X,
 } from 'lucide-react';
 import {
   Dialog,
@@ -67,6 +73,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from '@/lib/utils';
 import { aiApi } from '@/lib/api';
 import { useToast } from '@/hooks/use-toast';
@@ -400,6 +407,217 @@ function IdeaCard({
 }
 
 // =========================================
+// Team Member Type
+// =========================================
+
+interface TeamMember {
+  id: string;
+  type: 'email' | 'userId' | 'nickname' | 'department';
+  value: string;
+  status: 'pending' | 'found' | 'not_found';
+  name?: string;
+}
+
+// =========================================
+// Invite Team Dialog
+// =========================================
+
+function InviteTeamDialog({
+  open,
+  onOpenChange,
+  sessionTitle,
+}: {
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  sessionTitle: string;
+}) {
+  const { t } = useTranslation();
+  const { toast } = useToast();
+  const [activeTab, setActiveTab] = useState<'email' | 'userId' | 'nickname' | 'department'>('email');
+  const [inputValue, setInputValue] = useState('');
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
+
+  const handleAddMember = async () => {
+    if (!inputValue.trim()) return;
+    
+    setIsSearching(true);
+    
+    // Simulate API search - in real app, this would call backend
+    await new Promise(resolve => setTimeout(resolve, 500));
+    
+    // Demo: random success/failure for demonstration
+    const found = Math.random() > 0.3;
+    
+    const newMember: TeamMember = {
+      id: generateId(),
+      type: activeTab,
+      value: inputValue.trim(),
+      status: found ? 'found' : 'not_found',
+      name: found ? `User ${inputValue.substring(0, 2).toUpperCase()}` : undefined,
+    };
+    
+    setMembers(prev => [...prev, newMember]);
+    setInputValue('');
+    setIsSearching(false);
+
+    if (!found) {
+      toast({
+        title: t('brainstormingAssistant.invite.notFound'),
+        description: t('brainstormingAssistant.invite.notFoundDescription', { value: inputValue }),
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleRemoveMember = (id: string) => {
+    setMembers(prev => prev.filter(m => m.id !== id));
+  };
+
+  const handleSendInvites = () => {
+    const validMembers = members.filter(m => m.status === 'found');
+    if (validMembers.length === 0) {
+      toast({
+        title: t('brainstormingAssistant.invite.noValidMembers'),
+        variant: 'destructive',
+      });
+      return;
+    }
+    
+    // In real app, this would call backend API
+    toast({
+      title: t('brainstormingAssistant.invite.sent'),
+      description: t('brainstormingAssistant.invite.sentDescription', { count: validMembers.length }),
+    });
+    
+    setMembers([]);
+    onOpenChange(false);
+  };
+
+  const getPlaceholder = () => {
+    switch (activeTab) {
+      case 'email': return t('brainstormingAssistant.invite.emailPlaceholder');
+      case 'userId': return t('brainstormingAssistant.invite.userIdPlaceholder');
+      case 'nickname': return t('brainstormingAssistant.invite.nicknamePlaceholder');
+      case 'department': return t('brainstormingAssistant.invite.departmentPlaceholder');
+    }
+  };
+
+  const getIcon = () => {
+    switch (activeTab) {
+      case 'email': return <Mail className="h-4 w-4" />;
+      case 'userId': return <AtSign className="h-4 w-4" />;
+      case 'nickname': return <Users className="h-4 w-4" />;
+      case 'department': return <Building2 className="h-4 w-4" />;
+    }
+  };
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[500px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <UserPlus className="h-5 w-5 text-purple-500" />
+            {t('brainstormingAssistant.invite.title')}
+          </DialogTitle>
+          <DialogDescription>
+            {t('brainstormingAssistant.invite.description', { session: sessionTitle })}
+          </DialogDescription>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          <Tabs value={activeTab} onValueChange={(v) => setActiveTab(v as typeof activeTab)}>
+            <TabsList className="grid w-full grid-cols-4">
+              <TabsTrigger value="email" className="text-xs">
+                <Mail className="h-3 w-3 mr-1" />
+                {t('brainstormingAssistant.invite.byEmail')}
+              </TabsTrigger>
+              <TabsTrigger value="userId" className="text-xs">
+                <AtSign className="h-3 w-3 mr-1" />
+                {t('brainstormingAssistant.invite.byUserId')}
+              </TabsTrigger>
+              <TabsTrigger value="nickname" className="text-xs">
+                <Users className="h-3 w-3 mr-1" />
+                {t('brainstormingAssistant.invite.byNickname')}
+              </TabsTrigger>
+              <TabsTrigger value="department" className="text-xs">
+                <Building2 className="h-3 w-3 mr-1" />
+                {t('brainstormingAssistant.invite.byDepartment')}
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
+
+          <div className="flex gap-2">
+            <div className="relative flex-1">
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground">
+                {getIcon()}
+              </div>
+              <Input
+                placeholder={getPlaceholder()}
+                value={inputValue}
+                onChange={(e) => setInputValue(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && handleAddMember()}
+                className="pl-10"
+                disabled={isSearching}
+              />
+            </div>
+            <Button onClick={handleAddMember} disabled={!inputValue.trim() || isSearching}>
+              {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Plus className="h-4 w-4" />}
+            </Button>
+          </div>
+
+          {/* Members List */}
+          {members.length > 0 && (
+            <div className="border rounded-lg divide-y max-h-[200px] overflow-y-auto">
+              {members.map((member) => (
+                <div key={member.id} className="flex items-center justify-between p-3">
+                  <div className="flex items-center gap-3">
+                    <div className={cn(
+                      "p-2 rounded-full",
+                      member.status === 'found' ? "bg-green-500/10" : "bg-red-500/10"
+                    )}>
+                      {member.type === 'email' && <Mail className={cn("h-4 w-4", member.status === 'found' ? "text-green-500" : "text-red-500")} />}
+                      {member.type === 'userId' && <AtSign className={cn("h-4 w-4", member.status === 'found' ? "text-green-500" : "text-red-500")} />}
+                      {member.type === 'nickname' && <Users className={cn("h-4 w-4", member.status === 'found' ? "text-green-500" : "text-red-500")} />}
+                      {member.type === 'department' && <Building2 className={cn("h-4 w-4", member.status === 'found' ? "text-green-500" : "text-red-500")} />}
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium">{member.value}</p>
+                      <p className={cn("text-xs", member.status === 'found' ? "text-green-600" : "text-red-500")}>
+                        {member.status === 'found' 
+                          ? (member.name || t('brainstormingAssistant.invite.userFound'))
+                          : t('brainstormingAssistant.invite.userNotFound')
+                        }
+                      </p>
+                    </div>
+                  </div>
+                  <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => handleRemoveMember(member.id)}>
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <DialogFooter>
+          <Button variant="outline" onClick={() => onOpenChange(false)}>
+            {t('common.cancel')}
+          </Button>
+          <Button 
+            onClick={handleSendInvites} 
+            disabled={members.filter(m => m.status === 'found').length === 0}
+          >
+            <Send className="h-4 w-4 mr-1" />
+            {t('brainstormingAssistant.invite.sendInvites')} ({members.filter(m => m.status === 'found').length})
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+// =========================================
 // AI Chat Message Type
 // =========================================
 
@@ -490,28 +708,32 @@ function CreateSessionDialog({
     setIsAiThinking(true);
 
     try {
-      const aiPrompt = `你是一個專業的腦力激盪會議規劃助手。用戶想要建立一個新的腦力激盪會議。
+      // Detect if user input contains Chinese characters
+      const hasChinese = /[\u4e00-\u9fff]/.test(userMessage.content);
+      const responseLanguage = hasChinese ? '繁體中文' : 'English';
+      
+      const aiPrompt = `You are a professional brainstorming session planning assistant. The user wants to create a new brainstorming session.
 
-用戶說: "${userMessage.content}"
+User says: "${userMessage.content}"
 
-根據用戶的描述，請幫助生成適合的會議設定。請以 JSON 格式回覆，包含以下欄位：
-- title: 建議的會議標題（簡潔有力，10-30字）
-- prompt: 詳細的主題提示（描述要探討的問題或方向，50-150字）
-- targetOutcome: 期望成果（具體可衡量的目標，30-80字）
-- sessionType: 會議類型，必須是以下之一: STRATEGY, PITCH_WRITER, MARKET_ANALYSIS, CAMPAIGN_BREAKDOWN, IDEA_GENERATOR, FINANCIAL_PLANNING, RISK_ASSESSMENT, PROCESS_OPTIMIZATION
-- explanation: 給用戶的說明（解釋你的建議，用友善的語氣）
+Based on the user's description, please help generate appropriate session settings. Reply in JSON format with the following fields:
+- title: Suggested session title (concise and impactful, 10-30 characters)
+- prompt: Detailed topic prompt (describing the problem or direction to explore, 50-150 characters)
+- targetOutcome: Expected outcome (specific and measurable goals, 30-80 characters)
+- sessionType: Session type, must be one of: STRATEGY, PITCH_WRITER, MARKET_ANALYSIS, CAMPAIGN_BREAKDOWN, IDEA_GENERATOR, FINANCIAL_PLANNING, RISK_ASSESSMENT, PROCESS_OPTIMIZATION
+- explanation: Explanation for the user (explain your suggestions in a friendly tone)
 
-可用的會議類型說明:
-- STRATEGY: 策略規劃 - 商業策略、公司發展方向
-- PITCH_WRITER: 簡報撰寫 - 產品簡報、投資提案
-- MARKET_ANALYSIS: 市場分析 - 市場調研、競爭分析
-- CAMPAIGN_BREAKDOWN: 行銷活動 - 推廣活動、廣告企劃
-- IDEA_GENERATOR: 創意發想 - 創新點子、新產品概念
-- FINANCIAL_PLANNING: 財務規劃 - 預算、財務策略
-- RISK_ASSESSMENT: 風險評估 - 風險識別、應對策略
-- PROCESS_OPTIMIZATION: 流程優化 - 效率提升、流程改進
+Available session types:
+- STRATEGY: Strategy Planning - business strategy, company direction
+- PITCH_WRITER: Pitch Writer - product presentations, investment proposals
+- MARKET_ANALYSIS: Market Analysis - market research, competitive analysis
+- CAMPAIGN_BREAKDOWN: Marketing Campaign - promotional activities, advertising plans
+- IDEA_GENERATOR: Idea Generation - innovative ideas, new product concepts
+- FINANCIAL_PLANNING: Financial Planning - budgets, financial strategies
+- RISK_ASSESSMENT: Risk Assessment - risk identification, response strategies
+- PROCESS_OPTIMIZATION: Process Optimization - efficiency improvement, workflow optimization
 
-請用繁體中文回覆，只輸出 JSON，不要其他文字。`;
+IMPORTANT: Reply in ${responseLanguage}. Output JSON only, no other text.`;
 
       const response = await aiApi.chat(aiPrompt, 'openai');
       const content = response.content || '';
@@ -588,52 +810,52 @@ function CreateSessionDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[900px] max-h-[90vh] overflow-hidden p-0">
-        <div className="flex h-[80vh]">
+      <DialogContent className="sm:max-w-[1000px] w-[95vw] max-h-[90vh] overflow-hidden p-0">
+        <div className="flex h-[85vh] min-h-[600px]">
           {/* Left: AI Assistant Chat */}
           {showAiAssistant && (
-            <div className="w-[400px] border-r flex flex-col bg-muted/30">
-              <div className="p-4 border-b bg-gradient-to-r from-purple-500/10 to-blue-500/10">
-                <div className="flex items-center gap-2">
-                  <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
-                    <Sparkles className="h-4 w-4 text-white" />
+            <div className="w-[450px] min-w-[400px] border-r flex flex-col bg-muted/30">
+              <div className="p-4 border-b bg-gradient-to-r from-purple-500/10 to-blue-500/10 shrink-0">
+                <div className="flex items-center gap-3">
+                  <div className="p-2.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500">
+                    <Sparkles className="h-5 w-5 text-white" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-sm">{t('brainstormingAssistant.aiAssistant.title')}</h3>
-                    <p className="text-xs text-muted-foreground">{t('brainstormingAssistant.aiAssistant.subtitle')}</p>
+                    <h3 className="font-semibold">{t('brainstormingAssistant.aiAssistant.title')}</h3>
+                    <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.aiAssistant.subtitle')}</p>
                   </div>
                 </div>
               </div>
 
-              {/* Chat Messages */}
-              <ScrollArea className="flex-1 p-4" ref={chatScrollRef}>
+              {/* Chat Messages - Fixed height with overflow */}
+              <div className="flex-1 overflow-y-auto p-4" ref={chatScrollRef}>
                 <div className="space-y-4">
                   {chatMessages.map((msg) => (
                     <div
                       key={msg.id}
                       className={cn(
-                        "flex gap-2",
+                        "flex gap-3",
                         msg.role === 'user' ? "justify-end" : "justify-start"
                       )}
                     >
                       {msg.role === 'assistant' && (
-                        <div className="p-1.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit shrink-0">
-                          <Sparkles className="h-3 w-3 text-white" />
+                        <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit shrink-0">
+                          <Sparkles className="h-4 w-4 text-white" />
                         </div>
                       )}
                       <div
                         className={cn(
-                          "max-w-[85%] rounded-lg px-3 py-2 text-sm",
+                          "max-w-[85%] rounded-xl px-4 py-3",
                           msg.role === 'user'
                             ? "bg-primary text-primary-foreground"
                             : "bg-background border shadow-sm"
                         )}
                       >
-                        <p className="whitespace-pre-wrap">{msg.content}</p>
+                        <p className="whitespace-pre-wrap text-sm leading-relaxed">{msg.content}</p>
                         
                         {/* Suggestions Card */}
                         {msg.suggestions && (
-                          <div className="mt-3 p-3 bg-muted rounded-md space-y-2">
+                          <div className="mt-3 p-3 bg-muted rounded-lg space-y-2">
                             <div className="flex items-center justify-between">
                               <span className="text-xs font-medium text-muted-foreground">
                                 {t('brainstormingAssistant.aiAssistant.suggestions')}
@@ -641,7 +863,7 @@ function CreateSessionDialog({
                               <Button
                                 size="sm"
                                 variant="secondary"
-                                className="h-6 text-xs"
+                                className="h-7 text-xs"
                                 onClick={() => applySuggestions(msg.suggestions)}
                               >
                                 <Check className="h-3 w-3 mr-1" />
@@ -650,51 +872,51 @@ function CreateSessionDialog({
                             </div>
                             {msg.suggestions.title && (
                               <div>
-                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.sessionTitle')}</span>
-                                <p className="text-xs font-medium">{msg.suggestions.title}</p>
+                                <span className="text-xs text-muted-foreground">{t('brainstormingAssistant.sessionTitle')}</span>
+                                <p className="text-sm font-medium">{msg.suggestions.title}</p>
                               </div>
                             )}
                             {msg.suggestions.sessionType && (
                               <div>
-                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.sessionType')}</span>
-                                <p className="text-xs font-medium">{t(SESSION_TYPES[msg.suggestions.sessionType].labelKey)}</p>
+                                <span className="text-xs text-muted-foreground">{t('brainstormingAssistant.sessionType')}</span>
+                                <p className="text-sm font-medium">{t(SESSION_TYPES[msg.suggestions.sessionType].labelKey)}</p>
                               </div>
                             )}
                             {msg.suggestions.prompt && (
                               <div>
-                                <span className="text-[10px] text-muted-foreground">{t('brainstormingAssistant.prompt')}</span>
-                                <p className="text-xs line-clamp-3">{msg.suggestions.prompt}</p>
+                                <span className="text-xs text-muted-foreground">{t('brainstormingAssistant.prompt')}</span>
+                                <p className="text-sm line-clamp-3">{msg.suggestions.prompt}</p>
                               </div>
                             )}
                           </div>
                         )}
                       </div>
                       {msg.role === 'user' && (
-                        <div className="p-1.5 rounded-full bg-primary h-fit shrink-0">
-                          <MessageSquare className="h-3 w-3 text-primary-foreground" />
+                        <div className="p-2 rounded-full bg-primary h-fit shrink-0">
+                          <MessageSquare className="h-4 w-4 text-primary-foreground" />
                         </div>
                       )}
                     </div>
                   ))}
                   
                   {isAiThinking && (
-                    <div className="flex gap-2">
-                      <div className="p-1.5 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit">
-                        <Sparkles className="h-3 w-3 text-white animate-pulse" />
+                    <div className="flex gap-3">
+                      <div className="p-2 rounded-full bg-gradient-to-r from-purple-500 to-blue-500 h-fit">
+                        <Sparkles className="h-4 w-4 text-white animate-pulse" />
                       </div>
-                      <div className="bg-background border rounded-lg px-3 py-2 shadow-sm">
+                      <div className="bg-background border rounded-xl px-4 py-3 shadow-sm">
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Loader2 className="h-3 w-3 animate-spin" />
+                          <Loader2 className="h-4 w-4 animate-spin" />
                           {t('brainstormingAssistant.aiAssistant.thinking')}
                         </div>
                       </div>
                     </div>
                   )}
                 </div>
-              </ScrollArea>
+              </div>
 
               {/* Chat Input */}
-              <div className="p-3 border-t bg-background">
+              <div className="p-4 border-t bg-background shrink-0">
                 <form
                   onSubmit={(e) => {
                     e.preventDefault();
@@ -708,17 +930,18 @@ function CreateSessionDialog({
                     value={chatInput}
                     onChange={(e) => setChatInput(e.target.value)}
                     disabled={isAiThinking}
-                    className="flex-1"
+                    className="flex-1 h-10"
                   />
                   <Button
                     type="submit"
                     size="icon"
+                    className="h-10 w-10"
                     disabled={!chatInput.trim() || isAiThinking}
                   >
                     <Send className="h-4 w-4" />
                   </Button>
                 </form>
-                <p className="text-[10px] text-muted-foreground mt-2 text-center">
+                <p className="text-xs text-muted-foreground mt-2 text-center">
                   {t('brainstormingAssistant.aiAssistant.hint')}
                 </p>
               </div>
@@ -726,44 +949,45 @@ function CreateSessionDialog({
           )}
 
           {/* Right: Form */}
-          <div className="flex-1 flex flex-col overflow-hidden">
-            <DialogHeader className="p-4 border-b shrink-0">
+          <div className="flex-1 flex flex-col overflow-hidden min-w-[400px]">
+            <DialogHeader className="p-5 border-b shrink-0">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Brain className="h-5 w-5 text-purple-500" />
-                  <DialogTitle>{t('brainstormingAssistant.newSession')}</DialogTitle>
+                  <Brain className="h-6 w-6 text-purple-500" />
+                  <DialogTitle className="text-lg">{t('brainstormingAssistant.newSession')}</DialogTitle>
                 </div>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setShowAiAssistant(!showAiAssistant)}
-                  className="gap-1"
+                  className="gap-2"
                 >
-                  <Sparkles className="h-3 w-3" />
+                  <Sparkles className="h-4 w-4" />
                   {showAiAssistant ? t('brainstormingAssistant.aiAssistant.hide') : t('brainstormingAssistant.aiAssistant.show')}
                 </Button>
               </div>
-              <DialogDescription>
+              <DialogDescription className="text-sm">
                 {t('brainstormingAssistant.newSessionDescription')}
               </DialogDescription>
             </DialogHeader>
 
-            <ScrollArea className="flex-1 p-4">
-              <div className="grid gap-4">
+            <div className="flex-1 overflow-y-auto p-5">
+              <div className="grid gap-5">
                 <div className="grid gap-2">
-                  <Label htmlFor="title">{t('brainstormingAssistant.sessionTitle')}</Label>
+                  <Label htmlFor="title" className="text-sm font-medium">{t('brainstormingAssistant.sessionTitle')}</Label>
                   <Input
                     id="title"
                     placeholder={t('brainstormingAssistant.sessionTitlePlaceholder')}
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
+                    className="h-10"
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="type">{t('brainstormingAssistant.sessionType')}</Label>
+                  <Label htmlFor="type" className="text-sm font-medium">{t('brainstormingAssistant.sessionType')}</Label>
                   <Select value={sessionType} onValueChange={(v) => setSessionType(v as SessionType)}>
-                    <SelectTrigger>
+                    <SelectTrigger className="h-10">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -772,8 +996,8 @@ function CreateSessionDialog({
                         return (
                           <SelectItem key={key} value={key}>
                             <div className="flex items-center gap-2">
-                              <div className={cn("p-1 rounded", config.color)}>
-                                <Icon className="h-3 w-3 text-white" />
+                              <div className={cn("p-1.5 rounded", config.color)}>
+                                <Icon className="h-4 w-4 text-white" />
                               </div>
                               <span>{t(config.labelKey)}</span>
                             </div>
@@ -783,35 +1007,36 @@ function CreateSessionDialog({
                     </SelectContent>
                   </Select>
                   {selectedType && (
-                    <p className="text-xs text-muted-foreground">{selectedType.description}</p>
+                    <p className="text-sm text-muted-foreground">{selectedType.description}</p>
                   )}
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="prompt">{t('brainstormingAssistant.prompt')}</Label>
+                  <Label htmlFor="prompt" className="text-sm font-medium">{t('brainstormingAssistant.prompt')}</Label>
                   <Textarea
                     id="prompt"
                     placeholder={t('brainstormingAssistant.promptPlaceholder')}
                     value={prompt}
                     onChange={(e) => setPrompt(e.target.value)}
-                    rows={5}
-                    className="resize-none"
+                    rows={6}
+                    className="resize-none text-sm"
                   />
                 </div>
 
                 <div className="grid gap-2">
-                  <Label htmlFor="outcome">{t('brainstormingAssistant.targetOutcome')}</Label>
+                  <Label htmlFor="outcome" className="text-sm font-medium">{t('brainstormingAssistant.targetOutcome')}</Label>
                   <Input
                     id="outcome"
                     placeholder={t('brainstormingAssistant.targetOutcomePlaceholder')}
                     value={targetOutcome}
                     onChange={(e) => setTargetOutcome(e.target.value)}
+                    className="h-10"
                   />
                 </div>
               </div>
-            </ScrollArea>
+            </div>
 
-            <DialogFooter className="p-4 border-t shrink-0">
+            <DialogFooter className="p-5 border-t shrink-0">
               <Button variant="outline" onClick={() => onOpenChange(false)}>
                 {t('common.cancel')}
               </Button>
@@ -849,7 +1074,7 @@ function SessionDetailPanel({
   onCopyIdea: (content: string) => void;
   isGenerating: boolean;
 }) {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { toast } = useToast();
   const typeConfig = SESSION_TYPES[session.session_type] || SESSION_TYPES.STRATEGY;
   const TypeIcon = typeConfig.icon;
@@ -859,8 +1084,10 @@ function SessionDetailPanel({
   const [chatLoading, setChatLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const [additionalPrompt, setAdditionalPrompt] = useState('');
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
 
   const savedIdeasCount = ideas.filter(i => i.is_saved).length;
+  const isEnglish = locale === 'en';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -883,7 +1110,16 @@ function SessionDetailPanel({
 
     try {
       const existingIdeas = ideas.map(i => `- ${i.content}`).join('\n');
-      const systemPrompt = `你是 AutoBooks ERP 的 AI 腦力激盪助手。
+      const systemPrompt = isEnglish 
+        ? `You are an AI brainstorming assistant for AutoBooks ERP.
+Current session: "${session.title}"
+Session type: ${t(typeConfig.labelKey)}
+Topic prompt: "${session.prompt}"
+${session.target_outcome ? `Target outcome: ${session.target_outcome}` : ''}
+${existingIdeas ? `\nExisting ideas:\n${existingIdeas}` : ''}
+
+Help the user expand these ideas, provide new suggestions, or give feedback. Reply in English.`
+        : `你是 AutoBooks ERP 的 AI 腦力激盪助手。
 當前會議: "${session.title}"
 會議類型: ${t(typeConfig.labelKey)}
 主題提示: "${session.prompt}"
@@ -898,19 +1134,26 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
         { systemPrompt }
       );
 
+      const defaultResponse = isEnglish 
+        ? "I can help you think further about this. What angle would you like to explore?"
+        : "我可以幫你進一步思考這個問題。你想從哪個角度來探討？";
+
       const assistantMessage: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: response.content || "我可以幫你進一步思考這個問題。你想從哪個角度來探討？",
+        content: response.content || defaultResponse,
         timestamp: new Date(),
       };
       
       setChatMessages(prev => [...prev, assistantMessage]);
     } catch (error) {
+      const errorContent = isEnglish 
+        ? "Let me help you brainstorm! Consider thinking from different angles, combining existing ideas, or exploring edge cases."
+        : "讓我幫你腦力激盪！可以考慮從不同角度思考、結合現有點子，或探索邊緣案例。";
       const errorMessage: ChatMessage = {
         id: generateId(),
         role: 'assistant',
-        content: "讓我幫你腦力激盪！可以考慮從不同角度思考、結合現有點子，或探索邊緣案例。",
+        content: errorContent,
         timestamp: new Date(),
       };
       setChatMessages(prev => [...prev, errorMessage]);
@@ -928,15 +1171,26 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
     const savedOnly = ideas.filter(i => i.is_saved);
     const toExport = savedOnly.length > 0 ? savedOnly : ideas;
     
-    const content = `# ${session.title}\n\n` +
-      `**類型:** ${t(typeConfig.labelKey)}\n` +
-      `**提示:** ${session.prompt}\n` +
-      `${session.target_outcome ? `**目標:** ${session.target_outcome}\n` : ''}` +
-      `**建立日期:** ${new Date(session.created_at).toLocaleDateString('zh-TW')}\n\n` +
-      `## 點子 (${toExport.length})\n\n` +
-      toExport.map((idea, idx) => 
-        `${idx + 1}. ${idea.content}${idea.category ? ` [${idea.category}]` : ''} ${idea.is_saved ? '⭐' : ''}`
-      ).join('\n\n');
+    const dateLocale = isEnglish ? 'en-US' : 'zh-TW';
+    const content = isEnglish 
+      ? `# ${session.title}\n\n` +
+        `**Type:** ${t(typeConfig.labelKey)}\n` +
+        `**Prompt:** ${session.prompt}\n` +
+        `${session.target_outcome ? `**Target:** ${session.target_outcome}\n` : ''}` +
+        `**Created:** ${new Date(session.created_at).toLocaleDateString(dateLocale)}\n\n` +
+        `## Ideas (${toExport.length})\n\n` +
+        toExport.map((idea, idx) => 
+          `${idx + 1}. ${idea.content}${idea.category ? ` [${idea.category}]` : ''} ${idea.is_saved ? '⭐' : ''}`
+        ).join('\n\n')
+      : `# ${session.title}\n\n` +
+        `**類型:** ${t(typeConfig.labelKey)}\n` +
+        `**提示:** ${session.prompt}\n` +
+        `${session.target_outcome ? `**目標:** ${session.target_outcome}\n` : ''}` +
+        `**建立日期:** ${new Date(session.created_at).toLocaleDateString(dateLocale)}\n\n` +
+        `## 點子 (${toExport.length})\n\n` +
+        toExport.map((idea, idx) => 
+          `${idx + 1}. ${idea.content}${idea.category ? ` [${idea.category}]` : ''} ${idea.is_saved ? '⭐' : ''}`
+        ).join('\n\n');
     
     const blob = new Blob([content], { type: 'text/markdown' });
     const url = URL.createObjectURL(blob);
@@ -966,11 +1220,15 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
                 {ideas.length} {t('brainstormingAssistant.ideas')} · {savedIdeasCount} {t('brainstormingAssistant.saved')}
               </span>
               <span className="text-xs text-muted-foreground">
-                {new Date(session.created_at).toLocaleDateString('zh-TW')}
+                {new Date(session.created_at).toLocaleDateString(isEnglish ? 'en-US' : 'zh-TW')}
               </span>
             </div>
           </div>
           <div className="flex items-center gap-2 shrink-0">
+            <Button variant="outline" size="sm" onClick={() => setInviteDialogOpen(true)}>
+              <UserPlus className="h-3.5 w-3.5 mr-1" />
+              {t('brainstormingAssistant.invite.button')}
+            </Button>
             <Button variant="outline" size="sm" onClick={handleExportIdeas}>
               <Download className="h-3.5 w-3.5 mr-1" />
               {t('brainstormingAssistant.export')}
@@ -978,6 +1236,13 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
           </div>
         </div>
       </div>
+
+      {/* Invite Team Dialog */}
+      <InviteTeamDialog
+        open={inviteDialogOpen}
+        onOpenChange={setInviteDialogOpen}
+        sessionTitle={session.title}
+      />
 
       {/* Main Content - Ideas + Chat */}
       <div className="flex-1 flex min-h-0 overflow-hidden">
@@ -1109,7 +1374,7 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
 // =========================================
 
 export default function BrainstormingAssistantPageV2() {
-  const { t } = useTranslation();
+  const { t, locale } = useTranslation();
   const { toast } = useToast();
   
   const [sessions, setSessions] = useState<BrainstormSession[]>([]);
@@ -1206,14 +1471,28 @@ export default function BrainstormingAssistantPageV2() {
     
     try {
       const typeConfig = SESSION_TYPES[selectedSession.session_type];
-      const prompt = `你是一個專業的 ${t(typeConfig.labelKey)} 專家。
+      const isEnglish = locale === 'en';
+      const langInstructions = isEnglish 
+        ? 'Reply in English. Separate each idea with a new line. Do not add numbers.'
+        : '用繁體中文回覆，每個點子用換行分隔，不要加編號。';
+      
+      const prompt = isEnglish 
+        ? `You are a professional ${t(typeConfig.labelKey)} expert.
+
+Task: ${selectedSession.prompt}
+${customPrompt ? `Additional requirements: ${customPrompt}` : ''}
+${selectedSession.target_outcome ? `Expected outcome: ${selectedSession.target_outcome}` : ''}
+
+Please generate 5 innovative and practical ideas. Each idea should be specific, actionable, and provide unique insights.
+${langInstructions}`
+        : `你是一個專業的 ${t(typeConfig.labelKey)} 專家。
       
 任務: ${selectedSession.prompt}
 ${customPrompt ? `額外要求: ${customPrompt}` : ''}
 ${selectedSession.target_outcome ? `期望成果: ${selectedSession.target_outcome}` : ''}
 
 請生成 5 個創新且實用的點子。每個點子要具體、可執行、並帶有獨特見解。
-用繁體中文回覆，每個點子用換行分隔，不要加編號。`;
+${langInstructions}`;
 
       const response = await aiApi.chat(prompt, 'openai');
       const content = response.content || '';
@@ -1255,7 +1534,7 @@ ${selectedSession.target_outcome ? `期望成果: ${selectedSession.target_outco
     } finally {
       setIsGenerating(false);
     }
-  }, [selectedSession, isGenerating, ideas, sessions, toast, t]);
+  }, [selectedSession, isGenerating, ideas, sessions, toast, t, locale]);
 
   const handleRateIdea = useCallback((ideaId: string, rating: 'up' | 'down') => {
     const updatedIdeas = ideas.map(idea => {
@@ -1423,17 +1702,157 @@ ${selectedSession.target_outcome ? `期望成果: ${selectedSession.target_outco
                 isGenerating={isGenerating}
               />
             ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <Brain className="h-16 w-16 mb-4 opacity-50" />
-                <h2 className="text-lg font-medium">{t('brainstormingAssistant.selectSession')}</h2>
-                <p className="text-sm mt-1">{t('brainstormingAssistant.selectSessionDescription')}</p>
-                <Button
-                  className="mt-4"
-                  onClick={() => setCreateDialogOpen(true)}
-                >
-                  <Plus className="h-4 w-4 mr-1" />
-                  {t('brainstormingAssistant.newSession')}
-                </Button>
+              <div className="h-full flex flex-col">
+                {/* Welcome Section */}
+                <div className="flex-1 p-6 overflow-y-auto">
+                  <div className="max-w-4xl mx-auto">
+                    {/* Hero Card */}
+                    <Card className="mb-6 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 border-none">
+                      <CardContent className="p-8">
+                        <div className="flex items-start gap-6">
+                          <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg">
+                            <Brain className="h-10 w-10 text-white" />
+                          </div>
+                          <div className="flex-1">
+                            <h2 className="text-2xl font-bold mb-2">{t('brainstormingAssistant.welcome.title')}</h2>
+                            <p className="text-muted-foreground mb-4">{t('brainstormingAssistant.welcome.description')}</p>
+                            <Button size="lg" onClick={() => setCreateDialogOpen(true)} className="gap-2">
+                              <Sparkles className="h-5 w-5" />
+                              {t('brainstormingAssistant.newSession')}
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+
+                    {/* Stats Cards */}
+                    <div className="grid grid-cols-3 gap-4 mb-6">
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="p-3 rounded-lg bg-purple-500/10">
+                            <FolderOpen className="h-6 w-6 text-purple-500" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{stats.totalSessions}</p>
+                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.sessions')}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="p-3 rounded-lg bg-amber-500/10">
+                            <Lightbulb className="h-6 w-6 text-amber-500" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{stats.totalIdeas}</p>
+                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.ideas')}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                      <Card>
+                        <CardContent className="p-4 flex items-center gap-4">
+                          <div className="p-3 rounded-lg bg-green-500/10">
+                            <Save className="h-6 w-6 text-green-500" />
+                          </div>
+                          <div>
+                            <p className="text-2xl font-bold">{stats.savedIdeas}</p>
+                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.saved')}</p>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    </div>
+
+                    {/* Session Types Grid */}
+                    <h3 className="text-lg font-semibold mb-4">{t('brainstormingAssistant.welcome.sessionTypes')}</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                      {Object.entries(SESSION_TYPES).map(([key, config]) => {
+                        const Icon = config.icon;
+                        return (
+                          <Card 
+                            key={key} 
+                            className="cursor-pointer hover:shadow-md transition-all hover:border-purple-500/50"
+                            onClick={() => setCreateDialogOpen(true)}
+                          >
+                            <CardContent className="p-4 flex flex-col items-center text-center">
+                              <div className={cn("p-3 rounded-xl mb-3", config.color)}>
+                                <Icon className="h-6 w-6 text-white" />
+                              </div>
+                              <p className="font-medium text-sm">{t(config.labelKey)}</p>
+                            </CardContent>
+                          </Card>
+                        );
+                      })}
+                    </div>
+
+                    {/* Recent Sessions */}
+                    {sessions.length > 0 && (
+                      <>
+                        <h3 className="text-lg font-semibold mb-4">{t('brainstormingAssistant.welcome.recentSessions')}</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                          {sessions.slice(0, 4).map((session) => {
+                            const typeConfig = SESSION_TYPES[session.session_type] || SESSION_TYPES.STRATEGY;
+                            const Icon = typeConfig.icon;
+                            return (
+                              <Card 
+                                key={session.id} 
+                                className="cursor-pointer hover:shadow-md transition-all hover:border-purple-500/50"
+                                onClick={() => setSelectedSessionId(session.id)}
+                              >
+                                <CardContent className="p-4">
+                                  <div className="flex items-start gap-3">
+                                    <div className={cn("p-2 rounded-lg shrink-0", typeConfig.color)}>
+                                      <Icon className="h-4 w-4 text-white" />
+                                    </div>
+                                    <div className="flex-1 min-w-0">
+                                      <h4 className="font-medium truncate">{session.title}</h4>
+                                      <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{session.prompt}</p>
+                                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
+                                        <span className="flex items-center gap-1">
+                                          <Lightbulb className="h-3 w-3" />
+                                          {session.ideas_count} {t('brainstormingAssistant.ideas')}
+                                        </span>
+                                        <span className="flex items-center gap-1">
+                                          <Clock className="h-3 w-3" />
+                                          {new Date(session.created_at).toLocaleDateString()}
+                                        </span>
+                                      </div>
+                                    </div>
+                                  </div>
+                                </CardContent>
+                              </Card>
+                            );
+                          })}
+                        </div>
+                      </>
+                    )}
+
+                    {/* Tips Section */}
+                    {sessions.length === 0 && (
+                      <Card className="bg-muted/50">
+                        <CardContent className="p-6">
+                          <h3 className="font-semibold mb-3 flex items-center gap-2">
+                            <Zap className="h-5 w-5 text-amber-500" />
+                            {t('brainstormingAssistant.welcome.tips')}
+                          </h3>
+                          <ul className="space-y-2 text-sm text-muted-foreground">
+                            <li className="flex items-start gap-2">
+                              <span className="text-purple-500">•</span>
+                              {t('brainstormingAssistant.welcome.tip1')}
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-purple-500">•</span>
+                              {t('brainstormingAssistant.welcome.tip2')}
+                            </li>
+                            <li className="flex items-start gap-2">
+                              <span className="text-purple-500">•</span>
+                              {t('brainstormingAssistant.welcome.tip3')}
+                            </li>
+                          </ul>
+                        </CardContent>
+                      </Card>
+                    )}
+                  </div>
+                </div>
               </div>
             )}
           </div>
