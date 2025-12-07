@@ -361,7 +361,11 @@ export const plannerApi = {
     source_email_id?: string;
     auto_prioritize?: boolean;
     auto_schedule?: boolean;
-  }) => apiClient.post<PlannerTask>('/planner-assistant/tasks/ai_create/', {
+  }) => apiClient.post<{
+    tasks: PlannerTask[];
+    summary: string;
+    tasks_created: number;
+  }>('/planner-assistant/tasks/ai_create/', {
     input_text,
     ...options,
   }),
@@ -369,10 +373,50 @@ export const plannerApi = {
   aiReprioritize: (options?: {
     consider_deadlines?: boolean;
     consider_dependencies?: boolean;
-  }) => apiClient.post<{ status: string; tasks_updated: number }>(
+  }) => apiClient.post<{
+    status: string;
+    message: string;
+    tasks_updated: number;
+    recommendations?: string[];
+  }>(
     '/planner-assistant/tasks/ai_reprioritize/', 
     options
   ),
+
+  aiSchedule: (options?: {
+    available_hours_per_day?: number;
+  }) => apiClient.post<{
+    schedule: Array<{
+      date: string;
+      tasks: Array<{
+        task_id: string;
+        suggested_hours: number;
+        time_slot: string;
+      }>;
+      total_hours: number;
+    }>;
+    unscheduled: string[];
+    warnings: string[];
+  }>(
+    '/planner-assistant/tasks/ai_schedule/',
+    options
+  ),
+
+  // Create tasks from email
+  fromEmail: (email_id: string) => apiClient.post<{
+    tasks: PlannerTask[];
+    summary: string;
+    tasks_created: number;
+    email_subject: string;
+  }>('/planner-assistant/tasks/from_email/', { email_id }),
+
+  // Create tasks from calendar event
+  fromEvent: (event_id: string) => apiClient.post<{
+    tasks: PlannerTask[];
+    summary: string;
+    tasks_created: number;
+    event_title: string;
+  }>('/planner-assistant/tasks/from_event/', { event_id }),
 
   // Events
   getEvents: (params?: {

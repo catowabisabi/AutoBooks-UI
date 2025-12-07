@@ -256,11 +256,52 @@ export default function DocumentAssistantPage() {
   const [editingFolder, setEditingFolder] = useState<string | null>(null);
   const [folderName, setFolderName] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDocuments, setIsLoadingDocuments] = useState(true);
   const [activeTab, setActiveTab] = useState<'documents' | 'upload'>('documents');
 
   // Upload states
   const [uploadFiles, setUploadFiles] = useState<FileWithStatus[]>([]);
   const [defaultQuery, setDefaultQuery] = useState('');
+
+  // Fetch documents from API on mount
+  useEffect(() => {
+    const fetchDocuments = async () => {
+      try {
+        setIsLoadingDocuments(true);
+        const response = await assistantsApi.documentList();
+        
+        if (response.results && response.results.length > 0) {
+          const apiDocs: ProcessedDocument[] = response.results.map(doc => ({
+            id: doc.id,
+            name: doc.title || doc.original_filename,
+            type: getDocumentTypeFromMime(doc.mime_type, doc.original_filename),
+            size: formatFileSize(doc.file_size),
+            uploadedAt: new Date(doc.created_at).toLocaleDateString(),
+            documentId: doc.id,
+            status: doc.is_ocr_processed ? 'ready' : 'processing',
+          }));
+          setDocuments(apiDocs);
+        }
+      } catch (error) {
+        console.error('Failed to fetch documents:', error);
+        // Silently fail - user can still upload new documents
+      } finally {
+        setIsLoadingDocuments(false);
+      }
+    };
+    
+    fetchDocuments();
+  }, []);
+
+  // Helper to convert MIME type to DocumentType
+  const getDocumentTypeFromMime = (mimeType: string, filename: string): DocumentType => {
+    if (mimeType.startsWith('image/')) return 'image';
+    if (mimeType === 'application/pdf') return 'pdf';
+    if (mimeType.includes('spreadsheet') || mimeType.includes('excel') || filename.endsWith('.xlsx') || filename.endsWith('.xls')) return 'excel';
+    if (mimeType === 'text/csv' || filename.endsWith('.csv')) return 'csv';
+    if (mimeType.includes('word') || filename.endsWith('.doc') || filename.endsWith('.docx')) return 'doc';
+    return 'txt';
+  };
 
   // Scroll to bottom of chat when messages change
   useEffect(() => {
@@ -429,14 +470,28 @@ export default function DocumentAssistantPage() {
   };
 
   // Handle document deletion
-  const handleDeleteDocument = (document: ProcessedDocument) => {
-    setDocuments(prev => prev.filter(d => d.id !== document.id));
-    if (selectedDocument?.id === document.id) {
-      setSelectedDocument(null);
+  const handleDeleteDocument = async (document: ProcessedDocument) => {
+    try {
+      // If document has a backend ID, delete from API
+      if (document.documentId) {
+        await assistantsApi.documentDelete(document.documentId);
+      }
+      
+      setDocuments(prev => prev.filter(d => d.id !== document.id));
+      if (selectedDocument?.id === document.id) {
+        setSelectedDocument(null);
+      }
+      toast.success(`${document.name} deleted / 已刪除`);
+    } catch (error) {
+      console.error('Delete error:', error);
+      // Still remove from local state even if API fails
+      setDocuments(prev => prev.filter(d => d.id !== document.id));
+      if (selectedDocument?.id === document.id) {
+        setSelectedDocument(null);
+      }
+      toast.success(`${document.name} deleted locally / 已從本地刪除`);
     }
-    toast.success(`${document.name} deleted / 已刪除`);
   };
-
   // Handle creating a new folder
   const handleCreateFolder = () => {
     const newFolder = {

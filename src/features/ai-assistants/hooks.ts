@@ -358,6 +358,38 @@ export function useAIReprioritize() {
   });
 }
 
+export function useAISchedule() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (options?: {
+      available_hours_per_day?: number;
+    }) => plannerApi.aiSchedule(options),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
+    },
+  });
+}
+
+export function useCreateTasksFromEmail() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (email_id: string) => plannerApi.fromEmail(email_id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
+    },
+  });
+}
+
+export function useCreateTasksFromEvent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (event_id: string) => plannerApi.fromEvent(event_id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['planner-tasks'] });
+    },
+  });
+}
+
 // =================================================================
 // Brainstorming Assistant Hooks
 // =================================================================

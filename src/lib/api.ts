@@ -477,6 +477,29 @@ export const assistantsApi = {
   documentProcess: (formData: FormData) => api.upload('/api/v1/document-assistant/process/', formData),
   documentQuery: (documentId: string, query: string) => 
     api.post('/api/v1/document-assistant/query/', { document_id: documentId, query }),
+  documentList: (params?: { search?: string; document_type?: string; page?: number; page_size?: number }) => 
+    api.get<{
+      count: number;
+      next: string | null;
+      previous: string | null;
+      results: Array<{
+        id: string;
+        title: string;
+        original_filename: string;
+        document_type: string;
+        file_size: number;
+        mime_type: string;
+        is_ocr_processed: boolean;
+        ai_summary?: string;
+        created_at: string;
+      }>;
+    }>('/api/v1/document-assistant/documents/', { params }),
+  documentDelete: (documentId: string) => api.delete(`/api/v1/document-assistant/documents/${documentId}/`),
+  documentStats: () => api.get<{
+    total: number;
+    ocr_processed: number;
+    by_type: Record<string, number>;
+  }>('/api/v1/document-assistant/documents/stats/'),
   
   // 財務助手
   analyzeReceipt: (formData: FormData) => api.upload('/api/v1/finance-assistant/analyze/', formData),

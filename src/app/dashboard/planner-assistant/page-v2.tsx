@@ -69,6 +69,7 @@ import {
 import { plannerApi } from '@/features/ai-assistants/services';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/lib/i18n/provider';
+import { PlannerAIPanel } from '@/components/planner-ai-panel';
 
 interface ChatMessage {
   id: string;
@@ -642,6 +643,12 @@ export default function PlannerAssistantPageV2() {
 
   return (
     <div className="flex flex-1 flex-col p-6 gap-6">
+      {/* AI Panel at the top */}
+      <PlannerAIPanel 
+        onTasksCreated={() => refetchTasks()}
+        onReprioritized={() => refetchTasks()}
+      />
+
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
