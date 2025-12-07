@@ -198,8 +198,13 @@ export default function UnrecognizedReceiptsPage() {
     
     reclassifyMutation.mutate({
       receiptId: selectedReceipt.id,
-      category: classificationData.category as string,
-      notes: `Vendor: ${classificationData.vendor_name}, Date: ${classificationData.receipt_date}, Amount: ${classificationData.total_amount}`,
+      data: {
+        vendor_name: classificationData.vendor_name || undefined,
+        receipt_date: classificationData.receipt_date || undefined,
+        total_amount: classificationData.total_amount ? parseFloat(classificationData.total_amount) : undefined,
+        category: classificationData.category || undefined,
+        new_status: classificationData.new_status,
+      },
     }, {
       onSuccess: () => {
         setIsClassifyDialogOpen(false);
@@ -217,7 +222,7 @@ export default function UnrecognizedReceiptsPage() {
     
     batchReclassifyMutation.mutate({
       receiptIds: selectedIds,
-      category: 'PENDING_REVIEW',
+      newStatus: 'PENDING_REVIEW',
       notes: 'Moved from unrecognized list for manual review',
     }, {
       onSuccess: () => {

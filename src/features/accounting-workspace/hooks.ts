@@ -676,13 +676,17 @@ export function useReclassifyReceipt() {
   return useMutation({
     mutationFn: ({
       receiptId,
-      category,
-      notes,
+      data,
     }: {
       receiptId: string;
-      category: string;
-      notes?: string;
-    }) => unrecognizedApi.reclassify(receiptId, { category, notes }),
+      data: {
+        vendor_name?: string;
+        receipt_date?: string;
+        total_amount?: number;
+        category?: string;
+        new_status?: string;
+      };
+    }) => unrecognizedApi.reclassify(receiptId, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: unrecognizedKeys.all });
       toast.success('Receipt reclassified successfully / 收據已重新分類');
@@ -699,13 +703,13 @@ export function useBatchReclassify() {
   return useMutation({
     mutationFn: ({
       receiptIds,
-      category,
+      newStatus,
       notes,
     }: {
       receiptIds: string[];
-      category: string;
+      newStatus: string;
       notes?: string;
-    }) => unrecognizedApi.batchReclassify(receiptIds, category, notes),
+    }) => unrecognizedApi.batchReclassify(receiptIds, newStatus, notes),
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: unrecognizedKeys.all });
       toast.success(`${variables.receiptIds.length} receipts reclassified / 已重新分類 ${variables.receiptIds.length} 張收據`);
