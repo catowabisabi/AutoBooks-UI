@@ -311,6 +311,12 @@ export const SETTINGS_MENU_ITEMS: MenuItem[] = [
     icon: '⚙️'
   },
   {
+    id: 'chart-of-accounts',
+    label: 'Chart of Accounts / 會計項目表',
+    href: '/dashboard/settings/chart-of-accounts',
+    icon: '📊'
+  },
+  {
     id: 'currencies',
     label: 'Currencies / 貨幣',
     href: '/dashboard/settings/currencies',

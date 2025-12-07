@@ -17,7 +17,17 @@ import {
   ScatterChart,
   Scatter,
   CartesianGrid,
-  Legend
+  Legend,
+  RadarChart,
+  PolarGrid,
+  PolarAngleAxis,
+  PolarRadiusAxis,
+  Radar,
+  Treemap,
+  FunnelChart,
+  Funnel,
+  LabelList,
+  ComposedChart
 } from 'recharts';
 import {
   Table,
@@ -30,7 +40,7 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface ChartRendererProps {
-  type: 'bar' | 'area' | 'pie' | 'scatter' | 'table' | 'line';
+  type: 'bar' | 'area' | 'pie' | 'scatter' | 'table' | 'line' | 'radar' | 'treemap' | 'funnel' | 'composed' | 'stacked-bar' | 'donut';
   data: any[];
   title: string;
   description?: string;
@@ -38,6 +48,7 @@ interface ChartRendererProps {
   yKey?: string;
   labelKey?: string;
   valueKey?: string;
+  keys?: string[]; // For multi-series charts
 }
 
 const COLORS = [
@@ -59,7 +70,8 @@ export function ChartRenderer({
   xKey = 'x',
   yKey = 'y',
   labelKey = 'label',
-  valueKey = 'value'
+  valueKey = 'value',
+  keys = []
 }: ChartRendererProps) {
   if (!data || data.length === 0) {
     return (
@@ -215,6 +227,170 @@ export function ChartRenderer({
           ))}
         </Pie>
       </PieChart>
+    );
+  }
+
+  // Donut chart (pie with inner radius)
+  if (type === 'donut') {
+    chartElement = (
+      <PieChart>
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        <Legend />
+        <Pie
+          data={data}
+          dataKey={valueKey}
+          nameKey={labelKey}
+          cx='50%'
+          cy='50%'
+          innerRadius={40}
+          outerRadius={70}
+          fill='#8884d8'
+          paddingAngle={2}
+          label={({ name, percent }) => `${(percent * 100).toFixed(0)}%`}
+          labelLine={false}
+        >
+          {data.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Pie>
+      </PieChart>
+    );
+  }
+
+  // Radar chart
+  if (type === 'radar') {
+    const radarKeys = keys.length > 0 ? keys : [yKey];
+    chartElement = (
+      <RadarChart cx='50%' cy='50%' outerRadius='70%' data={data}>
+        <PolarGrid />
+        <PolarAngleAxis dataKey={labelKey} tick={{ fontSize: 11 }} />
+        <PolarRadiusAxis tick={{ fontSize: 10 }} />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        <Legend />
+        {radarKeys.map((key, index) => (
+          <Radar
+            key={key}
+            name={key}
+            dataKey={key}
+            stroke={COLORS[index % COLORS.length]}
+            fill={COLORS[index % COLORS.length]}
+            fillOpacity={0.3}
+          />
+        ))}
+      </RadarChart>
+    );
+  }
+
+  // Treemap chart
+  if (type === 'treemap') {
+    chartElement = (
+      <Treemap
+        data={data}
+        dataKey={valueKey}
+        aspectRatio={4 / 3}
+        stroke='hsl(var(--background))'
+        fill='#8884d8'
+      >
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        {data.map((_, index) => (
+          <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+        ))}
+      </Treemap>
+    );
+  }
+
+  // Funnel chart
+  if (type === 'funnel') {
+    chartElement = (
+      <FunnelChart>
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        <Funnel
+          dataKey={valueKey}
+          data={data}
+          isAnimationActive
+        >
+          <LabelList 
+            position='center' 
+            fill='#fff' 
+            stroke='none' 
+            dataKey={labelKey}
+            fontSize={11}
+          />
+          {data.map((_, index) => (
+            <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
+          ))}
+        </Funnel>
+      </FunnelChart>
+    );
+  }
+
+  // Stacked bar chart
+  if (type === 'stacked-bar') {
+    const stackKeys = keys.length > 0 ? keys : [yKey];
+    chartElement = (
+      <BarChart data={data}>
+        <CartesianGrid strokeDasharray='3 3' opacity={0.3} />
+        <XAxis dataKey={xKey} tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        <Legend />
+        {stackKeys.map((key, index) => (
+          <Bar
+            key={key}
+            dataKey={key}
+            stackId='stack'
+            fill={COLORS[index % COLORS.length]}
+            radius={index === stackKeys.length - 1 ? [4, 4, 0, 0] : [0, 0, 0, 0]}
+          />
+        ))}
+      </BarChart>
+    );
+  }
+
+  // Composed chart (line + bar)
+  if (type === 'composed') {
+    const barKey = keys[0] || yKey;
+    const lineKey = keys[1] || yKey;
+    chartElement = (
+      <ComposedChart data={data}>
+        <CartesianGrid strokeDasharray='3 3' opacity={0.3} />
+        <XAxis dataKey={xKey} tick={{ fontSize: 12 }} />
+        <YAxis tick={{ fontSize: 12 }} />
+        <Tooltip 
+          contentStyle={{ 
+            backgroundColor: 'hsl(var(--background))', 
+            border: '1px solid hsl(var(--border))' 
+          }} 
+        />
+        <Legend />
+        <Bar dataKey={barKey} fill='#8884d8' radius={[4, 4, 0, 0]} />
+        <Line type='monotone' dataKey={lineKey} stroke='#ff7300' strokeWidth={2} />
+      </ComposedChart>
     );
   }
 

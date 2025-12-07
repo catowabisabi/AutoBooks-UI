@@ -393,6 +393,7 @@ export const accountingApi = {
   getChartOfAccounts: () => api.get('/api/v1/accounting/accounts/chart_of_accounts/'),
   createAccount: (data: object) => api.post('/api/v1/accounting/accounts/', data),
   updateAccount: (id: number, data: object) => api.patch(`/api/v1/accounting/accounts/${id}/`, data),
+  deleteAccount: (id: number) => api.delete(`/api/v1/accounting/accounts/${id}/`),
   
   // 日記帳
   getJournalEntries: () => api.get('/api/v1/accounting/journal-entries/'),

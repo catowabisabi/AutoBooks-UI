@@ -5,7 +5,7 @@ export interface AnalystQueryPayload {
 }
 
 export interface RechartsResponse {
-  type: 'bar' | 'scatter' | 'line' | 'pie' | 'table' | 'text' | 'invalid';
+  type: 'bar' | 'scatter' | 'line' | 'pie' | 'table' | 'text' | 'invalid' | 'area';
   title?: string;
   data?: any[];
   xKey?: string;
@@ -13,6 +13,70 @@ export interface RechartsResponse {
   labelKey?: string;
   valueKey?: string;
   message?: string;
+}
+
+// ============================================================================
+// DATA SIDEBAR INTERFACES
+// ============================================================================
+
+export interface Customer {
+  id: string;
+  name: string;
+  email: string;
+  company?: string;
+  totalOrders: number;
+  totalSpent: number;
+}
+
+export interface Product {
+  id: string;
+  name: string;
+  sku: string;
+  category: string;
+  price: number;
+  stock: number;
+}
+
+export interface Order {
+  id: string;
+  orderNumber: string;
+  customerName: string;
+  date: string;
+  total: number;
+  status: 'pending' | 'processing' | 'completed' | 'cancelled';
+}
+
+export interface Category {
+  id: string;
+  name: string;
+  productCount: number;
+  totalRevenue: number;
+}
+
+// ============================================================================
+// DOCUMENT/RAG INTERFACES
+// ============================================================================
+
+export interface Document {
+  id: string;
+  original_filename: string;
+  file: string;
+  uploaded_at: string;
+  processed: boolean;
+  ocr_text?: string;
+  extracted_data?: any;
+  translated_text?: string;
+  language: string;
+}
+
+export interface VisualizationSuggestion {
+  type: string;
+  title: string;
+  xKey?: string;
+  yKey?: string;
+  labelKey?: string;
+  valueKey?: string;
+  confidence: number;
 }
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
@@ -231,5 +295,350 @@ export async function startAnalystAssistant(): Promise<{ status: string; message
       },
       isDemo: true
     };
+  }
+}
+
+// ============================================================================
+// DATA SIDEBAR API FUNCTIONS
+// ============================================================================
+
+export async function fetchCustomers(): Promise<Customer[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/accounting/contacts/?contact_type=CUSTOMER`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.warn('Customers API returned non-OK status:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    const contacts = data.results || data || [];
+    if (!Array.isArray(contacts)) return [];
+    
+    return contacts.map((contact: any) => ({
+      id: contact.id,
+      name: contact.contact_name || contact.company_name,
+      email: contact.email || '',
+      company: contact.company_name,
+      totalOrders: contact.total_invoices || 0,
+      totalSpent: parseFloat(contact.total_spent || '0')
+    }));
+  } catch (error) {
+    console.warn('Error fetching customers (using demo data):', error);
+    return [];
+  }
+}
+
+export async function fetchProducts(): Promise<Product[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/coredata/items/?item_type=PRODUCT`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.warn('Products API returned non-OK status:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    const items = data.results || data || [];
+    if (!Array.isArray(items)) return [];
+    
+    return items.map((item: any) => ({
+      id: item.id,
+      name: item.name,
+      sku: item.sku || item.code || '',
+      category: item.category?.name || item.category || 'Uncategorized',
+      price: parseFloat(item.sale_price || item.price || '0'),
+      stock: item.quantity_on_hand || 0
+    }));
+  } catch (error) {
+    console.warn('Error fetching products (using demo data):', error);
+    return [];
+  }
+}
+
+export async function fetchOrders(): Promise<Order[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/accounting/invoices/?invoice_type=SALES&ordering=-issue_date`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.warn('Orders API returned non-OK status:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    const invoices = data.results || data || [];
+    if (!Array.isArray(invoices)) return [];
+    
+    return invoices.map((invoice: any) => ({
+      id: invoice.id,
+      orderNumber: invoice.invoice_number,
+      customerName: invoice.contact?.company_name || invoice.contact?.contact_name || 'Unknown',
+      date: invoice.issue_date,
+      total: parseFloat(invoice.total || '0'),
+      status: mapInvoiceStatus(invoice.status)
+    }));
+  } catch (error) {
+    console.warn('Error fetching orders (using demo data):', error);
+    return [];
+  }
+}
+
+function mapInvoiceStatus(status: string): Order['status'] {
+  const statusMap: Record<string, Order['status']> = {
+    'DRAFT': 'pending',
+    'SENT': 'processing',
+    'VIEWED': 'processing',
+    'PAID': 'completed',
+    'PARTIALLY_PAID': 'processing',
+    'OVERDUE': 'pending',
+    'VOID': 'cancelled',
+    'CANCELLED': 'cancelled'
+  };
+  return statusMap[status] || 'pending';
+}
+
+export async function fetchCategories(): Promise<Category[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/coredata/categories/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) {
+      console.warn('Categories API returned non-OK status:', response.status);
+      return [];
+    }
+    
+    const data = await response.json();
+    const categories = data.results || data || [];
+    if (!Array.isArray(categories)) return [];
+    
+    return categories.map((cat: any) => ({
+      id: cat.id,
+      name: cat.name,
+      productCount: cat.item_count || 0,
+      totalRevenue: parseFloat(cat.total_revenue || '0')
+    }));
+  } catch (error) {
+    console.warn('Error fetching categories (using demo data):', error);
+    return [];
+  }
+}
+
+// ============================================================================
+// DOCUMENT/RAG API FUNCTIONS
+// ============================================================================
+
+export async function fetchDocuments(): Promise<Document[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/documents/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to fetch documents');
+    
+    const data = await response.json();
+    return (data.results || data);
+  } catch (error) {
+    console.error('Error fetching documents:', error);
+    return [];
+  }
+}
+
+export async function uploadDocument(file: File): Promise<{ id: string; filename: string }> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/documents/upload/`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+      },
+      body: formData
+    }
+  );
+  
+  if (!response.ok) throw new Error('Failed to upload document');
+  
+  return response.json();
+}
+
+export async function getDocumentVisualization(documentId: string): Promise<{
+  data: any[];
+  suggestions: VisualizationSuggestion[];
+}> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/ai-assistants/visualization/document/${documentId}/`,
+      {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        }
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to get visualization');
+    
+    const data = await response.json();
+    return {
+      data: data.data || [],
+      suggestions: data.suggested_charts || []
+    };
+  } catch (error) {
+    console.error('Error getting visualization:', error);
+    return { data: [], suggestions: [] };
+  }
+}
+
+// ============================================================================
+// VISUALIZATION API FUNCTIONS
+// ============================================================================
+
+export async function generateChart(
+  data: any[],
+  chartType: string,
+  options?: {
+    title?: string;
+    xKey?: string;
+    yKey?: string;
+    labelKey?: string;
+    valueKey?: string;
+  }
+): Promise<RechartsResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/ai-assistants/visualization/generate/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        },
+        body: JSON.stringify({
+          data,
+          type: chartType,
+          ...options
+        })
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to generate chart');
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error generating chart:', error);
+    throw error;
+  }
+}
+
+export async function generateChartWithAI(
+  data: any[],
+  prompt: string,
+  language: string = 'en'
+): Promise<RechartsResponse> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/ai-assistants/visualization/generate-ai/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        },
+        body: JSON.stringify({ data, prompt, language })
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to generate chart with AI');
+    
+    return response.json();
+  } catch (error) {
+    console.error('Error generating chart with AI:', error);
+    throw error;
+  }
+}
+
+export async function uploadFileForVisualization(file: File): Promise<{
+  data: any[];
+  analysis: any;
+  suggestions: VisualizationSuggestion[];
+}> {
+  const formData = new FormData();
+  formData.append('file', file);
+  
+  const response = await fetch(
+    `${API_BASE_URL}/api/v1/ai-assistants/visualization/upload/`,
+    {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+      },
+      body: formData
+    }
+  );
+  
+  if (!response.ok) throw new Error('Failed to upload file for visualization');
+  
+  const result = await response.json();
+  return {
+    data: result.data || [],
+    analysis: result.analysis || {},
+    suggestions: result.suggested_charts || []
+  };
+}
+
+export async function generateDashboardCharts(data: any[], maxCharts: number = 4): Promise<RechartsResponse[]> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/v1/ai-assistants/visualization/dashboard/`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token') || ''}`
+        },
+        body: JSON.stringify({ data, max_charts: maxCharts })
+      }
+    );
+    
+    if (!response.ok) throw new Error('Failed to generate dashboard charts');
+    
+    const result = await response.json();
+    return result.charts || [];
+  } catch (error) {
+    console.error('Error generating dashboard charts:', error);
+    return [];
   }
 }

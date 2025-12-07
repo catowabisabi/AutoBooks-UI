@@ -1342,6 +1342,68 @@
       "marketing": "Marketing",
       "custom": "Custom Dashboard",
       "newDashboard": "New Dashboard"
+    },
+    "data": {
+      "title": "Data Overview",
+      "search": "Search...",
+      "customers": "Customers",
+      "products": "Products",
+      "orders": "Orders",
+      "categories": "Categories",
+      "stock": "Stock",
+      "revenue": "Revenue",
+      "statusCompleted": "Completed",
+      "statusProcessing": "Processing",
+      "statusPending": "Pending",
+      "statusCancelled": "Cancelled"
+    },
+    "rag": {
+      "title": "RAG Documents",
+      "description": "Upload documents for AI context",
+      "dropzone": "Drop files here or click to upload",
+      "supportedFormats": "Supports PDF, DOC, TXT, CSV",
+      "noDocuments": "No documents uploaded",
+      "uploadFirst": "Upload documents to enhance AI responses"
+    },
+    "charts": {
+      "types": {
+        "bar": "Bar Chart",
+        "line": "Line Chart",
+        "area": "Area Chart",
+        "pie": "Pie Chart",
+        "scatter": "Scatter Plot",
+        "table": "Data Table"
+      },
+      "labels": {
+        "month": "Month",
+        "sales": "Sales",
+        "revenue": "Revenue",
+        "quantity": "Quantity",
+        "value": "Value",
+        "category": "Category",
+        "product": "Product",
+        "customer": "Customer",
+        "date": "Date",
+        "amount": "Amount"
+      },
+      "titles": {
+        "monthlySales": "Monthly Sales",
+        "revenueTrend": "Revenue Trend",
+        "salesByCategory": "Sales by Category",
+        "topProducts": "Top Products",
+        "customerAnalysis": "Customer Analysis",
+        "quarterlyRevenue": "Quarterly Revenue"
+      },
+      "actions": {
+        "generate": "Generate Chart",
+        "export": "Export",
+        "refresh": "Refresh",
+        "fullscreen": "Fullscreen",
+        "settings": "Settings"
+      },
+      "noData": "No data available",
+      "loading": "Loading chart...",
+      "error": "Error loading chart"
     }
   },
   "dashboard": {

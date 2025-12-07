@@ -1342,6 +1342,68 @@
       "marketing": "行銷",
       "custom": "自訂儀表板",
       "newDashboard": "新儀表板"
+    },
+    "data": {
+      "title": "數據概覽",
+      "search": "搜尋...",
+      "customers": "客戶",
+      "products": "產品",
+      "orders": "訂單",
+      "categories": "類別",
+      "stock": "庫存",
+      "revenue": "營收",
+      "statusCompleted": "已完成",
+      "statusProcessing": "處理中",
+      "statusPending": "待處理",
+      "statusCancelled": "已取消"
+    },
+    "rag": {
+      "title": "RAG 文件",
+      "description": "上傳文件以提供 AI 背景資料",
+      "dropzone": "拖放文件或點擊上傳",
+      "supportedFormats": "支援 PDF、DOC、TXT、CSV",
+      "noDocuments": "尚未上傳文件",
+      "uploadFirst": "上傳文件以增強 AI 回應"
+    },
+    "charts": {
+      "types": {
+        "bar": "長條圖",
+        "line": "折線圖",
+        "area": "面積圖",
+        "pie": "圓餅圖",
+        "scatter": "散佈圖",
+        "table": "資料表"
+      },
+      "labels": {
+        "month": "月份",
+        "sales": "銷售額",
+        "revenue": "營收",
+        "quantity": "數量",
+        "value": "數值",
+        "category": "類別",
+        "product": "產品",
+        "customer": "客戶",
+        "date": "日期",
+        "amount": "金額"
+      },
+      "titles": {
+        "monthlySales": "月度銷售",
+        "revenueTrend": "營收趨勢",
+        "salesByCategory": "各類別銷售",
+        "topProducts": "熱門產品",
+        "customerAnalysis": "客戶分析",
+        "quarterlyRevenue": "季度營收"
+      },
+      "actions": {
+        "generate": "生成圖表",
+        "export": "匯出",
+        "refresh": "刷新",
+        "fullscreen": "全螢幕",
+        "settings": "設定"
+      },
+      "noData": "無可用資料",
+      "loading": "載入圖表中...",
+      "error": "載入圖表時發生錯誤"
     }
   },
   "dashboard": {

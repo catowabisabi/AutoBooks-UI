@@ -1,29 +1,39 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { IconShare, IconSend, IconLoader2, IconDatabase, IconRefresh } from '@tabler/icons-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetDescription
-} from '@/components/ui/sheet';
+  IconShare,
+  IconLoader2,
+  IconDatabase,
+  IconRefresh,
+  IconPlus,
+  IconChevronLeft,
+  IconChevronRight,
+  IconBrain,
+  IconMessageCircle,
+  IconMaximize,
+  IconCamera,
+  IconLayoutDashboard,
+  IconTable
+} from '@tabler/icons-react';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { sendAnalystQuery, startAnalystAssistant } from './services';
 import { useTranslation } from '@/lib/i18n/provider';
+import { cn } from '@/lib/utils';
 
-import DashboardSidebar from './_components/DashboardSidebar';
 import DashboardGrid from './_components/DashboardGrid';
-import ChatMessage from './_components/ChatMessage';
-import ChatToggleButton from './_components/ChatToggleButton';
+import RagDocumentPanel from './_components/RagDocumentPanel';
+import AIChatPanel from './_components/AIChatPanel';
+import BusinessDataView from './_components/BusinessDataView';
 
 // Types
 type WidgetType = 'text' | 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
@@ -61,8 +71,14 @@ interface WidgetData {
   valueKey?: string;
 }
 
+interface DashboardItem {
+  id: string;
+  nameKey?: string;
+  name?: string;
+}
+
 // Initial dashboards
-const initialDashboards = [
+const initialDashboards: DashboardItem[] = [
   { id: 'sales', nameKey: 'analyst.dashboards.salesAnalytics' },
   { id: 'finance', nameKey: 'analyst.dashboards.finance' },
   { id: 'marketing', nameKey: 'analyst.dashboards.marketing' },
@@ -94,6 +110,9 @@ const samplePromptKeys = [
   'analyst.prompts.discountAnalysis',
 ];
 
+// Max visible dashboards before scroll
+const MAX_VISIBLE_DASHBOARDS = 4;
+
 export default function AnalystAssistantPage() {
   const { t } = useTranslation();
   
@@ -106,21 +125,22 @@ export default function AnalystAssistantPage() {
     }
   ];
 
-  const [dashboards, setDashboards] = useState(initialDashboards);
+  const [dashboards, setDashboards] = useState<DashboardItem[]>(initialDashboards);
   const [widgets, setWidgets] = useState(initialWidgets);
   const [messages, setMessages] = useState<Message[]>([]);
   const [currentDashboard, setCurrentDashboard] = useState('sales');
-  const [newMessage, setNewMessage] = useState('');
   const [activeWidget, setActiveWidget] = useState<WidgetData | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
   const [dataInfo, setDataInfo] = useState<{ rows?: Record<string, number>; message?: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const [tabScrollIndex, setTabScrollIndex] = useState(0);
+  const [viewMode, setViewMode] = useState<'dashboard' | 'data'>('dashboard');
+  const [isFullscreen, setIsFullscreen] = useState(false);
+  const tabContainerRef = useRef<HTMLDivElement>(null);
+  const dashboardRef = useRef<HTMLDivElement>(null);
 
-  const [isChatOpen, setIsChatOpen] = useState(true); // Default open
-  
   // Initialize welcome messages
   useEffect(() => {
     setMessages(getWelcomeMessages());
@@ -159,16 +179,25 @@ export default function AnalystAssistantPage() {
     loadData();
   }, []);
 
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
-
   // Filter widgets for the current dashboard
   const currentWidgets = widgets.filter(
     (widget) => widget.dashboardId === currentDashboard
   );
 
-  const handleSendMessage = async () => {
+  // Tab navigation logic
+  const visibleDashboards = dashboards.slice(tabScrollIndex, tabScrollIndex + MAX_VISIBLE_DASHBOARDS);
+  const canScrollLeft = tabScrollIndex > 0;
+  const canScrollRight = tabScrollIndex + MAX_VISIBLE_DASHBOARDS < dashboards.length;
+
+  const scrollTabsLeft = () => {
+    setTabScrollIndex(Math.max(0, tabScrollIndex - 1));
+  };
+
+  const scrollTabsRight = () => {
+    setTabScrollIndex(Math.min(dashboards.length - MAX_VISIBLE_DASHBOARDS, tabScrollIndex + 1));
+  };
+
+  const handleSendMessage = async (newMessage: string) => {
     if (!newMessage.trim() || isLoading) return;
 
     const userMessage: Message = {
@@ -186,13 +215,14 @@ export default function AnalystAssistantPage() {
     };
 
     setMessages(prev => [...prev, userMessage, loadingMessage]);
-    const currentQuery = newMessage;
-    setNewMessage('');
     setIsLoading(true);
 
     try {
       // Call the API with the user's query
-      const response = await sendAnalystQuery({ query: currentQuery });
+      const response = await sendAnalystQuery({ query: newMessage });
+      
+      // Debug: log the response
+      console.log('Analyst API response:', response);
 
       // Remove loading message and add real response
       setMessages(prev => {
@@ -204,11 +234,11 @@ export default function AnalystAssistantPage() {
           role: 'assistant',
           content: response.type === 'invalid' 
             ? (response.message || t('analyst.couldntProcess'))
-            : (response.message || `${t('analyst.analysisFor')} "${currentQuery}":`),
-          chart: response.type !== 'invalid' && response.type !== 'text' && response.data
+            : (response.message || `${t('analyst.analysisFor')} "${newMessage}":`),
+          chart: response.type !== 'invalid' && response.type !== 'text' && response.type !== 'error' && response.data
             ? {
                 type: response.type as WidgetType,
-                title: response.title || `Analysis: ${currentQuery}`,
+                title: response.title || `Analysis: ${newMessage}`,
                 description: t('analyst.generatedFromQuery'),
                 data: response.data,
                 xKey: response.xKey,
@@ -218,6 +248,9 @@ export default function AnalystAssistantPage() {
               }
             : undefined
         };
+        
+        // Debug: log the created message
+        console.log('Created AI response message:', aiResponse);
 
         return [...filtered, aiResponse];
       });
@@ -254,7 +287,17 @@ export default function AnalystAssistantPage() {
         }
       | undefined
   ) => {
-    if (!chart) return;
+    if (!chart) {
+      console.warn('handleAddToDashboard: No chart provided');
+      return;
+    }
+    
+    if (!chart.data || chart.data.length === 0) {
+      console.warn('handleAddToDashboard: Chart has no data', chart);
+      // Still add it but show warning
+    }
+
+    console.log('Adding chart to dashboard:', chart);
 
     const newWidget: WidgetData = {
       id: `widget-${Date.now()}`,
@@ -263,7 +306,7 @@ export default function AnalystAssistantPage() {
       title: chart.title,
       description: chart.description,
       size: { width: 2, height: 1 },
-      data: chart.data,
+      data: chart.data || [],
       xKey: chart.xKey,
       yKey: chart.yKey,
       labelKey: chart.labelKey,
@@ -321,30 +364,14 @@ export default function AnalystAssistantPage() {
 
   return (
     <PageContainer>
-      <div className='flex h-[calc(100vh-10rem)] w-full'>
-        {/* Dashboard List Sidebar */}
-        <DashboardSidebar
-          dashboards={dashboards.map(d => ({ ...d, name: d.nameKey ? t(d.nameKey) : d.name || d.id }))}
-          currentDashboard={currentDashboard}
-          onDashboardSelect={setCurrentDashboard}
-          onCreateDashboard={handleCreateDashboard}
-          onRenameDashboard={(id, newName) => {
-            setDashboards(
-              dashboards.map((d) => (d.id === id ? { ...d, name: newName, nameKey: undefined } : d))
-            );
-          }}
-        />
-
-        {/* Main Dashboard Area */}
-        <div className='flex flex-1 flex-col overflow-hidden'>
-          <div className='mb-4 flex items-center justify-between'>
+      <div className='flex h-[calc(100vh-6rem)] w-full gap-4'>
+        {/* Center Section - Dashboard Area (flex-1 takes remaining space) */}
+        <div className='flex flex-1 flex-col overflow-hidden min-w-0' ref={dashboardRef}>
+          {/* Header with Dashboard Tabs */}
+          <div className='mb-3 flex items-center justify-between'>
             <div className='flex items-center gap-3'>
-              <h2 className='text-2xl font-bold tracking-tight'>
-                {(() => {
-                  const dashboard = dashboards.find((d) => d.id === currentDashboard);
-                  if (!dashboard) return 'Dashboard';
-                  return dashboard.nameKey ? t(dashboard.nameKey) : dashboard.name || dashboard.id;
-                })()}
+              <h2 className='text-xl font-bold tracking-tight'>
+                🤖 {t('analyst.title')}
               </h2>
               {dataLoaded ? (
                 isDemo ? (
@@ -365,135 +392,200 @@ export default function AnalystAssistantPage() {
                 </Badge>
               )}
             </div>
-            <div className='flex items-center space-x-2'>
+            <div className='flex items-center space-x-3'>
+              {/* View Mode Switch */}
+              <div className='flex items-center space-x-2 border rounded-lg px-3 py-1.5 bg-muted/30'>
+                <IconLayoutDashboard className={cn('h-4 w-4', viewMode === 'dashboard' ? 'text-primary' : 'text-muted-foreground')} />
+                <Switch
+                  id='view-mode'
+                  checked={viewMode === 'data'}
+                  onCheckedChange={(checked) => setViewMode(checked ? 'data' : 'dashboard')}
+                />
+                <IconTable className={cn('h-4 w-4', viewMode === 'data' ? 'text-primary' : 'text-muted-foreground')} />
+              </div>
+              
               <Button variant='outline' size='sm' onClick={loadData}>
                 <IconRefresh className='mr-2 h-4 w-4' />
                 {t('analyst.reloadData')}
               </Button>
-              <Button variant='outline'>
+              <Button 
+                variant='outline' 
+                size='icon'
+                className='h-8 w-8'
+                onClick={() => {
+                  if (dashboardRef.current) {
+                    if (!document.fullscreenElement) {
+                      dashboardRef.current.requestFullscreen();
+                      setIsFullscreen(true);
+                    } else {
+                      document.exitFullscreen();
+                      setIsFullscreen(false);
+                    }
+                  }
+                }}
+                title='全屏顯示'
+              >
+                <IconMaximize className='h-4 w-4' />
+              </Button>
+              <Button 
+                variant='outline' 
+                size='icon'
+                className='h-8 w-8'
+                onClick={async () => {
+                  if (dashboardRef.current) {
+                    try {
+                      const html2canvas = (await import('html2canvas')).default;
+                      const canvas = await html2canvas(dashboardRef.current);
+                      const link = document.createElement('a');
+                      link.download = `dashboard-${new Date().toISOString().slice(0, 10)}.png`;
+                      link.href = canvas.toDataURL();
+                      link.click();
+                    } catch (err) {
+                      console.error('Screenshot failed:', err);
+                    }
+                  }
+                }}
+                title='截圖'
+              >
+                <IconCamera className='h-4 w-4' />
+              </Button>
+              <Button variant='outline' size='sm'>
                 <IconShare className='mr-2 h-4 w-4' />
                 {t('analyst.share')}
               </Button>
             </div>
           </div>
 
+          {/* Dashboard Tabs - With arrow navigation */}
+          <div className='mb-3 flex items-center gap-1 border-b pb-2'>
+            {/* Left Arrow */}
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 shrink-0'
+              onClick={scrollTabsLeft}
+              disabled={!canScrollLeft}
+            >
+              <IconChevronLeft className='h-4 w-4' />
+            </Button>
+
+            {/* Dashboard Tabs */}
+            <div ref={tabContainerRef} className='flex items-center gap-1 flex-1 overflow-hidden'>
+              {visibleDashboards.map((dashboard) => {
+                const name = dashboard.nameKey ? t(dashboard.nameKey) : dashboard.name || dashboard.id;
+                return (
+                  <Button
+                    key={dashboard.id}
+                    variant={currentDashboard === dashboard.id ? 'default' : 'ghost'}
+                    size='sm'
+                    onClick={() => setCurrentDashboard(dashboard.id)}
+                    className={cn(
+                      'text-sm whitespace-nowrap',
+                      currentDashboard === dashboard.id && 'shadow-sm'
+                    )}
+                  >
+                    {name}
+                  </Button>
+                );
+              })}
+            </div>
+
+            {/* Right Arrow */}
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 shrink-0'
+              onClick={scrollTabsRight}
+              disabled={!canScrollRight}
+            >
+              <IconChevronRight className='h-4 w-4' />
+            </Button>
+            
+            {/* Create new dashboard */}
+            <Button
+              variant='ghost'
+              size='icon'
+              className='h-8 w-8 shrink-0'
+              onClick={handleCreateDashboard}
+            >
+              <IconPlus className='h-4 w-4' />
+            </Button>
+          </div>
+
           {/* Error Alert */}
           {error && (
-            <Alert variant='destructive' className='mb-4'>
+            <Alert variant='destructive' className='mb-3'>
               <AlertDescription>{error}</AlertDescription>
             </Alert>
           )}
 
-          {/* Current Dashboard Content */}
+          {/* Dashboard Grid - Takes all available space */}
           <div className='flex-1 overflow-auto'>
-            {currentWidgets.length > 0 ? (
-              <DashboardGrid
-                widgets={currentWidgets}
-                onDelete={handleDeleteWidget}
-                onDragStart={handleDragStart}
-                onDragEnd={handleDragEnd}
-                activeWidget={activeWidget}
-              />
-            ) : (
-              <div className='flex h-full items-center justify-center'>
-                <div className='text-center text-muted-foreground'>
-                  <IconDatabase className='mx-auto h-12 w-12 mb-4 opacity-50' />
-                  <p className='text-lg font-medium'>{t('analyst.noCharts')}</p>
-                  <p className='text-sm'>{t('analyst.askAiCreate')}</p>
-                  <Button className='mt-4' onClick={() => setIsChatOpen(true)}>
-                    {t('analyst.openAiAssistant')}
-                  </Button>
+            {viewMode === 'dashboard' ? (
+              // Dashboard View
+              currentWidgets.length > 0 ? (
+                <DashboardGrid
+                  widgets={currentWidgets}
+                  onDelete={handleDeleteWidget}
+                  onDragStart={handleDragStart}
+                  onDragEnd={handleDragEnd}
+                  activeWidget={activeWidget}
+                />
+              ) : (
+                <div className='flex h-full items-center justify-center border rounded-lg bg-muted/20'>
+                  <div className='text-center text-muted-foreground p-8'>
+                    <IconDatabase className='mx-auto h-12 w-12 mb-4 opacity-50' />
+                    <p className='text-lg font-medium'>{t('analyst.noCharts')}</p>
+                    <p className='text-sm'>{t('analyst.askAiCreate')}</p>
+                  </div>
                 </div>
-              </div>
+              )
+            ) : (
+              // Business Data View
+              <BusinessDataView 
+                onSelectItem={(type, item) => {
+                  console.log('Selected from data view:', type, item);
+                }}
+              />
             )}
           </div>
         </div>
-      </div>
 
-      {/* Chat Button */}
-      <ChatToggleButton onClick={() => setIsChatOpen(true)} />
+        {/* Right Section - Tabbed RAG & AI Chat */}
+        <div className='w-[380px] shrink-0 flex flex-col border-l pl-4 overflow-hidden'>
+          <Tabs defaultValue='chat' className='flex flex-col h-full overflow-hidden'>
+            {/* Tab Header */}
+            <TabsList className='grid w-full grid-cols-2 shrink-0'>
+              <TabsTrigger value='chat' className='gap-1.5'>
+                <IconMessageCircle className='h-4 w-4' />
+                AI 助手
+              </TabsTrigger>
+              <TabsTrigger value='rag' className='gap-1.5'>
+                <IconBrain className='h-4 w-4' />
+                RAG 文件
+              </TabsTrigger>
+            </TabsList>
 
-      {/* Chat Panel (Sheet) */}
-      <Sheet open={isChatOpen} onOpenChange={setIsChatOpen}>
-        <SheetContent
-          side='right'
-          className='flex h-full w-[400px] flex-col p-0 sm:w-[540px]'
-        >
-          <SheetHeader className='border-border shrink-0 border-b p-4'>
-            <div className='flex items-center justify-between'>
-              <div>
-                <SheetTitle className='flex items-center gap-2'>
-                  🤖 {t('analyst.title')}
-                  {isLoading && <IconLoader2 className='h-4 w-4 animate-spin' />}
-                </SheetTitle>
-                <SheetDescription>
-                  {t('analyst.description')}
-                </SheetDescription>
-              </div>
-              {dataLoaded && (
-                <Badge variant='secondary' className='text-xs'>
-                  {t('analyst.dataReady')} ✓
-                </Badge>
-              )}
-            </div>
-          </SheetHeader>
-
-          <ScrollArea className='flex-1 overflow-auto p-4'>
-            <div className='flex flex-col'>
-              {messages.map((message) => (
-                <ChatMessage
-                  key={message.id}
-                  message={message}
-                  onAddToDashboard={handleAddToDashboard}
-                />
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </ScrollArea>
-
-          {/* Sample Prompts Section */}
-          {messages.length <= 2 && (
-            <div className='border-border border-t p-3 bg-muted/30'>
-              <p className='text-xs font-medium text-muted-foreground mb-2'>
-                💡 {t('analyst.samplePrompts')}：
-              </p>
-              <div className='flex flex-wrap gap-1.5 max-h-[120px] overflow-y-auto'>
-                {samplePromptKeys.slice(0, 12).map((promptKey, index) => (
-                  <button
-                    key={index}
-                    onClick={() => setNewMessage(t(promptKey))}
-                    className='text-xs px-2 py-1 rounded-full bg-background border border-border hover:bg-primary/10 hover:border-primary/50 transition-colors text-left'
-                  >
-                    {t(promptKey)}
-                  </button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className='border-border mt-auto shrink-0 border-t p-4'>
-            <div className='flex gap-2'>
-              <Input
-                placeholder={t('analyst.askQuestion')}
-                value={newMessage}
-                onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                disabled={isLoading}
+            {/* AI Chat Tab */}
+            <TabsContent value='chat' className='flex-1 mt-3 overflow-hidden flex flex-col min-h-0'>
+              <AIChatPanel
+                messages={messages}
+                onSendMessage={handleSendMessage}
+                onAddToDashboard={handleAddToDashboard}
+                isLoading={isLoading}
+                dataLoaded={dataLoaded}
+                isDemo={isDemo}
+                suggestedPrompts={samplePromptKeys}
               />
-              <Button onClick={handleSendMessage} size='icon' disabled={isLoading || !newMessage.trim()}>
-                {isLoading ? (
-                  <IconLoader2 className='h-4 w-4 animate-spin' />
-                ) : (
-                  <IconSend className='h-4 w-4' />
-                )}
-              </Button>
-            </div>
-            <p className='text-xs text-muted-foreground mt-2'>
-              {t('analyst.pressEnter')}
-            </p>
-          </div>
-        </SheetContent>
-      </Sheet>
+            </TabsContent>
+
+            {/* RAG Documents Tab */}
+            <TabsContent value='rag' className='flex-1 mt-3 overflow-hidden flex flex-col min-h-0'>
+              <RagDocumentPanel />
+            </TabsContent>
+          </Tabs>
+        </div>
+      </div>
     </PageContainer>
   );
 }

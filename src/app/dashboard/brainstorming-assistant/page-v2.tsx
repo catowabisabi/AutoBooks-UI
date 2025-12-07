@@ -322,80 +322,80 @@ function IdeaCard({
       "transition-all group",
       idea.is_saved && "border-green-500/50 bg-green-50/50 dark:bg-green-950/20"
     )}>
-      <CardContent className="p-3">
-        <div className="flex gap-2">
-          <div className="p-1 rounded-full shrink-0 bg-muted h-fit">
+      <CardContent className="p-2">
+        <div className="flex gap-1.5">
+          <div className="p-0.5 rounded-full shrink-0 bg-muted h-fit">
             <Lightbulb className={cn(
-              "h-3.5 w-3.5",
+              "h-3 w-3",
               idea.is_saved ? "text-green-600" : "text-muted-foreground"
             )} />
           </div>
           
           <div className="flex-1 min-w-0">
-            <p className="text-sm whitespace-pre-wrap">{idea.content}</p>
+            <p className="text-xs whitespace-pre-wrap leading-relaxed">{idea.content}</p>
             
-            <div className="flex items-center justify-between mt-2 pt-2 border-t">
-              <div className="flex items-center gap-1">
+            <div className="flex items-center justify-between mt-1.5 pt-1.5 border-t">
+              <div className="flex items-center gap-0.5">
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                   onClick={() => onRate('up')}
                 >
                   <ThumbsUp className={cn(
-                    "h-3 w-3",
+                    "h-2.5 w-2.5",
                     idea.rating > 0 && "fill-green-500 text-green-500"
                   )} />
                 </Button>
-                <span className="text-xs text-muted-foreground min-w-[20px] text-center">
+                <span className="text-[10px] text-muted-foreground min-w-[16px] text-center">
                   {idea.rating}
                 </span>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                   onClick={() => onRate('down')}
                 >
                   <ThumbsDown className={cn(
-                    "h-3 w-3",
+                    "h-2.5 w-2.5",
                     idea.rating < 0 && "fill-red-500 text-red-500"
                   )} />
                 </Button>
               </div>
               
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-0.5">
                 {idea.category && (
-                  <Badge variant="outline" className="text-[10px] px-1.5 py-0 mr-1">
+                  <Badge variant="outline" className="text-[9px] px-1 py-0 mr-0.5">
                     {idea.category}
                   </Badge>
                 )}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6"
+                  className="h-5 w-5"
                   onClick={handleCopy}
                 >
                   {copied ? (
-                    <Check className="h-3 w-3 text-green-500" />
+                    <Check className="h-2.5 w-2.5 text-green-500" />
                   ) : (
-                    <Copy className="h-3 w-3" />
+                    <Copy className="h-2.5 w-2.5" />
                   )}
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className={cn("h-6 w-6", idea.is_saved && "text-green-600")}
+                  className={cn("h-5 w-5", idea.is_saved && "text-green-600")}
                   onClick={onSave}
                 >
-                  <Save className={cn("h-3 w-3", idea.is_saved && "fill-current")} />
+                  <Save className={cn("h-2.5 w-2.5", idea.is_saved && "fill-current")} />
                 </Button>
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-6 w-6 text-destructive opacity-0 group-hover:opacity-100"
+                  className="h-5 w-5 text-destructive opacity-0 group-hover:opacity-100"
                   onClick={onDelete}
                 >
-                  <Trash2 className="h-3 w-3" />
+                  <Trash2 className="h-2.5 w-2.5" />
                 </Button>
               </div>
             </div>
@@ -1307,7 +1307,7 @@ ${existingIdeas ? `\n已有的點子:\n${existingIdeas}` : ''}
         </div>
 
         {/* Chat Panel */}
-        <div className="w-72 lg:w-80 flex flex-col shrink-0">
+        <div className="w-64 lg:w-72 flex flex-col shrink-0">
           <div className="px-3 py-2 border-b shrink-0">
             <h3 className="text-sm font-medium flex items-center gap-2">
               <MessageSquare className="h-4 w-4" />
