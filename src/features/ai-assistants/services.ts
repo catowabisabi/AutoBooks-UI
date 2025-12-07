@@ -123,6 +123,28 @@ export interface EmailStats {
   by_category: Record<EmailCategory, number>;
 }
 
+export interface EmailAttachment {
+  id: string;
+  filename: string;
+  file: string;
+  content_type: string;
+  size: number;
+  created_at: string;
+}
+
+export interface SyncResult {
+  fetched: number;
+  created: number;
+  updated: number;
+  errors: number;
+}
+
+export interface ConnectionTestResult {
+  success: boolean;
+  message?: string;
+  error?: string;
+}
+
 // =================================================================
 // Email Assistant API
 // =================================================================
@@ -191,6 +213,36 @@ export const emailApi = {
 
   createAccount: (data: Partial<EmailAccount>) => 
     apiClient.post<EmailAccount>('/email-assistant/accounts/', data),
+
+  testSmtp: (accountId: string) =>
+    apiClient.post<ConnectionTestResult>(`/email-assistant/accounts/${accountId}/test_smtp/`),
+
+  testImap: (accountId: string) =>
+    apiClient.post<ConnectionTestResult>(`/email-assistant/accounts/${accountId}/test_imap/`),
+
+  syncAccount: (accountId: string, limit?: number) =>
+    apiClient.post<SyncResult>(`/email-assistant/accounts/${accountId}/sync/`, { limit }),
+
+  // Attachments
+  getAttachments: (emailId: string) =>
+    apiClient.get<EmailAttachment[]>('/email-assistant/attachments/', { params: { email: emailId } }),
+
+  uploadAttachment: (emailId: string, file: File) => {
+    const formData = new FormData();
+    formData.append('email_id', emailId);
+    formData.append('file', file);
+    return apiClient.post<EmailAttachment>('/email-assistant/attachments/upload/', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
+
+  downloadAttachment: (attachmentId: string) =>
+    apiClient.get<Blob>(`/email-assistant/attachments/${attachmentId}/download/`, {
+      responseType: 'blob',
+    }),
+
+  previewAttachment: (attachmentId: string) =>
+    `/api/v1/email-assistant/attachments/${attachmentId}/preview/`,
 
   // Templates
   getTemplates: (category?: EmailCategory) => 

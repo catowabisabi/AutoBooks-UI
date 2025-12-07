@@ -18,6 +18,7 @@ import {
   type EmailAccount,
   type EmailCategory,
 } from '@/features/ai-assistants';
+import { emailApi } from '@/features/ai-assistants/services';
 import {
   ResizablePanelGroup,
   ResizablePanel,
@@ -30,12 +31,17 @@ import {
   SheetTitle,
   SheetDescription
 } from '@/components/ui/sheet';
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from '@/components/ui/collapsible';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Separator } from '@/components/ui/separator';
 import {
@@ -66,6 +72,13 @@ import {
   Heart,
   Building,
   RefreshCw,
+  ChevronDown,
+  ChevronUp,
+  Paperclip,
+  Download,
+  Eye,
+  Bot,
+  X,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { aiApi } from '@/lib/api';
@@ -92,6 +105,21 @@ interface ChatMessage {
   role: 'user' | 'assistant';
   content: string;
   timestamp: string;
+}
+
+interface EmailAttachment {
+  id: string;
+  filename: string;
+  file: string;
+  content_type: string;
+  size: number;
+}
+
+// Format file size
+function formatFileSize(bytes: number): string {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
 // Helper to get initials from email/name
@@ -521,8 +549,11 @@ function EmailDetail({
           <>
             <Separator className="my-4" />
             <div>
-              <h3 className="text-sm font-medium mb-2">Attachments</h3>
-              <p className="text-sm text-muted-foreground">This email has attachments. View full details to download.</p>
+              <h3 className="text-sm font-medium mb-3 flex items-center gap-2">
+                <Paperclip className="h-4 w-4" />
+                Attachments
+              </h3>
+              <AttachmentList emailId={email.id} />
             </div>
           </>
         )}
@@ -531,27 +562,130 @@ function EmailDetail({
   );
 }
 
-// AI Chat Panel Component
+// Attachment List Component
+function AttachmentList({ emailId }: { emailId: string }) {
+  const [attachments, setAttachments] = useState<EmailAttachment[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchAttachments = async () => {
+      try {
+        const data = await emailApi.getAttachments(emailId);
+        setAttachments(Array.isArray(data) ? data : []);
+      } catch (error) {
+        console.error('Failed to fetch attachments:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchAttachments();
+  }, [emailId]);
+
+  if (loading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-10 w-full" />
+        <Skeleton className="h-10 w-full" />
+      </div>
+    );
+  }
+
+  if (attachments.length === 0) {
+    return (
+      <p className="text-sm text-muted-foreground">No attachments available</p>
+    );
+  }
+
+  const handleDownload = async (attachment: EmailAttachment) => {
+    try {
+      const blob = await emailApi.downloadAttachment(attachment.id);
+      const url = window.URL.createObjectURL(blob as Blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.filename;
+      document.body.appendChild(a);
+      a.click();
+      window.URL.revokeObjectURL(url);
+      document.body.removeChild(a);
+    } catch (error) {
+      console.error('Failed to download attachment:', error);
+    }
+  };
+
+  const handlePreview = (attachment: EmailAttachment) => {
+    const previewUrl = emailApi.previewAttachment(attachment.id);
+    window.open(previewUrl, '_blank');
+  };
+
+  const isPreviewable = (contentType: string) => {
+    return ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'application/pdf', 'text/plain', 'text/html'].includes(contentType);
+  };
+
+  return (
+    <div className="space-y-2">
+      {attachments.map((attachment) => (
+        <div
+          key={attachment.id}
+          className="flex items-center justify-between p-2 rounded-lg border bg-muted/30 hover:bg-muted/50 transition-colors"
+        >
+          <div className="flex items-center gap-2 min-w-0">
+            <FileText className="h-4 w-4 shrink-0 text-muted-foreground" />
+            <div className="min-w-0">
+              <p className="text-sm font-medium truncate">{attachment.filename}</p>
+              <p className="text-xs text-muted-foreground">{formatFileSize(attachment.size)}</p>
+            </div>
+          </div>
+          <div className="flex items-center gap-1">
+            {isPreviewable(attachment.content_type) && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8"
+                onClick={() => handlePreview(attachment)}
+                title="Preview"
+              >
+                <Eye className="h-4 w-4" />
+              </Button>
+            )}
+            <Button
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8"
+              onClick={() => handleDownload(attachment)}
+              title="Download"
+            >
+              <Download className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+// AI Chat Panel Component - Now as a collapsible top section
 function AIChatPanel({
   email,
   messages,
   setMessages,
   isOpen,
-  onClose,
+  onToggle,
 }: {
   email: Email | null;
   messages: ChatMessage[];
   setMessages: React.Dispatch<React.SetStateAction<ChatMessage[]>>;
   isOpen: boolean;
-  onClose: () => void;
+  onToggle: () => void;
 }) {
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+    if (isOpen) {
+      messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, isOpen]);
 
   const handleSend = async () => {
     if (!input.trim() || isLoading) return;
@@ -607,60 +741,109 @@ function AIChatPanel({
     }
   };
 
+  // Quick action buttons
+  const quickActions = [
+    { label: 'Summarize', prompt: 'Please summarize this email in 2-3 sentences.' },
+    { label: 'Draft Reply', prompt: 'Help me draft a professional reply to this email.' },
+    { label: 'Extract Tasks', prompt: 'What action items or tasks can you extract from this email?' },
+    { label: 'Tone Check', prompt: 'What is the tone of this email and how should I respond?' },
+  ];
+
+  const handleQuickAction = (prompt: string) => {
+    setInput(prompt);
+  };
+
   return (
-    <Sheet open={isOpen} onOpenChange={onClose}>
-      <SheetContent side="right" className="flex flex-col h-full w-[400px] sm:w-[540px] p-0">
-        <SheetHeader className="border-b p-4">
-          <SheetTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            Email Assistant
-          </SheetTitle>
-          <SheetDescription>
-            AI-powered help for drafting and managing emails
-          </SheetDescription>
-        </SheetHeader>
-
-        <ScrollArea className="flex-1 p-4">
-          <div className="space-y-4">
-            {messages.map(message => (
-              <div
-                key={message.id}
-                className={cn(
-                  "max-w-[85%] rounded-lg p-3",
-                  message.role === 'user'
-                    ? "ml-auto bg-primary text-primary-foreground"
-                    : "mr-auto bg-muted"
+    <Collapsible open={isOpen} onOpenChange={onToggle}>
+      <Card className="border-b rounded-none border-x-0 border-t-0 bg-gradient-to-r from-purple-50/50 to-blue-50/50 dark:from-purple-950/20 dark:to-blue-950/20">
+        <CollapsibleTrigger asChild>
+          <CardHeader className="py-3 cursor-pointer hover:bg-muted/30 transition-colors">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-purple-500" />
+                <CardTitle className="text-base">AI Email Assistant</CardTitle>
+                {email && (
+                  <Badge variant="secondary" className="ml-2 text-xs">
+                    Context: {email.subject.substring(0, 30)}...
+                  </Badge>
                 )}
-              >
-                <p className="text-sm whitespace-pre-wrap">{message.content}</p>
-                <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
               </div>
-            ))}
-            {isLoading && (
-              <div className="mr-auto bg-muted rounded-lg p-3">
-                <Loader2 className="h-4 w-4 animate-spin" />
+              <div className="flex items-center gap-2">
+                {messages.length > 1 && (
+                  <Badge variant="outline" className="text-xs">
+                    {messages.length - 1} messages
+                  </Badge>
+                )}
+                {isOpen ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
               </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
-        </ScrollArea>
+            </div>
+            <CardDescription className="text-xs">
+              Ask AI to help draft replies, summarize emails, or extract action items
+            </CardDescription>
+          </CardHeader>
+        </CollapsibleTrigger>
+        
+        <CollapsibleContent>
+          <CardContent className="pt-0 pb-4">
+            {/* Quick Actions */}
+            <div className="flex flex-wrap gap-2 mb-3">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.label}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7"
+                  onClick={() => handleQuickAction(action.prompt)}
+                >
+                  {action.label}
+                </Button>
+              ))}
+            </div>
+            
+            {/* Messages */}
+            <ScrollArea className="h-[200px] border rounded-lg p-3 mb-3 bg-background">
+              <div className="space-y-3">
+                {messages.map(message => (
+                  <div
+                    key={message.id}
+                    className={cn(
+                      "max-w-[85%] rounded-lg p-2.5 text-sm",
+                      message.role === 'user'
+                        ? "ml-auto bg-primary text-primary-foreground"
+                        : "mr-auto bg-muted"
+                    )}
+                  >
+                    <p className="whitespace-pre-wrap">{message.content}</p>
+                    <p className="text-xs opacity-60 mt-1">{message.timestamp}</p>
+                  </div>
+                ))}
+                {isLoading && (
+                  <div className="mr-auto bg-muted rounded-lg p-2.5">
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  </div>
+                )}
+                <div ref={messagesEndRef} />
+              </div>
+            </ScrollArea>
 
-        <div className="border-t p-4">
-          <div className="flex gap-2">
-            <Input
-              placeholder="Ask about emails..."
-              value={input}
-              onChange={(e) => setInput(e.target.value)}
-              onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
-              disabled={isLoading}
-            />
-            <Button onClick={handleSend} disabled={isLoading}>
-              {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-            </Button>
-          </div>
-        </div>
-      </SheetContent>
-    </Sheet>
+            {/* Input */}
+            <div className="flex gap-2">
+              <Input
+                placeholder="Ask AI about this email..."
+                value={input}
+                onChange={(e) => setInput(e.target.value)}
+                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                disabled={isLoading}
+                className="flex-1"
+              />
+              <Button onClick={handleSend} disabled={isLoading} size="icon">
+                {isLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
+              </Button>
+            </div>
+          </CardContent>
+        </CollapsibleContent>
+      </Card>
+    </Collapsible>
   );
 }
 
@@ -786,102 +969,96 @@ export default function EmailAssistantClientV2() {
   };
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] w-full overflow-hidden">
-      {/* Sidebar */}
-      {(sidebarOpen || !isMobile) && (
-        <EmailSidebar
-          accounts={accounts}
-          selectedFolder={selectedFolder}
-          onSelectFolder={setSelectedFolder}
-          unreadCount={unreadCount}
-          onToggle={() => setSidebarOpen(!sidebarOpen)}
-          t={t}
-        />
-      )}
-
-      {/* Main Content */}
-      {isMobile ? (
-        <div className="flex-1">
-          {selectedEmail ? (
-            <EmailDetail
-              email={selectedEmail}
-              onArchive={handleArchive}
-              onDelete={handleDelete}
-              onAnalyze={handleAnalyzeEmail}
-              onGenerateReply={handleGenerateReply}
-              isAnalyzing={analyzeMutation.isPending}
-              isGeneratingReply={generateReplyMutation.isPending}
-              t={t}
-            />
-          ) : (
-            <EmailList
-              emails={filteredEmails}
-              isLoading={emailsLoading}
-              selectedEmail={selectedEmail}
-              onSelectEmail={handleSelectEmail}
-              onStarEmail={handleStarEmail}
-              onRefresh={() => refetchEmails()}
-              t={t}
-            />
-          )}
-        </div>
-      ) : (
-        <ResizablePanelGroup direction="horizontal" className="flex-1">
-          <ResizablePanel defaultSize={35} minSize={25}>
-            <EmailList
-              emails={filteredEmails}
-              isLoading={emailsLoading}
-              selectedEmail={selectedEmail}
-              onSelectEmail={handleSelectEmail}
-              onStarEmail={handleStarEmail}
-              onRefresh={() => refetchEmails()}
-              t={t}
-            />
-          </ResizablePanel>
-
-          <ResizableHandle withHandle />
-
-          <ResizablePanel defaultSize={65}>
-            {selectedEmail ? (
-              <EmailDetail
-                email={selectedEmail}
-                onArchive={handleArchive}
-                onDelete={handleDelete}
-                  onAnalyze={handleAnalyzeEmail}
-                onGenerateReply={handleGenerateReply}
-                  isAnalyzing={analyzeMutation.isPending}
-                isGeneratingReply={generateReplyMutation.isPending}
-                t={t}
-              />
-            ) : (
-              <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
-                <Mail className="h-16 w-16 mb-4" />
-                <p className="text-lg">{t('emailAssistant.selectEmail')}</p>
-                <p className="text-sm">
-                  {filteredEmails.length} emails in {selectedFolder === 'all' ? 'inbox' : selectedFolder}
-                </p>
-              </div>
-            )}
-          </ResizablePanel>
-        </ResizablePanelGroup>
-      )}
-
-      {/* AI Chat Button */}
-      <Button
-        className="fixed right-6 bottom-6 h-14 w-14 rounded-full shadow-lg bg-gradient-to-r from-purple-500 to-blue-500 hover:from-purple-600 hover:to-blue-600"
-        onClick={() => setChatOpen(true)}
-      >
-        <MessageSquare className="h-6 w-6" />
-      </Button>
-
-      {/* AI Chat Panel */}
+    <div className="flex flex-col h-[calc(100vh-4rem)] w-full overflow-hidden">
+      {/* AI Assistant Panel - Top Section */}
       <AIChatPanel
         email={selectedEmail}
         messages={chatMessages}
         setMessages={setChatMessages}
         isOpen={chatOpen}
-        onClose={() => setChatOpen(false)}
+        onToggle={() => setChatOpen(!chatOpen)}
       />
+
+      <div className="flex flex-1 overflow-hidden">
+        {/* Sidebar */}
+        {(sidebarOpen || !isMobile) && (
+          <EmailSidebar
+            accounts={accounts}
+            selectedFolder={selectedFolder}
+            onSelectFolder={setSelectedFolder}
+            unreadCount={unreadCount}
+            onToggle={() => setSidebarOpen(!sidebarOpen)}
+            t={t}
+          />
+        )}
+
+        {/* Main Content */}
+        {isMobile ? (
+          <div className="flex-1">
+            {selectedEmail ? (
+              <EmailDetail
+                email={selectedEmail}
+                onArchive={handleArchive}
+                onDelete={handleDelete}
+                onAnalyze={handleAnalyzeEmail}
+                onGenerateReply={handleGenerateReply}
+                isAnalyzing={analyzeMutation.isPending}
+                isGeneratingReply={generateReplyMutation.isPending}
+                t={t}
+              />
+            ) : (
+              <EmailList
+                emails={filteredEmails}
+                isLoading={emailsLoading}
+                selectedEmail={selectedEmail}
+                onSelectEmail={handleSelectEmail}
+                onStarEmail={handleStarEmail}
+                onRefresh={() => refetchEmails()}
+                t={t}
+              />
+            )}
+          </div>
+        ) : (
+          <ResizablePanelGroup direction="horizontal" className="flex-1">
+            <ResizablePanel defaultSize={35} minSize={25}>
+              <EmailList
+                emails={filteredEmails}
+                isLoading={emailsLoading}
+                selectedEmail={selectedEmail}
+                onSelectEmail={handleSelectEmail}
+                onStarEmail={handleStarEmail}
+                onRefresh={() => refetchEmails()}
+                t={t}
+              />
+            </ResizablePanel>
+
+            <ResizableHandle withHandle />
+
+            <ResizablePanel defaultSize={65}>
+              {selectedEmail ? (
+                <EmailDetail
+                  email={selectedEmail}
+                  onArchive={handleArchive}
+                  onDelete={handleDelete}
+                  onAnalyze={handleAnalyzeEmail}
+                  onGenerateReply={handleGenerateReply}
+                  isAnalyzing={analyzeMutation.isPending}
+                  isGeneratingReply={generateReplyMutation.isPending}
+                  t={t}
+                />
+              ) : (
+                <div className="flex flex-col items-center justify-center h-full text-muted-foreground">
+                  <Mail className="h-16 w-16 mb-4" />
+                  <p className="text-lg">{t('emailAssistant.selectEmail')}</p>
+                  <p className="text-sm">
+                    {filteredEmails.length} emails in {selectedFolder === 'all' ? 'inbox' : selectedFolder}
+                  </p>
+                </div>
+              )}
+            </ResizablePanel>
+          </ResizablePanelGroup>
+        )}
+      </div>
     </div>
   );
 }

@@ -201,6 +201,52 @@ export function useRenderEmailTemplate() {
   });
 }
 
+// Email Account Connection Testing
+export function useTestSmtp() {
+  return useMutation({
+    mutationFn: (accountId: string) => emailApi.testSmtp(accountId),
+  });
+}
+
+export function useTestImap() {
+  return useMutation({
+    mutationFn: (accountId: string) => emailApi.testImap(accountId),
+  });
+}
+
+// Email Sync
+export function useSyncEmailAccount() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ accountId, limit }: { accountId: string; limit?: number }) => 
+      emailApi.syncAccount(accountId, limit),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+    },
+  });
+}
+
+// Attachments
+export function useEmailAttachments(emailId: string) {
+  return useQuery({
+    queryKey: ['email-attachments', emailId],
+    queryFn: () => emailApi.getAttachments(emailId),
+    enabled: !!emailId,
+  });
+}
+
+export function useUploadAttachment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ emailId, file }: { emailId: string; file: File }) =>
+      emailApi.uploadAttachment(emailId, file),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: ['email-attachments', variables.emailId] });
+      queryClient.invalidateQueries({ queryKey: ['emails'] });
+    },
+  });
+}
+
 // =================================================================
 // Planner Assistant Hooks
 // =================================================================
