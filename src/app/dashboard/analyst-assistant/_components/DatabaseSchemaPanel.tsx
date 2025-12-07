@@ -162,6 +162,15 @@ const GROUP_NAMES: Record<string, string> = {
   crm: '客戶關係 CRM',
   inventory: '庫存 Inventory',
   finance: '財務 Finance',
+  accounting: '會計 Accounting',
+  business: '業務 Business',
+  users: '用戶 Users',
+  hrms: '人資 HRMS',
+  projects: '專案 Projects',
+  documents: '文件 Documents',
+  loaded_data: '已載入數據 Loaded Data',
+  data: '數據 Data',
+  other: '其他 Other',
 };
 
 // Loading skeleton component
@@ -195,10 +204,12 @@ export default function DatabaseSchemaPanel({
 }: DatabaseSchemaPanelProps) {
   const [schema, setSchema] = useState<TableSchema[]>(DEMO_SCHEMA);
   const [activeTable, setActiveTable] = useState<string>(DEMO_SCHEMA[0]?.name || '');
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['sales', 'crm', 'inventory', 'finance', 'data']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['sales', 'crm', 'inventory', 'finance', 'data', 'accounting', 'loaded_data']));
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
   const [schemaIsDemo, setSchemaIsDemo] = useState(isDemo);
+  const [dataSource, setDataSource] = useState<'database' | 'csv_fallback' | 'no_data'>('no_data');
+  const [dataSourceMessage, setDataSourceMessage] = useState<string>('');
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grouped' | 'tabs'>('grouped');
   const [copiedColumn, setCopiedColumn] = useState<string | null>(null);
@@ -221,22 +232,30 @@ export default function DatabaseSchemaPanel({
         if (data.tables && data.tables.length > 0) {
           setSchema(data.tables);
           setSchemaIsDemo(data.isDemo || false);
+          setDataSource(data.dataSource || 'database');
+          setDataSourceMessage(data.message || '');
           if (data.tables[0]) {
             setActiveTable(data.tables[0].name);
           }
-          console.log('[DatabaseSchemaPanel] Loaded schema from API:', data.tables.length, 'tables');
+          // Expand all groups that have tables
+          const groups = new Set<string>(data.tables.map((t: TableSchema) => t.group || 'other'));
+          setExpandedGroups(groups);
+          console.log('[DatabaseSchemaPanel] Loaded schema from API:', data.tables.length, 'tables, source:', data.dataSource);
         } else {
           // No tables returned, use demo data
           console.log('[DatabaseSchemaPanel] No tables from API, using demo data');
           setSchemaIsDemo(true);
+          setDataSource('no_data');
         }
       } else {
         console.error('[DatabaseSchemaPanel] Failed to fetch schema:', response.status);
         setSchemaIsDemo(true);
+        setDataSource('no_data');
       }
     } catch (error) {
       console.error('[DatabaseSchemaPanel] Error fetching schema:', error);
       setSchemaIsDemo(true);
+      setDataSource('no_data');
     } finally {
       setLoading(false);
     }
@@ -337,7 +356,33 @@ export default function DatabaseSchemaPanel({
           <div className='flex items-center gap-2'>
             <IconDatabase className='h-4 w-4 text-muted-foreground' />
             <span className='text-sm font-medium'>Database Schema</span>
-            {schemaIsDemo && (
+            {dataSource === 'csv_fallback' && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant='outline' className='text-xs text-amber-600 border-amber-600'>
+                    CSV Demo
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='text-xs'>Using CSV demo data. No database records found.</p>
+                  <p className='text-xs text-muted-foreground'>使用 CSV 示範數據（資料庫無記錄）</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {dataSource === 'database' && !schemaIsDemo && (
+              <Tooltip>
+                <TooltipTrigger>
+                  <Badge variant='outline' className='text-xs text-green-600 border-green-600'>
+                    Live DB
+                  </Badge>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className='text-xs'>Connected to database with real data.</p>
+                  <p className='text-xs text-muted-foreground'>已連接資料庫（真實數據）</p>
+                </TooltipContent>
+              </Tooltip>
+            )}
+            {schemaIsDemo && dataSource !== 'csv_fallback' && (
               <Badge variant='outline' className='text-xs text-orange-600 border-orange-600'>
                 Demo
               </Badge>

@@ -232,14 +232,6 @@ export default function AccountingWorkspacePage() {
       filterYear === 'all' || project.fiscalYear.toString() === filterYear;
     return matchesSearch && matchesStatus && matchesType && matchesYear;
   });
-      project.clientInfo.contactPerson.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus =
-      filterStatus === 'all' || project.status === filterStatus;
-    const matchesType = filterType === 'all' || project.type === filterType;
-    const matchesYear =
-      filterYear === 'all' || project.fiscalYear.toString() === filterYear;
-    return matchesSearch && matchesStatus && matchesType && matchesYear;
-  });
 
   const getStatusBadge = (status: ProjectStatus) => {
     const config = {
@@ -300,7 +292,7 @@ export default function AccountingWorkspacePage() {
         code: `PRJ-${Date.now().toString().slice(-6)}`,
         name: newProject.companyName,
         description: newProject.notes,
-        company: '', // Will need company UUID
+        company_name: newProject.companyName,  // Backend will auto-create company
         project_type: newProject.type,
         fiscal_year: newProject.fiscalYear,
         quarter: newProject.fiscalPeriod === 'Full Year' ? 'ANNUAL' : newProject.fiscalPeriod as 'Q1' | 'Q2' | 'Q3' | 'Q4',

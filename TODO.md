@@ -5,6 +5,53 @@
 
 ---
 
+## 🚀 最新更新 (2025-01-08) - Analyst Assistant 數據源透明度 & 會計工作區優化
+
+### ✅ 已完成的新功能
+
+#### 1. Analyst Assistant 數據源狀態顯示
+- 📁 `api/ai_assistants/views/analyst_viewset.py` - 後端增強
+  - 新增 `AnalystDataStatusView` - `/analyst-assistant/status/` 端點
+  - 增強 `AnalystSchemaView` - 從 Django 模型讀取真實數據庫結構
+  - 返回 `dataSource` 狀態：`database` / `csv_fallback` / `no_data`
+  
+- 📁 `src/app/dashboard/analyst-assistant/services.ts`
+  - 新增 `getDataStatus()` 函數調用後端狀態端點
+
+- 📁 `src/app/dashboard/analyst-assistant/page.tsx`
+  - 新增數據源狀態標籤顯示
+  - 綠色 "Live DB" 表示連接真實數據庫
+  - 琥珀色 "CSV Demo" 表示使用 CSV 樣本數據
+
+- 📁 `src/features/analyst-assistant/components/DatabaseSchemaPanel.tsx`
+  - 新增數據源狀態標籤
+  - 顯示模型分組：accounting, business, users, hrms, projects, documents
+
+#### 2. 會計工作區 - 未識別單據管理
+- 📁 `src/app/dashboard/accounting-workspace/unrecognized/page.tsx`
+  - 完整的未識別/低置信度單據列表
+  - 支援手動重分類、批量重分類
+  - TypeScript 類型修復
+
+- 📁 `src/hooks/use-accounting.ts` - 新增 Hooks
+  - `useUnrecognizedReceipts` - 查詢未識別單據
+  - `useReclassifyReceipt` - 單據重分類
+  - `useBatchReclassify` - 批量重分類
+  - `useFieldExtractions` - 查詢欄位提取結果
+  - `useCorrectField` - 校正提取欄位
+
+#### 3. Field Verification 組件
+- 📁 `src/features/accounting-workspace/components/field-verification.tsx`
+  - 顯示 AI 提取的欄位及置信度
+  - 支援人工校正欄位
+  - 顯示 bounding box 座標
+
+#### 4. 導航與 i18n 更新
+- 更新 `src/constants/data.ts` - 新增未識別單據導航項
+- 更新 `src/locales/en.json`, `zh-TW.json` - 新增翻譯 key
+
+---
+
 ## 🚀 最新更新 (2024-12-06) - AI 增強 & 多地區會計
 
 ### ✅ 已完成的新功能
@@ -75,6 +122,8 @@
 | Finance - Accounts | `/accounting/accounts/` | ✅ 完整 |
 | Documents | `/documents/` | ✅ 完整 |
 | Analyst Assistant | `/analyst-assistant/*` | ✅ 完整 |
+| Analyst Status | `/analyst-assistant/status/` | ✅ 新增 |
+| Analyst Schema | `/analyst-assistant/schema/` | ✅ 增強 (真實 DB 結構) |
 | Planner Assistant | `/planner-assistant/*` | ✅ 完整 |
 | Document Assistant | `/document-assistant/*` | ✅ 完整 |
 | Analytics | `/analytics/*` | ✅ 完整 |

@@ -43,7 +43,8 @@ export interface CreateProjectInput {
   code: string;
   name: string;
   description?: string;
-  company: string;
+  company?: string;  // Optional: Company UUID
+  company_name?: string;  // Optional: Auto-create company with this name
   project_type: ProjectType;
   fiscal_year: number;
   quarter?: QuarterChoice;

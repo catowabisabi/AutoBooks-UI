@@ -299,6 +299,63 @@ export async function startAnalystAssistant(): Promise<{ status: string; message
 }
 
 // ============================================================================
+// DATA STATUS API
+// ============================================================================
+
+export interface DataStatusResponse {
+  dataSource: 'database' | 'csv_fallback' | 'no_data';
+  hasDbData: boolean;
+  dbStats: Record<string, number>;
+  cacheStats: Record<string, { rows: number; columns: string[] }>;
+  message: string;
+  availableColumns: string[];
+  recommendations: string[];
+}
+
+/**
+ * Get the status of data loaded in the analyst assistant.
+ * Shows whether using DB data, CSV fallback, or no data.
+ */
+export async function getDataStatus(): Promise<DataStatusResponse> {
+  try {
+    const token = localStorage.getItem('token') || localStorage.getItem('access_token') || '';
+    const response = await fetch(`${API_BASE_URL}/api/v1/analyst-assistant/status/`, {
+      method: 'GET',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': token ? `Bearer ${token}` : '',
+      },
+    });
+
+    if (!response.ok) {
+      console.warn('[DataStatus] API returned non-OK status:', response.status);
+      return {
+        dataSource: 'no_data',
+        hasDbData: false,
+        dbStats: {},
+        cacheStats: {},
+        message: 'Unable to check data status',
+        availableColumns: [],
+        recommendations: ['Backend may be unavailable'],
+      };
+    }
+
+    return response.json();
+  } catch (error) {
+    console.error('[DataStatus] Error fetching data status:', error);
+    return {
+      dataSource: 'no_data',
+      hasDbData: false,
+      dbStats: {},
+      cacheStats: {},
+      message: 'Error checking data status',
+      availableColumns: [],
+      recommendations: ['Check backend connection'],
+    };
+  }
+}
+
+// ============================================================================
 // DATA SIDEBAR API FUNCTIONS
 // ============================================================================
 

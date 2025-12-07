@@ -50,10 +50,12 @@ Phase 2: Document Assistant 模組
     - 顯示：LLM 提取的數據高亮
     - 檔案: src/features/accounting-workspace/components/document-preview.tsx
 
-[ ] 2.4 建立「無法識別文件」區域
+[x] 2.4 建立「無法識別文件」區域
     - 顯示低置信度或未分類的文件
-    - 支援手動分類
-    - 檔案: src/features/accounting-workspace/components/unidentified-documents.tsx
+    - 支援手動分類/重分類
+    - 支援批量重分類操作
+    - 檔案: src/app/dashboard/accounting-workspace/unrecognized/page.tsx
+    - Hooks: src/hooks/use-accounting.ts (useUnrecognizedReceipts, useReclassifyReceipt, useBatchReclassify)
 
 [ ] 2.5 整合 LLM 文件分類 API
     - 功能：自動識別發票、收據、銀行月結單等
@@ -62,6 +64,13 @@ Phase 2: Document Assistant 模組
 
 Phase 3: Accounting Assistant 模組
 ----------------------------------
+[x] 3.0 建立 Field Verification 組件
+    - 顯示 AI 提取的欄位及置信度
+    - 支援人工校正欄位
+    - 顯示 bounding box 座標
+    - 檔案: src/features/accounting-workspace/components/field-verification.tsx
+    - Hooks: src/hooks/use-accounting.ts (useFieldExtractions, useCorrectField)
+
 [ ] 3.1 建立擬議分錄列表
     - 顯示：借方/貸方科目、金額、狀態
     - 操作：批准、拒絕、修正

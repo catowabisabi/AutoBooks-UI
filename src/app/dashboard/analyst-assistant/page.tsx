@@ -28,7 +28,7 @@ import {
 } from '@tabler/icons-react';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
-import { sendAnalystQuery, startAnalystAssistant } from './services';
+import { sendAnalystQuery, startAnalystAssistant, getDataStatus, DataStatusResponse } from './services';
 import { useTranslation } from '@/lib/i18n/provider';
 import { cn } from '@/lib/utils';
 import { useChatHistory, PersistedMessage, formatMessageTime } from './_components/useChatHistory';
@@ -157,7 +157,9 @@ export default function AnalystAssistantPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [dataLoaded, setDataLoaded] = useState(false);
   const [isDemo, setIsDemo] = useState(false);
+  const [dataSource, setDataSource] = useState<'database' | 'csv_fallback' | 'no_data'>('no_data');
   const [dataInfo, setDataInfo] = useState<{ rows?: Record<string, number>; message?: string } | null>(null);
+  const [dataStatus, setDataStatus] = useState<DataStatusResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [tabScrollIndex, setTabScrollIndex] = useState(0);
   const [viewMode, setViewMode] = useState<'dashboard' | 'data'>('dashboard');
@@ -188,6 +190,7 @@ export default function AnalystAssistantPage() {
   const loadData = async () => {
     setError(null);
     try {
+      // Start the analyst assistant (loads data into cache)
       const data = await startAnalystAssistant();
       console.log('Assistant started:', data);
       setDataLoaded(true);
@@ -196,6 +199,23 @@ export default function AnalystAssistantPage() {
       // Check if using demo mode
       const demoMode = (data as any).isDemo || data.status === 'demo';
       setIsDemo(demoMode);
+      
+      // Fetch detailed data status
+      try {
+        const status = await getDataStatus();
+        console.log('Data status:', status);
+        setDataStatus(status);
+        setDataSource(status.dataSource);
+        
+        // Override demo mode based on actual data source
+        if (status.dataSource === 'database' && status.hasDbData) {
+          setIsDemo(false);
+        } else if (status.dataSource === 'csv_fallback') {
+          setIsDemo(true);
+        }
+      } catch (statusError) {
+        console.warn('Failed to fetch data status:', statusError);
+      }
       
       // Add data loaded message
       const rowCount = data.rows ? Object.values(data.rows).reduce((a, b) => a + b, 0) : 0;
@@ -468,8 +488,18 @@ export default function AnalystAssistantPage() {
                 🤖 {t('analyst.title')}
               </h2>
               {dataLoaded ? (
-                isDemo ? (
-                  <Badge variant='outline' className='text-orange-600 border-orange-600'>
+                dataSource === 'csv_fallback' ? (
+                  <Badge variant='outline' className='text-amber-600 border-amber-600' title={dataStatus?.message || 'Using CSV demo data'}>
+                    <IconDatabase className='mr-1 h-3 w-3' />
+                    CSV Demo
+                  </Badge>
+                ) : dataSource === 'database' && !isDemo ? (
+                  <Badge variant='outline' className='text-green-600 border-green-600' title={dataStatus?.message || 'Connected to database'}>
+                    <IconDatabase className='mr-1 h-3 w-3' />
+                    Live DB
+                  </Badge>
+                ) : isDemo ? (
+                  <Badge variant='outline' className='text-orange-600 border-orange-600' title={dataStatus?.message || 'Demo mode'}>
                     <IconDatabase className='mr-1 h-3 w-3' />
                     {t('analyst.demoMode')}
                   </Badge>
