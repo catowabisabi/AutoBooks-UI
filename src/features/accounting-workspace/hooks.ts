@@ -11,6 +11,8 @@ import {
   reportApi,
   aiProcessingApi,
   accountsApi,
+  unrecognizedApi,
+  fieldExtractionApi,
 } from './services';
 import {
   AccountingProject,
@@ -642,5 +644,125 @@ export function useSearchAccounts(query: string) {
     queryKey: [...accountingKeys.accounts(), 'search', query],
     queryFn: () => accountsApi.searchAccounts(query),
     enabled: query.length >= 2,
+  });
+}
+
+// =================================================================
+// Unrecognized Receipts Hooks
+// =================================================================
+
+export const unrecognizedKeys = {
+  all: ['unrecognized'] as const,
+  list: (filters?: Record<string, unknown>) =>
+    [...unrecognizedKeys.all, 'list', filters] as const,
+  item: (id: string) => [...unrecognizedKeys.all, id] as const,
+};
+
+export function useUnrecognizedReceipts(params?: {
+  page?: number;
+  page_size?: number;
+  reason?: string;
+  min_confidence?: number;
+}) {
+  return useQuery({
+    queryKey: unrecognizedKeys.list(params),
+    queryFn: () => unrecognizedApi.getUnrecognized(params),
+  });
+}
+
+export function useReclassifyReceipt() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptId,
+      category,
+      notes,
+    }: {
+      receiptId: string;
+      category: string;
+      notes?: string;
+    }) => unrecognizedApi.reclassify(receiptId, { category, notes }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: unrecognizedKeys.all });
+      toast.success('Receipt reclassified successfully / 收據已重新分類');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to reclassify receipt: ${error.message}`);
+    },
+  });
+}
+
+export function useBatchReclassify() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptIds,
+      category,
+      notes,
+    }: {
+      receiptIds: string[];
+      category: string;
+      notes?: string;
+    }) => unrecognizedApi.batchReclassify(receiptIds, category, notes),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({ queryKey: unrecognizedKeys.all });
+      toast.success(`${variables.receiptIds.length} receipts reclassified / 已重新分類 ${variables.receiptIds.length} 張收據`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to batch reclassify: ${error.message}`);
+    },
+  });
+}
+
+// =================================================================
+// Field Extraction Hooks
+// =================================================================
+
+export const fieldExtractionKeys = {
+  all: ['field-extractions'] as const,
+  byReceipt: (receiptId: string) =>
+    [...fieldExtractionKeys.all, 'receipt', receiptId] as const,
+};
+
+export function useFieldExtractions(receiptId: string) {
+  return useQuery({
+    queryKey: fieldExtractionKeys.byReceipt(receiptId),
+    queryFn: () => fieldExtractionApi.getByReceipt(receiptId),
+    enabled: !!receiptId,
+  });
+}
+
+export function useCorrectField() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptId,
+      fieldName,
+      correctedValue,
+      notes,
+    }: {
+      receiptId: string;
+      fieldName: string;
+      correctedValue: string;
+      notes?: string;
+    }) =>
+      fieldExtractionApi.correctField({
+        receipt_id: receiptId,
+        field_name: fieldName,
+        corrected_value: correctedValue,
+        notes,
+      }),
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: fieldExtractionKeys.byReceipt(variables.receiptId),
+      });
+      toast.success('Field corrected successfully / 欄位已修正');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to correct field: ${error.message}`);
+    },
   });
 }

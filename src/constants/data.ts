@@ -71,6 +71,11 @@ export const navItems: NavItem[] = [
         url: '/dashboard/accounting-workspace'
       },
       {
+        title: 'Unrecognized Receipts',
+        titleKey: 'nav.unrecognizedReceipts',
+        url: '/dashboard/accounting-workspace/unrecognized'
+      },
+      {
         title: 'Accounting',
         titleKey: 'nav.accountingAssistant',
         url: '/dashboard/accounting-assistant'

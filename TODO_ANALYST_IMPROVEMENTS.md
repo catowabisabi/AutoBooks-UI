@@ -4,84 +4,79 @@
 
 ### 後端 (Django API)
 
-#### 1. 身份驗證與授權
-- [ ] 為所有 Analyst API 端點添加 `IsAuthenticated` 權限
-- [ ] 實現 API 速率限制（Rate Limiting）
-  - [ ] 使用 Django REST Framework 的 throttling
-  - [ ] 為 AI 請求設置每分鐘/每小時限額
-- [ ] 統一錯誤訊息格式，隱藏內部細節
+#### 1. 身份驗證與授權 ✅ 已完成
+- [x] 為所有 Analyst API 端點添加 `IsAuthenticated` 權限
+- [x] 實現 API 速率限制（Rate Limiting）
+  - [x] 使用 Django REST Framework 的 throttling
+  - [x] 為 AI 請求設置每分鐘/每小時限額
+- [x] 統一錯誤訊息格式，隱藏內部細節
   ```python
-  # 建議實現
-  class AnalystThrottle(UserRateThrottle):
+  # 已實現 in analyst_viewset.py
+  class AnalystRateThrottle(UserRateThrottle):
       rate = '30/minute'
   
-  class AnalystPermission(IsAuthenticated):
-      # 添加租戶隔離檢查
-      pass
+  class AnonAnalystThrottle(AnonRateThrottle):
+      rate = '10/minute'
   ```
 
-#### 2. 代碼執行安全 (Critical)
-- [ ] **移除或限制 `eval()` 和 `exec()` 的使用**
-  - 當前 `analyst_service.py` 中直接執行 LLM 生成的 Python 代碼
-  - 存在嚴重的 RCE (Remote Code Execution) 風險
-- [ ] 實現安全的查詢構建器
+#### 2. 代碼執行安全 (Critical) ✅ 已完成
+- [x] **移除或限制 `eval()` 和 `exec()` 的使用**
+  - 已創建 `safe_exec.py` 模組
+  - 使用 AST 驗證白名單方法
+- [x] 實現安全的查詢構建器
   ```python
-  # 方案 A: AST 白名單
-  import ast
-  ALLOWED_FUNCTIONS = {'groupby', 'sum', 'mean', 'count', 'head', 'tail', 'sort_values'}
+  # 已實現 in safe_exec.py
+  ALLOWED_ATTRS = {
+      'groupby', 'sum', 'mean', 'count', 'head', 'tail',
+      'sort_values', 'reset_index', 'to_dict', ...
+  }
   
   def safe_eval(code_str, df):
-      tree = ast.parse(code_str, mode='eval')
-      # 驗證只使用允許的函數
+      validate_code(code_str)  # AST 驗證
       ...
-  
-  # 方案 B: 預定義聚合函數
-  PREDEFINED_QUERIES = {
-      'monthly_sales': lambda df: df.groupby('month')['total'].sum(),
-      'top_products': lambda df: df.groupby('product')['quantity'].sum().nlargest(10),
-  }
   ```
-- [ ] 添加代碼執行超時機制
-- [ ] 實現資源限制（記憶體、CPU）
+- [x] 添加代碼執行超時機制 (30秒)
+- [x] 實現資源限制（受限的 builtins）
 
-#### 3. 多租戶與資源控制
-- [ ] 為 `dataframe_cache` 添加租戶隔離
+#### 3. 多租戶與資源控制 ✅ 已完成
+- [x] 為 `dataframe_cache` 添加租戶隔離
   ```python
-  # 當前問題: 全局共享 cache
-  dataframe_cache = {}  # 所有用戶共享！
-  
-  # 建議: 按用戶/租戶隔離
-  def get_user_cache_key(user_id, key):
-      return f"user_{user_id}_{key}"
-  
-  def get_cached_dataframe(user_id, key):
-      cache_key = get_user_cache_key(user_id, key)
-      return dataframe_cache.get(cache_key)
+  # 已實現 in tenant_cache.py
+  class TenantCache:
+      def get(self, user_id, key):
+          cache_key = f"user_{user_id}_{key}"
+          ...
   ```
-- [ ] 設置 cache TTL（生存時間）
-- [ ] 設置最大 cache 大小
-- [ ] 添加 cache 清理機制
+- [x] 設置 cache TTL（生存時間）- 預設 1 小時
+- [x] 設置最大 cache 大小 - 預設 100 項
+- [x] 添加 cache 清理機制 - 背景線程自動清理
 
-#### 4. 檔案上傳驗證
-- [ ] 添加檔案大小限制
-- [ ] MIME 類型白名單驗證
-- [ ] 檔案內容掃描（病毒掃描鉤子）
+#### 4. 檔案上傳驗證 ✅ 已完成
+- [x] 添加檔案大小限制 (10MB 預設, 50MB CSV)
+- [x] MIME 類型白名單驗證
+- [x] 檔案內容掃描（危險簽名檢測）
   ```python
+  # 已實現 in file_validation.py
   MAX_FILE_SIZE = 10 * 1024 * 1024  # 10MB
-  ALLOWED_MIMES = ['application/pdf', 'text/csv', 'application/vnd.ms-excel']
+  ALLOWED_MIMES = ['application/pdf', 'text/csv', ...]
   
   def validate_upload(file):
-      if file.size > MAX_FILE_SIZE:
-          raise ValidationError("File too large")
-      if file.content_type not in ALLOWED_MIMES:
-          raise ValidationError("Invalid file type")
+      validate_file_size(file)
+      validate_mime_type(file)
+      validate_no_dangerous_content(file)
   ```
 
-#### 5. AI 請求控制
-- [ ] 設置 OpenAI API 調用的溫度範圍限制
-- [ ] 設置 max_tokens 上限
-- [ ] 實現用戶級別的 AI 請求配額
-- [ ] 添加 AI 使用審計日誌
+#### 5. AI 請求控制 ✅ 已完成
+- [x] 設置 OpenAI API 調用的溫度範圍限制 (0.0-1.5)
+- [x] 設置 max_tokens 上限 (8192)
+- [x] 實現用戶級別的 AI 請求配額 (100 請求/天, 100K tokens/天)
+- [x] 添加 AI 使用審計日誌
+  ```python
+  # 已實現 in ai_request_controls.py
+  class AIRequestController:
+      quota_manager = QuotaManager()
+      audit_logger = AuditLogger()
+  ```
 
 ---
 
@@ -89,15 +84,58 @@
 
 ### 後端
 
-#### 6. 數據模型驗證
-- [ ] 為 JSONField 添加 schema 驗證
+#### 6. 數據庫索引 ✅ 已完成
+- [x] 為常用查詢欄位添加索引
   ```python
-  from django.core.validators import JSONSchemaValidator
+  # 已實現 in 0002_add_performance_indexes.py
+  # - Invoice: status, issue_date, created_at
+  # - Payment: status, payment_date
+  # - Contact: contact_type, company_name
+  ```
+
+#### 7. 可觀測性日誌 ✅ 已完成
+- [x] 數據載入時間記錄
+- [x] AI API 調用時間追蹤
+- [x] Token 使用量追蹤
+  ```python
+  # 已實現 in observability.py
+  @track_data_load
+  def load_all_datasets(): ...
   
-  AI_RESULT_SCHEMA = {
-      "type": "object",
-      "properties": {
-          "type": {"type": "string"},
+  token_tracker.record(user_id, input_tokens, output_tokens)
+  ```
+
+#### 8. DatabaseSchemaPanel API ✅ 已完成
+- [x] 創建 /analyst-assistant/schema/ 端點
+- [x] 前端連接真實 API
+  ```python
+  # 已實現 in analyst_viewset.py
+  class AnalystSchemaView(APIView):
+      def get(self, request):
+          # 返回數據表結構
+  ```
+
+#### 9. RAG 整合 ✅ 已完成
+- [x] 創建 RAG 服務模組
+- [x] 讓 AI 參考用戶上傳的文件
+  ```python
+  # 已實現 in rag_service.py
+  def get_relevant_documents(user_id, query):
+      # 檢索相關文件
+  
+  def build_rag_context(user_id, query):
+      # 構建上下文
+  ```
+
+#### 10. Dashboard 資料修復 ✅ 已完成
+- [x] 添加詳細調試日誌
+- [x] 修復數據引用問題（深拷貝）
+
+---
+
+## 🟡 低優先級 - 未來優化
+
+### 11. JSONField 驗證
           "data": {"type": "array"},
           "message": {"type": "string"}
       }

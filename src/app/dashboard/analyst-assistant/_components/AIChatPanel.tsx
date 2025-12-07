@@ -16,7 +16,10 @@ import {
   IconChartBar,
   IconMessageCircle,
   IconDatabase,
-  IconBulb
+  IconBulb,
+  IconHistory,
+  IconPlus,
+  IconTrash
 } from '@tabler/icons-react';
 import { cn } from '@/lib/utils';
 import ChatMessage from './ChatMessage';
@@ -27,6 +30,15 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
+import { ChatSession, formatMessageTime } from './useChatHistory';
 
 type WidgetType = 'text' | 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
 type MessageRole = 'user' | 'assistant';
@@ -58,6 +70,12 @@ interface AIChatPanelProps {
   suggestedPrompts?: string[];
   availableTables?: string[];
   selectedTable?: string;
+  // Chat history props
+  sessions?: ChatSession[];
+  currentSessionId?: string | null;
+  onNewSession?: () => void;
+  onSwitchSession?: (sessionId: string) => void;
+  onClearHistory?: () => void;
 }
 
 // Context chip type
@@ -128,7 +146,13 @@ export default function AIChatPanel({
   isDemo = false,
   suggestedPrompts,
   availableTables = [],
-  selectedTable
+  selectedTable,
+  // Chat history props
+  sessions = [],
+  currentSessionId,
+  onNewSession,
+  onSwitchSession,
+  onClearHistory
 }: AIChatPanelProps) {
   const { t } = useTranslation();
   const [newMessage, setNewMessage] = useState('');
@@ -218,20 +242,86 @@ export default function AIChatPanel({
         <div className='shrink-0 border-b px-3 py-2 bg-muted/30'>
           <div className='flex items-center justify-between'>
             <span className='text-sm font-medium'>💬 AI {t('analyst.title')}</span>
-            {dataLoaded && (
-              <Badge
-                variant='outline'
-                className={cn(
-                  'text-[10px]',
-                  isDemo
-                    ? 'text-orange-600 border-orange-600'
-                    : 'text-green-600 border-green-600'
-                )}
-              >
-                <IconSparkles className='h-2.5 w-2.5 mr-1' />
-                {isDemo ? t('analyst.demoMode') : t('analyst.dataReady')}
-              </Badge>
-            )}
+            <div className='flex items-center gap-1'>
+              {/* Chat History Dropdown */}
+              {(onNewSession || onSwitchSession) && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant='ghost' size='icon' className='h-7 w-7'>
+                      <IconHistory className='h-4 w-4' />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='end' className='w-56'>
+                    <DropdownMenuLabel className='flex items-center justify-between'>
+                      對話歷史
+                      {onNewSession && (
+                        <Button 
+                          variant='ghost' 
+                          size='icon' 
+                          className='h-6 w-6'
+                          onClick={onNewSession}
+                        >
+                          <IconPlus className='h-3.5 w-3.5' />
+                        </Button>
+                      )}
+                    </DropdownMenuLabel>
+                    <DropdownMenuSeparator />
+                    {sessions.length > 0 ? (
+                      <ScrollArea className='max-h-60'>
+                        {sessions.slice(0, 10).map((session) => (
+                          <DropdownMenuItem
+                            key={session.id}
+                            onClick={() => onSwitchSession?.(session.id)}
+                            className={cn(
+                              'flex flex-col items-start py-2',
+                              session.id === currentSessionId && 'bg-muted'
+                            )}
+                          >
+                            <span className='text-xs font-medium truncate max-w-full'>
+                              {session.name}
+                            </span>
+                            <span className='text-[10px] text-muted-foreground'>
+                              {session.messages.length} 則訊息 · {formatMessageTime(session.updatedAt)}
+                            </span>
+                          </DropdownMenuItem>
+                        ))}
+                      </ScrollArea>
+                    ) : (
+                      <div className='text-xs text-muted-foreground text-center py-3'>
+                        暫無歷史對話
+                      </div>
+                    )}
+                    {sessions.length > 0 && onClearHistory && (
+                      <>
+                        <DropdownMenuSeparator />
+                        <DropdownMenuItem 
+                          onClick={onClearHistory}
+                          className='text-destructive focus:text-destructive'
+                        >
+                          <IconTrash className='h-3.5 w-3.5 mr-2' />
+                          清除所有歷史
+                        </DropdownMenuItem>
+                      </>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
+              {dataLoaded && (
+                <Badge
+                  variant='outline'
+                  className={cn(
+                    'text-[10px]',
+                    isDemo
+                      ? 'text-orange-600 border-orange-600'
+                      : 'text-green-600 border-green-600'
+                  )}
+                >
+                  <IconSparkles className='h-2.5 w-2.5 mr-1' />
+                  {isDemo ? t('analyst.demoMode') : t('analyst.dataReady')}
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
 

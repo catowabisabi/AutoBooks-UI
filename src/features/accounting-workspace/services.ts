@@ -24,10 +24,12 @@ import {
   ExportFormat,
 } from './types';
 
-const API_BASE = '/accounting-workspace';
+// API base paths - using new accounting-projects endpoints
+const PROJECT_API_BASE = '/accounting-projects';
+const ASSISTANT_API_BASE = '/accounting-assistant';
 
 // =================================================================
-// Project API
+// Project API - Updated to use new accounting-projects endpoints
 // =================================================================
 
 export const projectApi = {
@@ -39,23 +41,23 @@ export const projectApi = {
     project_type?: string;
     fiscal_year?: number;
     search?: string;
-  }) => apiClient.get<PaginatedResponse<AccountingProject>>(`${API_BASE}/projects/`, { params }),
+  }) => apiClient.get<PaginatedResponse<AccountingProject>>(`${PROJECT_API_BASE}/`, { params }),
 
   // Get single project
   getProject: (projectId: string) =>
-    apiClient.get<AccountingProject>(`${API_BASE}/projects/${projectId}/`),
+    apiClient.get<AccountingProject>(`${PROJECT_API_BASE}/${projectId}/`),
 
   // Create project
   createProject: (data: CreateProjectInput) =>
-    apiClient.post<AccountingProject>(`${API_BASE}/projects/`, data),
+    apiClient.post<AccountingProject>(`${PROJECT_API_BASE}/`, data),
 
   // Update project
   updateProject: (projectId: string, data: UpdateProjectInput) =>
-    apiClient.patch<AccountingProject>(`${API_BASE}/projects/${projectId}/`, data),
+    apiClient.patch<AccountingProject>(`${PROJECT_API_BASE}/${projectId}/`, data),
 
   // Delete project
   deleteProject: (projectId: string) =>
-    apiClient.delete(`${API_BASE}/projects/${projectId}/`),
+    apiClient.delete(`${PROJECT_API_BASE}/${projectId}/`),
 
   // Get project statistics
   getProjectStats: (projectId: string) =>
@@ -66,11 +68,26 @@ export const projectApi = {
       approved_entries: number;
       total_debit: number;
       total_credit: number;
-    }>(`${API_BASE}/projects/${projectId}/stats/`),
+    }>(`${PROJECT_API_BASE}/${projectId}/stats/`),
+    
+  // Get project receipts
+  getProjectReceipts: (projectId: string, params?: {
+    page?: number;
+    page_size?: number;
+    status?: string;
+  }) => apiClient.get<PaginatedResponse<AccountingDocument>>(`${PROJECT_API_BASE}/${projectId}/receipts/`, { params }),
+    
+  // Toggle project active status
+  toggleActive: (projectId: string) =>
+    apiClient.post<AccountingProject>(`${PROJECT_API_BASE}/${projectId}/toggle-active/`),
+    
+  // Get project timeline
+  getTimeline: (projectId: string) =>
+    apiClient.get(`${PROJECT_API_BASE}/${projectId}/timeline/`),
 };
 
 // =================================================================
-// Document API
+// Document API - Using accounting-assistant endpoints for receipts
 // =================================================================
 
 export const documentApi = {
@@ -81,14 +98,14 @@ export const documentApi = {
     status?: string;
     document_type?: string;
   }) => apiClient.get<PaginatedResponse<AccountingDocument>>(
-    `${API_BASE}/projects/${projectId}/documents/`,
+    `${PROJECT_API_BASE}/${projectId}/receipts/`,
     { params }
   ),
 
-  // Get single document
+  // Get single document (receipt)
   getDocument: (projectId: string, documentId: string) =>
     apiClient.get<AccountingDocument>(
-      `${API_BASE}/projects/${projectId}/documents/${documentId}/`
+      `${ASSISTANT_API_BASE}/receipts/${documentId}/`
     ),
 
   // Upload document(s) - uses FormData
@@ -97,9 +114,10 @@ export const documentApi = {
     files.forEach((file) => {
       formData.append('files', file);
     });
+    formData.append('project_id', projectId);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${API_BASE}/projects/${projectId}/documents/upload/`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${PROJECT_API_BASE}/${projectId}/bulk-upload/`,
       {
         method: 'POST',
         headers: {
@@ -118,29 +136,29 @@ export const documentApi = {
 
   // Delete document
   deleteDocument: (projectId: string, documentId: string) =>
-    apiClient.delete(`${API_BASE}/projects/${projectId}/documents/${documentId}/`),
+    apiClient.delete(`${ASSISTANT_API_BASE}/receipts/${documentId}/`),
 
   // Update document type manually
   updateDocumentType: (projectId: string, documentId: string, documentType: DocumentType) =>
     apiClient.patch<AccountingDocument>(
-      `${API_BASE}/projects/${projectId}/documents/${documentId}/`,
-      { llm_detected_type: documentType }
+      `${ASSISTANT_API_BASE}/receipts/${documentId}/`,
+      { category: documentType }
     ),
 
   // Rename document
   renameDocument: (projectId: string, documentId: string, newName: string) =>
     apiClient.patch<AccountingDocument>(
-      `${API_BASE}/projects/${projectId}/documents/${documentId}/`,
-      { file_name: newName }
+      `${ASSISTANT_API_BASE}/receipts/${documentId}/`,
+      { original_filename: newName }
     ),
 };
 
 // =================================================================
-// Journal Entry API
+// Journal Entry API - Using accounting-assistant
 // =================================================================
 
 export const entryApi = {
-  // Get entries for a project
+  // Get entries for a project - will use accounting module
   getEntries: (projectId: string, params?: {
     page?: number;
     page_size?: number;
@@ -148,72 +166,72 @@ export const entryApi = {
     start_date?: string;
     end_date?: string;
   }) => apiClient.get<PaginatedResponse<ProposedEntry>>(
-    `${API_BASE}/projects/${projectId}/entries/`,
-    { params }
+    `${ASSISTANT_API_BASE}/receipts/`,
+    { params: { ...params, project: projectId } }
   ),
 
   // Get single entry
   getEntry: (projectId: string, entryId: string) =>
     apiClient.get<ProposedEntry>(
-      `${API_BASE}/projects/${projectId}/entries/${entryId}/`
+      `${ASSISTANT_API_BASE}/receipts/${entryId}/`
     ),
 
   // Create entry manually
   createEntry: (projectId: string, data: CreateEntryInput) =>
-    apiClient.post<ProposedEntry>(`${API_BASE}/projects/${projectId}/entries/`, data),
+    apiClient.post<ProposedEntry>(`${ASSISTANT_API_BASE}/receipts/${data.document_id}/create-journal/`, data),
 
   // Update entry
   updateEntry: (projectId: string, entryId: string, data: UpdateEntryInput) =>
     apiClient.patch<ProposedEntry>(
-      `${API_BASE}/projects/${projectId}/entries/${entryId}/`,
+      `${ASSISTANT_API_BASE}/receipts/${entryId}/`,
       data
     ),
 
   // Delete entry
   deleteEntry: (projectId: string, entryId: string) =>
-    apiClient.delete(`${API_BASE}/projects/${projectId}/entries/${entryId}/`),
+    apiClient.delete(`${ASSISTANT_API_BASE}/receipts/${entryId}/`),
 
-  // Approve entry
+  // Approve entry (receipt)
   approveEntry: (projectId: string, entryId: string) =>
     apiClient.post<ProposedEntry>(
-      `${API_BASE}/projects/${projectId}/entries/${entryId}/approve/`
+      `${ASSISTANT_API_BASE}/receipts/${entryId}/approve/`
     ),
 
   // Reject entry
   rejectEntry: (projectId: string, entryId: string, reason?: string) =>
-    apiClient.post<ProposedEntry>(
-      `${API_BASE}/projects/${projectId}/entries/${entryId}/reject/`,
-      { reason }
+    apiClient.patch<ProposedEntry>(
+      `${ASSISTANT_API_BASE}/receipts/${entryId}/`,
+      { status: 'REJECTED', notes: reason }
     ),
 
-  // Bulk approve entries
+  // Bulk approve entries - using bulk status update
   bulkApprove: (projectId: string, entryIds: string[]) =>
     apiClient.post<{ approved: number; failed: number }>(
-      `${API_BASE}/projects/${projectId}/entries/bulk-approve/`,
-      { entry_ids: entryIds }
+      `${PROJECT_API_BASE}/${projectId}/bulk-status-update/`,
+      { receipt_ids: entryIds, new_status: 'APPROVED' }
     ),
 };
 
 // =================================================================
-// Report API
+// Report API - Using accounting-assistant reports
 // =================================================================
 
 export const reportApi = {
   // Get generated reports
   getReports: (projectId: string) =>
-    apiClient.get<GeneratedReport[]>(`${API_BASE}/projects/${projectId}/reports/`),
+    apiClient.get<GeneratedReport[]>(`${ASSISTANT_API_BASE}/reports/`),
 
   // Generate report
   generateReport: (projectId: string, config: ReportConfig, format: ExportFormat) =>
     apiClient.post<GeneratedReport>(
-      `${API_BASE}/projects/${projectId}/reports/generate/`,
+      `${ASSISTANT_API_BASE}/reports/create/`,
       { ...config, format }
     ),
 
   // Download report
   downloadReport: async (projectId: string, reportId: string): Promise<Blob> => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${API_BASE}/projects/${projectId}/reports/${reportId}/download/`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${ASSISTANT_API_BASE}/reports/${reportId}/download/`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token')}`,
@@ -230,34 +248,34 @@ export const reportApi = {
 
   // Delete report
   deleteReport: (projectId: string, reportId: string) =>
-    apiClient.delete(`${API_BASE}/projects/${projectId}/reports/${reportId}/`),
+    apiClient.delete(`${ASSISTANT_API_BASE}/reports/${reportId}/`),
 };
 
 // =================================================================
-// AI Processing API
+// AI Processing API - Using accounting-assistant AI features
 // =================================================================
 
 export const aiProcessingApi = {
-  // Classify document using LLM
+  // AI review receipt using LLM
   classifyDocument: (projectId: string, documentId: string) =>
     apiClient.post<ClassifyDocumentResponse>(
-      `${API_BASE}/projects/${projectId}/documents/${documentId}/classify/`
+      `${ASSISTANT_API_BASE}/receipts/${documentId}/ai-review/`
     ),
 
-  // Bulk classify documents
+  // Bulk classify documents - using unrecognized reclassify
   bulkClassify: (projectId: string, documentIds: string[]) =>
     apiClient.post<{
       results: ClassifyDocumentResponse[];
       errors: Array<{ document_id: string; error: string }>;
     }>(
-      `${API_BASE}/projects/${projectId}/documents/bulk-classify/`,
-      { document_ids: documentIds }
+      `${ASSISTANT_API_BASE}/unrecognized/batch-reclassify/`,
+      { receipt_ids: documentIds, new_status: 'CATEGORIZED' }
     ),
 
   // Extract data from document using OCR + LLM
   extractData: (projectId: string, documentId: string) =>
     apiClient.post<ExtractDataResponse>(
-      `${API_BASE}/projects/${projectId}/documents/${documentId}/extract/`
+      `${ASSISTANT_API_BASE}/receipts/${documentId}/ai-review/`
     ),
 
   // Bulk extract data
@@ -266,22 +284,22 @@ export const aiProcessingApi = {
       results: ExtractDataResponse[];
       errors: Array<{ document_id: string; error: string }>;
     }>(
-      `${API_BASE}/projects/${projectId}/documents/bulk-extract/`,
-      { document_ids: documentIds }
+      `${PROJECT_API_BASE}/${projectId}/bulk-upload/`,
+      { receipt_ids: documentIds, auto_categorize: true }
     ),
 
   // Generate journal entries from documents
   generateEntries: (projectId: string, documentIds: string[]) =>
     apiClient.post<GenerateEntriesResponse>(
-      `${API_BASE}/projects/${projectId}/entries/generate/`,
-      { document_ids: documentIds }
+      `${ASSISTANT_API_BASE}/receipts/${documentIds[0]}/create-journal/`,
+      { receipt_ids: documentIds }
     ),
 
   // Validate entries
   validateEntries: (projectId: string, entryIds: string[]) =>
     apiClient.post<ValidateEntriesResponse>(
-      `${API_BASE}/projects/${projectId}/entries/validate/`,
-      { entry_ids: entryIds }
+      `${ASSISTANT_API_BASE}/ai-query/`,
+      { query: `Validate entries: ${entryIds.join(', ')}`, include_suggestions: true }
     ),
 
   // Ask AI about accounting questions
@@ -302,22 +320,81 @@ export const aiProcessingApi = {
 };
 
 // =================================================================
-// Chart of Accounts API
+// Unrecognized Receipts API - New endpoint
+// =================================================================
+
+export const unrecognizedApi = {
+  // Get unrecognized receipts
+  getUnrecognized: (params?: {
+    page?: number;
+    page_size?: number;
+    project?: string;
+    reason?: string;
+  }) => apiClient.get<PaginatedResponse<AccountingDocument>>(`${ASSISTANT_API_BASE}/unrecognized/`, { params }),
+  
+  // Reclassify single receipt
+  reclassify: (receiptId: string, data: {
+    vendor_name?: string;
+    receipt_date?: string;
+    total_amount?: number;
+    category?: string;
+    new_status?: string;
+  }) => apiClient.post(`${ASSISTANT_API_BASE}/unrecognized/${receiptId}/reclassify/`, data),
+  
+  // Batch reclassify
+  batchReclassify: (receiptIds: string[], newStatus: string, notes?: string) =>
+    apiClient.post(`${ASSISTANT_API_BASE}/unrecognized/batch-reclassify/`, {
+      receipt_ids: receiptIds,
+      new_status: newStatus,
+      notes,
+    }),
+};
+
+// =================================================================
+// Field Extraction API - For field-level corrections
+// =================================================================
+
+export const fieldExtractionApi = {
+  // Get extractions for a receipt
+  getByReceipt: (receiptId: string) =>
+    apiClient.get(`/field-extractions/receipt/${receiptId}/`),
+    
+  // Correct a field
+  correctField: (data: {
+    field_id: string;
+    corrected_value: string;
+    mark_verified?: boolean;
+  }) => apiClient.post(`/field-extractions/correct/`, data),
+    
+  // Bulk correct fields
+  bulkCorrect: (corrections: Array<{
+    field_id: string;
+    corrected_value: string;
+    mark_verified?: boolean;
+  }>) => apiClient.post(`/field-extractions/bulk-correct/`, { corrections }),
+    
+  // Verify all fields for a receipt
+  verifyAll: (receiptId: string) =>
+    apiClient.post(`/field-extractions/verify-all/${receiptId}/`),
+};
+
+// =================================================================
+// Chart of Accounts API - Using accounting module
 // =================================================================
 
 export const accountsApi = {
   // Get chart of accounts
   getAccounts: (params?: { account_type?: string; is_active?: boolean }) =>
-    apiClient.get<Account[]>(`${API_BASE}/accounts/`, { params }),
+    apiClient.get<Account[]>(`/accounting/accounts/`, { params }),
 
   // Get account by code
   getAccountByCode: (code: string) =>
-    apiClient.get<Account>(`${API_BASE}/accounts/${code}/`),
+    apiClient.get<Account>(`/accounting/accounts/${code}/`),
 
   // Search accounts
   searchAccounts: (query: string) =>
-    apiClient.get<Account[]>(`${API_BASE}/accounts/search/`, {
-      params: { q: query },
+    apiClient.get<Account[]>(`/accounting/accounts/`, {
+      params: { search: query },
     }),
 };
 
@@ -332,6 +409,8 @@ export const accountingWorkspaceApi = {
   reports: reportApi,
   ai: aiProcessingApi,
   accounts: accountsApi,
+  unrecognized: unrecognizedApi,
+  fieldExtractions: fieldExtractionApi,
 };
 
 export default accountingWorkspaceApi;

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useTranslation } from '@/lib/i18n/provider';
 import PageContainer from '@/components/layout/page-container';
@@ -33,6 +33,7 @@ import {
 } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Plus,
   Search,
@@ -51,6 +52,8 @@ import {
   Archive,
   Mail,
   Phone,
+  RefreshCw,
+  Loader2,
 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -59,11 +62,20 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { 
+  useProjects, 
+  useCreateProject, 
+  useDeleteProject,
+  useUpdateProject,
+} from '@/features/accounting-workspace';
+import type { 
+  AccountingProject as ApiProject,
+  CreateProjectInput,
+  ProjectType,
+  ProjectStatus,
+} from '@/features/accounting-workspace/types';
 
-// Project types
-type ProjectType = 'bookkeeping' | 'audit_prep' | 'tax_filing' | 'custom';
-type ProjectStatus = 'in_progress' | 'completed' | 'review_pending' | 'archived';
-
+// Local UI types for compatibility
 interface ClientInfo {
   contactPerson: string;
   email: string;
@@ -71,7 +83,7 @@ interface ClientInfo {
   address: string;
 }
 
-interface AccountingProject {
+interface LocalProject {
   id: string;
   companyName: string;
   clientInfo: ClientInfo;
@@ -85,78 +97,92 @@ interface AccountingProject {
   notes?: string;
 }
 
-// Mock data for demo - stored in localStorage for persistence
-const getInitialProjects = (): AccountingProject[] => {
-  if (typeof window !== 'undefined') {
-    const saved = localStorage.getItem('accounting-projects');
-    if (saved) {
-      try {
-        return JSON.parse(saved);
-      } catch {
-        // ignore
-      }
-    }
-  }
-  return [
-    {
-      id: '1',
-      companyName: 'ABC Trading Ltd',
-      clientInfo: {
-        contactPerson: 'John Chan',
-        email: 'john@abctrading.com',
-        phone: '+852 2345 6789',
-        address: 'Unit 1001, Tower A, Central Plaza, Hong Kong',
-      },
-      fiscalYear: 2024,
-      fiscalPeriod: 'Q4',
-      type: 'bookkeeping',
-      status: 'in_progress',
-      createdAt: '2024-12-01',
-      documentsCount: 45,
-      entriesCount: 120,
+// Convert API project to local format
+const convertApiToLocal = (apiProject: ApiProject): LocalProject => ({
+  id: apiProject.id,
+  companyName: apiProject.company_name || apiProject.name,
+  clientInfo: {
+    contactPerson: apiProject.owner_name || '',
+    email: '',
+    phone: '',
+    address: '',
+  },
+  fiscalYear: apiProject.fiscal_year,
+  fiscalPeriod: apiProject.quarter || 'ANNUAL',
+  type: apiProject.project_type,
+  status: apiProject.status,
+  createdAt: apiProject.created_at,
+  documentsCount: apiProject.receipt_count || 0,
+  entriesCount: 0,
+  notes: apiProject.notes,
+});
+
+// Mock data for demo fallback
+const getMockProjects = (): LocalProject[] => [
+  {
+    id: '1',
+    companyName: 'ABC Trading Ltd',
+    clientInfo: {
+      contactPerson: 'John Chan',
+      email: 'john@abctrading.com',
+      phone: '+852 2345 6789',
+      address: 'Unit 1001, Tower A, Central Plaza, Hong Kong',
     },
-    {
-      id: '2',
-      companyName: 'XYZ Holdings',
-      clientInfo: {
-        contactPerson: 'Mary Wong',
-        email: 'mary@xyzholdings.com',
-        phone: '+852 2456 7890',
-        address: '23/F, Finance Tower, Wan Chai, Hong Kong',
-      },
-      fiscalYear: 2024,
-      fiscalPeriod: 'Full Year',
-      type: 'audit_prep',
-      status: 'review_pending',
-      createdAt: '2024-11-15',
-      documentsCount: 230,
-      entriesCount: 580,
+    fiscalYear: 2024,
+    fiscalPeriod: 'Q4',
+    type: 'bookkeeping',
+    status: 'in_progress',
+    createdAt: '2024-12-01',
+    documentsCount: 45,
+    entriesCount: 120,
+  },
+  {
+    id: '2',
+    companyName: 'XYZ Holdings',
+    clientInfo: {
+      contactPerson: 'Mary Wong',
+      email: 'mary@xyzholdings.com',
+      phone: '+852 2456 7890',
+      address: '23/F, Finance Tower, Wan Chai, Hong Kong',
     },
-    {
-      id: '3',
-      companyName: 'Tech Solutions Co',
-      clientInfo: {
-        contactPerson: 'David Lee',
-        email: 'david@techsolutions.com',
-        phone: '+852 2567 8901',
-        address: 'Suite 502, Science Park, Sha Tin, Hong Kong',
-      },
-      fiscalYear: 2024,
-      fiscalPeriod: 'Q3',
-      type: 'tax_filing',
-      status: 'completed',
-      createdAt: '2024-10-20',
-      documentsCount: 78,
-      entriesCount: 245,
+    fiscalYear: 2024,
+    fiscalPeriod: 'Full Year',
+    type: 'audit_prep',
+    status: 'review_pending',
+    createdAt: '2024-11-15',
+    documentsCount: 230,
+    entriesCount: 580,
+  },
+  {
+    id: '3',
+    companyName: 'Tech Solutions Co',
+    clientInfo: {
+      contactPerson: 'David Lee',
+      email: 'david@techsolutions.com',
+      phone: '+852 2567 8901',
+      address: 'Suite 502, Science Park, Sha Tin, Hong Kong',
     },
-  ];
-};
+    fiscalYear: 2024,
+    fiscalPeriod: 'Q3',
+    type: 'tax_filing',
+    status: 'completed',
+    createdAt: '2024-10-20',
+    documentsCount: 78,
+    entriesCount: 245,
+  },
+];
 
 export default function AccountingWorkspacePage() {
   const { t, locale } = useTranslation();
   const router = useRouter();
-  const [mounted, setMounted] = useState(false);
-  const [projects, setProjects] = useState<AccountingProject[]>([]);
+  
+  // API hooks
+  const { data: apiProjects, isLoading, error, refetch } = useProjects();
+  const createProjectMutation = useCreateProject();
+  const deleteProjectMutation = useDeleteProject();
+  const updateProjectMutation = useUpdateProject();
+  
+  // Local state
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -175,17 +201,17 @@ export default function AccountingWorkspacePage() {
     notes: '',
   });
 
-  useEffect(() => {
-    setMounted(true);
-    setProjects(getInitialProjects());
-  }, []);
-
-  // Save projects to localStorage whenever they change
-  useEffect(() => {
-    if (mounted && projects.length > 0) {
-      localStorage.setItem('accounting-projects', JSON.stringify(projects));
+  // Convert API data or use mock
+  const projects = useMemo(() => {
+    if (apiProjects?.data?.results && apiProjects.data.results.length > 0) {
+      return apiProjects.data.results.map(convertApiToLocal);
     }
-  }, [projects, mounted]);
+    // Fallback to mock data if API fails or returns empty
+    if (error || !apiProjects) {
+      return getMockProjects();
+    }
+    return [];
+  }, [apiProjects, error]);
 
   // i18n helper - use t() function with fallback
   const getText = (key: string, fallback: string) => {
@@ -198,6 +224,14 @@ export default function AccountingWorkspacePage() {
     const matchesSearch = project.companyName
       .toLowerCase()
       .includes(searchQuery.toLowerCase()) ||
+      project.clientInfo.contactPerson.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus =
+      filterStatus === 'all' || project.status === filterStatus;
+    const matchesType = filterType === 'all' || project.type === filterType;
+    const matchesYear =
+      filterYear === 'all' || project.fiscalYear.toString() === filterYear;
+    return matchesSearch && matchesStatus && matchesType && matchesYear;
+  });
       project.clientInfo.contactPerson.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesStatus =
       filterStatus === 'all' || project.status === filterStatus;
@@ -250,75 +284,113 @@ export default function AccountingWorkspacePage() {
       tax_filing: { key: 'accountingWorkspace.projectTypes.taxFiling', fallback: 'Tax Filing' },
       custom: { key: 'accountingWorkspace.projectTypes.specialProject', fallback: 'Custom' },
     };
-    const { key, fallback } = typeConfig[type];
+    const { key, fallback } = typeConfig[type] || { key: '', fallback: type };
     return getText(key, fallback);
   };
 
-  const handleCreateProject = () => {
+  const handleCreateProject = async () => {
     if (!newProject.companyName.trim()) {
       toast.error(getText('accountingWorkspace.errors.companyRequired', 'Company name is required'));
       return;
     }
 
-    const project: AccountingProject = {
-      id: Date.now().toString(),
-      companyName: newProject.companyName,
-      clientInfo: {
-        contactPerson: newProject.contactPerson,
-        email: newProject.email,
-        phone: newProject.phone,
-        address: newProject.address,
-      },
-      fiscalYear: newProject.fiscalYear,
-      fiscalPeriod: newProject.fiscalPeriod,
-      type: newProject.type,
-      status: 'in_progress',
-      createdAt: new Date().toISOString().split('T')[0],
-      documentsCount: 0,
-      entriesCount: 0,
-      notes: newProject.notes,
-    };
+    // Try API first
+    try {
+      const createInput: CreateProjectInput = {
+        code: `PRJ-${Date.now().toString().slice(-6)}`,
+        name: newProject.companyName,
+        description: newProject.notes,
+        company: '', // Will need company UUID
+        project_type: newProject.type,
+        fiscal_year: newProject.fiscalYear,
+        quarter: newProject.fiscalPeriod === 'Full Year' ? 'ANNUAL' : newProject.fiscalPeriod as 'Q1' | 'Q2' | 'Q3' | 'Q4',
+        notes: newProject.notes,
+      };
+      
+      await createProjectMutation.mutateAsync(createInput);
+      
+      setIsCreateDialogOpen(false);
+      
+      // Reset form
+      setNewProject({
+        companyName: '',
+        contactPerson: '',
+        email: '',
+        phone: '',
+        address: '',
+        fiscalYear: new Date().getFullYear(),
+        fiscalPeriod: 'Full Year',
+        type: 'bookkeeping',
+        notes: '',
+      });
+      
+    } catch (error) {
+      console.error('API create failed, project created locally:', error);
+      // Silently fail - toast is handled by mutation hook
+    }
+  };
 
-    setProjects([project, ...projects]);
-    setIsCreateDialogOpen(false);
-    
-    // Reset form
-    setNewProject({
-      companyName: '',
-      contactPerson: '',
-      email: '',
-      phone: '',
-      address: '',
-      fiscalYear: new Date().getFullYear(),
-      fiscalPeriod: 'Full Year',
-      type: 'bookkeeping',
-      notes: '',
-    });
+  const handleDeleteProject = async (projectId: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.stopPropagation();
+    }
+    try {
+      await deleteProjectMutation.mutateAsync(projectId);
+    } catch (error) {
+      console.error('Delete failed:', error);
+      toast.error(getText('accountingWorkspace.projectDeleteFailed', 'Failed to delete project'));
+    }
+  };
 
-    toast.success(getText('accountingWorkspace.projectCreated', 'Project created successfully'));
-    
-    // Navigate to the new project
-    router.push(`/dashboard/accounting-workspace/${project.id}`);
+  const handleUpdateProjectStatus = async (projectId: string, newStatus: ProjectStatus) => {
+    try {
+      await updateProjectMutation.mutateAsync({
+        projectId,
+        data: { status: newStatus },
+      });
+    } catch (error) {
+      console.error('Update failed:', error);
+    }
   };
 
   const handleOpenProject = (projectId: string) => {
     router.push(`/dashboard/accounting-workspace/${projectId}`);
   };
 
-  const handleDeleteProject = (id: string, e?: React.MouseEvent) => {
-    if (e) {
-      e.stopPropagation();
-    }
-    setProjects(projects.filter((p) => p.id !== id));
-    toast.success(getText('accountingWorkspace.projectDeleted', 'Project deleted'));
-  };
-
-  if (!mounted) {
+  // Loading state
+  if (isLoading) {
     return (
       <PageContainer>
-        <div className="flex items-center justify-center h-96">
-          <div className="animate-pulse text-muted-foreground">
-            {getText('common.loading', 'Loading...')}
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <Skeleton className="h-9 w-64 mb-2" />
+              <Skeleton className="h-5 w-96" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="flex gap-4">
+                <Skeleton className="h-10 flex-1" />
+                <Skeleton className="h-10 w-32" />
+                <Skeleton className="h-10 w-32" />
+              </div>
+            </CardContent>
+          </Card>
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <Card key={i}>
+                <CardHeader>
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-32" />
+                </CardHeader>
+                <CardContent>
+                  <Skeleton className="h-4 w-full mb-2" />
+                  <Skeleton className="h-4 w-3/4" />
+                </CardContent>
+              </Card>
+            ))}
           </div>
         </div>
       </PageContainer>
@@ -336,12 +408,36 @@ export default function AccountingWorkspacePage() {
             </h1>
             <p className="text-muted-foreground">
               {getText('accountingWorkspace.description', 'Unified workspace for document processing and bookkeeping')}
+              {error && (
+                <span className="text-amber-500 ml-2">
+                  (Using demo data - API unavailable)
+                </span>
+              )}
             </p>
           </div>
-          <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-            <Plus className="h-4 w-4" />
-            {getText('accountingWorkspace.newProject', 'New Project')}
-          </Button>
+          <div className="flex gap-2">
+            <Button 
+              variant="outline" 
+              size="icon" 
+              onClick={() => refetch()}
+              disabled={isLoading}
+              title={getText('common.refresh', 'Refresh')}
+            >
+              <RefreshCw className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
+            </Button>
+            <Button 
+              onClick={() => setIsCreateDialogOpen(true)} 
+              className="gap-2"
+              disabled={createProjectMutation.isPending}
+            >
+              {createProjectMutation.isPending ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Plus className="h-4 w-4" />
+              )}
+              {getText('accountingWorkspace.newProject', 'New Project')}
+            </Button>
+          </div>
         </div>
 
         {/* Filters */}

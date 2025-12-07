@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useCallback } from 'react';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
@@ -33,6 +33,9 @@ import {
   TooltipProvider,
   TooltipTrigger
 } from '@/components/ui/tooltip';
+
+// API Base URL
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
 
 interface Column {
   name: string;
@@ -192,12 +195,57 @@ export default function DatabaseSchemaPanel({
 }: DatabaseSchemaPanelProps) {
   const [schema, setSchema] = useState<TableSchema[]>(DEMO_SCHEMA);
   const [activeTable, setActiveTable] = useState<string>(DEMO_SCHEMA[0]?.name || '');
-  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['sales', 'crm', 'inventory', 'finance']));
+  const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set(['sales', 'crm', 'inventory', 'finance', 'data']));
   const [expandedTables, setExpandedTables] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(false);
+  const [schemaIsDemo, setSchemaIsDemo] = useState(isDemo);
   const [searchQuery, setSearchQuery] = useState('');
   const [viewMode, setViewMode] = useState<'grouped' | 'tabs'>('grouped');
   const [copiedColumn, setCopiedColumn] = useState<string | null>(null);
+
+  // Fetch schema from backend API
+  const fetchSchema = useCallback(async () => {
+    setLoading(true);
+    try {
+      const token = localStorage.getItem('token') || localStorage.getItem('access_token') || '';
+      const response = await fetch(`${API_BASE_URL}/analyst-assistant/schema/`, {
+        method: 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': token ? `Bearer ${token}` : '',
+        },
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.tables && data.tables.length > 0) {
+          setSchema(data.tables);
+          setSchemaIsDemo(data.isDemo || false);
+          if (data.tables[0]) {
+            setActiveTable(data.tables[0].name);
+          }
+          console.log('[DatabaseSchemaPanel] Loaded schema from API:', data.tables.length, 'tables');
+        } else {
+          // No tables returned, use demo data
+          console.log('[DatabaseSchemaPanel] No tables from API, using demo data');
+          setSchemaIsDemo(true);
+        }
+      } else {
+        console.error('[DatabaseSchemaPanel] Failed to fetch schema:', response.status);
+        setSchemaIsDemo(true);
+      }
+    } catch (error) {
+      console.error('[DatabaseSchemaPanel] Error fetching schema:', error);
+      setSchemaIsDemo(true);
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  // Fetch schema on mount
+  useEffect(() => {
+    fetchSchema();
+  }, [fetchSchema]);
 
   // Group tables by category
   const groupedTables = useMemo(() => {
@@ -269,11 +317,7 @@ export default function DatabaseSchemaPanel({
   };
 
   const refreshSchema = async () => {
-    setLoading(true);
-    // TODO: Fetch real schema from backend
-    setTimeout(() => {
-      setLoading(false);
-    }, 1000);
+    await fetchSchema();
   };
 
   const getTypeColor = (type: string) => {
@@ -293,7 +337,7 @@ export default function DatabaseSchemaPanel({
           <div className='flex items-center gap-2'>
             <IconDatabase className='h-4 w-4 text-muted-foreground' />
             <span className='text-sm font-medium'>Database Schema</span>
-            {isDemo && (
+            {schemaIsDemo && (
               <Badge variant='outline' className='text-xs text-orange-600 border-orange-600'>
                 Demo
               </Badge>

@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useRef } from 'react';
 import { SortableContext, useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import {
@@ -10,7 +11,15 @@ import {
   CardTitle
 } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { IconEdit, IconResize, IconTrash } from '@tabler/icons-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
+import { IconEdit, IconResize, IconTrash, IconDownload } from '@tabler/icons-react';
+import { Download, Image, FileSpreadsheet, FileJson, Clipboard, Check } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import {
   DndContext,
@@ -19,6 +28,13 @@ import {
   DragEndEvent
 } from '@dnd-kit/core';
 import { ChartRenderer } from './chart-renderer';
+import { 
+  exportChartAsPNG, 
+  exportDataAsCSV, 
+  exportDataAsExcel,
+  exportDataAsJSON,
+  copyDataToClipboard 
+} from './chart-export-utils';
 
 type WidgetType = 'text' | 'bar' | 'area' | 'pie';
 
@@ -91,11 +107,42 @@ interface WidgetProps {
 }
 
 function Widget({ widget, isOverlay = false, onDelete }: WidgetProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
       id: widget.id,
       data: { type: 'Widget', widget }
     });
+
+  const handleExport = async (type: 'png' | 'csv' | 'excel' | 'json' | 'clipboard') => {
+    const chartData = widget.data;
+    const chartTitle = widget.title || 'chart';
+    
+    let success = false;
+    
+    switch (type) {
+      case 'png':
+        success = await exportChartAsPNG(chartRef.current, chartTitle);
+        break;
+      case 'csv':
+        success = chartData ? exportDataAsCSV(chartData, chartTitle) : false;
+        break;
+      case 'excel':
+        success = chartData ? exportDataAsExcel(chartData, chartTitle) : false;
+        break;
+      case 'json':
+        success = chartData ? exportDataAsJSON(chartData, chartTitle) : false;
+        break;
+      case 'clipboard':
+        success = chartData ? await copyDataToClipboard(chartData) : false;
+        break;
+    }
+    
+    setExportStatus(success ? 'success' : 'error');
+    setTimeout(() => setExportStatus('idle'), 2000);
+  };
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -121,6 +168,44 @@ function Widget({ widget, isOverlay = false, onDelete }: WidgetProps) {
                 <Button variant='ghost' size='icon' className='h-8 w-8'>
                   <IconEdit className='h-4 w-4' />
                 </Button>
+              )}
+              {/* Export dropdown for charts */}
+              {widget.type !== 'text' && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant='ghost' size='icon' className='h-8 w-8'>
+                      {exportStatus === 'success' ? (
+                        <Check className='h-4 w-4 text-green-500' />
+                      ) : (
+                        <Download className='h-4 w-4' />
+                      )}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='end' className='w-40'>
+                    <DropdownMenuItem onClick={() => handleExport('png')}>
+                      <Image className='h-4 w-4 mr-2' />
+                      匯出 PNG
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleExport('csv')}>
+                      <FileSpreadsheet className='h-4 w-4 mr-2' />
+                      匯出 CSV
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('excel')}>
+                      <FileSpreadsheet className='h-4 w-4 mr-2' />
+                      匯出 Excel
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={() => handleExport('json')}>
+                      <FileJson className='h-4 w-4 mr-2' />
+                      匯出 JSON
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={() => handleExport('clipboard')}>
+                      <Clipboard className='h-4 w-4 mr-2' />
+                      複製到剪貼板
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               )}
               <Button variant='ghost' size='icon' className='h-8 w-8'>
                 <IconResize className='h-4 w-4' />
@@ -149,7 +234,7 @@ function Widget({ widget, isOverlay = false, onDelete }: WidgetProps) {
             </div>
           )}
           {widget.type !== 'text' && widget.data && widget.data.length > 0 ? (
-            <div className='h-40'>
+            <div className='h-40' ref={chartRef}>
               <ChartRenderer
                 type={
                   widget.type as 'bar' | 'scatter' | 'pie' | 'table' | 'area'

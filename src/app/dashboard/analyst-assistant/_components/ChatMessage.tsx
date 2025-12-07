@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useRef } from 'react';
 import { Button } from '@/components/ui/button';
 import {
   Card,
@@ -10,10 +10,24 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+} from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { ChartRenderer } from './chart-renderer';
-import { Loader2, Copy, Check } from 'lucide-react';
+import { Loader2, Copy, Check, Download, Image, FileSpreadsheet, FileJson, Clipboard } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n/provider';
+import { 
+  exportChartAsPNG, 
+  exportDataAsCSV, 
+  exportDataAsExcel,
+  exportDataAsJSON,
+  copyDataToClipboard 
+} from './chart-export-utils';
 
 export type WidgetType = 'text' | 'bar' | 'area' | 'pie' | 'line' | 'scatter' | 'table';
 
@@ -224,6 +238,36 @@ export default function ChatMessage({
   onAddToDashboard
 }: ChatMessageProps) {
   const { t } = useTranslation();
+  const chartRef = useRef<HTMLDivElement>(null);
+  const [exportStatus, setExportStatus] = useState<'idle' | 'success' | 'error'>('idle');
+  
+  const handleExport = async (type: 'png' | 'csv' | 'excel' | 'json' | 'clipboard') => {
+    const chartData = message.chart?.data;
+    const chartTitle = message.chart?.title || 'chart';
+    
+    let success = false;
+    
+    switch (type) {
+      case 'png':
+        success = await exportChartAsPNG(chartRef.current, chartTitle);
+        break;
+      case 'csv':
+        success = chartData ? exportDataAsCSV(chartData, chartTitle) : false;
+        break;
+      case 'excel':
+        success = chartData ? exportDataAsExcel(chartData, chartTitle) : false;
+        break;
+      case 'json':
+        success = chartData ? exportDataAsJSON(chartData, chartTitle) : false;
+        break;
+      case 'clipboard':
+        success = chartData ? await copyDataToClipboard(chartData) : false;
+        break;
+    }
+    
+    setExportStatus(success ? 'success' : 'error');
+    setTimeout(() => setExportStatus('idle'), 2000);
+  };
   
   return (
     <div
@@ -255,14 +299,54 @@ export default function ChatMessage({
           <div className='mt-3'>
             <Card className='mt-2 bg-background'>
               <CardHeader className='py-2'>
-                <CardTitle className='text-sm'>{message.chart.title}</CardTitle>
-                <CardDescription className='text-xs'>
-                  {message.chart.description}
-                </CardDescription>
+                <div className='flex items-center justify-between'>
+                  <div>
+                    <CardTitle className='text-sm'>{message.chart.title}</CardTitle>
+                    <CardDescription className='text-xs'>
+                      {message.chart.description}
+                    </CardDescription>
+                  </div>
+                  {/* Export dropdown */}
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant='ghost' size='icon' className='h-7 w-7'>
+                        {exportStatus === 'success' ? (
+                          <Check className='h-4 w-4 text-green-500' />
+                        ) : (
+                          <Download className='h-4 w-4' />
+                        )}
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align='end' className='w-40'>
+                      <DropdownMenuItem onClick={() => handleExport('png')}>
+                        <Image className='h-4 w-4 mr-2' />
+                        匯出 PNG
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleExport('csv')}>
+                        <FileSpreadsheet className='h-4 w-4 mr-2' />
+                        匯出 CSV
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExport('excel')}>
+                        <FileSpreadsheet className='h-4 w-4 mr-2' />
+                        匯出 Excel
+                      </DropdownMenuItem>
+                      <DropdownMenuItem onClick={() => handleExport('json')}>
+                        <FileJson className='h-4 w-4 mr-2' />
+                        匯出 JSON
+                      </DropdownMenuItem>
+                      <DropdownMenuSeparator />
+                      <DropdownMenuItem onClick={() => handleExport('clipboard')}>
+                        <Clipboard className='h-4 w-4 mr-2' />
+                        複製到剪貼板
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
+                </div>
               </CardHeader>
               <CardContent className='p-2'>
                 {message.chart.data && message.chart.data.length > 0 ? (
-                  <div className='h-48'>
+                  <div className='h-48' ref={chartRef}>
                     <ChartRenderer
                       type={message.chart.type as 'bar' | 'scatter' | 'pie' | 'table' | 'area' | 'line'}
                       data={message.chart.data}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -22,13 +22,24 @@ import {
   IconMaximize,
   IconCamera,
   IconLayoutDashboard,
-  IconTable
+  IconTable,
+  IconHistory,
+  IconTrash
 } from '@tabler/icons-react';
 import { DragStartEvent, DragEndEvent } from '@dnd-kit/core';
 import { arrayMove } from '@dnd-kit/sortable';
 import { sendAnalystQuery, startAnalystAssistant } from './services';
 import { useTranslation } from '@/lib/i18n/provider';
 import { cn } from '@/lib/utils';
+import { useChatHistory, PersistedMessage, formatMessageTime } from './_components/useChatHistory';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+} from '@/components/ui/dropdown-menu';
 
 import DashboardGrid from './_components/DashboardGrid';
 import RagDocumentPanel from './_components/RagDocumentPanel';
@@ -116,6 +127,19 @@ const MAX_VISIBLE_DASHBOARDS = 4;
 export default function AnalystAssistantPage() {
   const { t } = useTranslation();
   
+  // Chat history persistence
+  const {
+    sessions,
+    currentSessionId,
+    messages: persistedMessages,
+    isLoaded: historyLoaded,
+    addMessage: addPersistedMessage,
+    startNewSession,
+    switchSession,
+    deleteCurrentSession,
+    clearHistory
+  } = useChatHistory();
+  
   // Welcome message - created inside component to use translations
   const getWelcomeMessages = (): Message[] => [
     {
@@ -141,10 +165,24 @@ export default function AnalystAssistantPage() {
   const tabContainerRef = useRef<HTMLDivElement>(null);
   const dashboardRef = useRef<HTMLDivElement>(null);
 
-  // Initialize welcome messages
+  // Convert persisted messages to Message format and restore on load
   useEffect(() => {
-    setMessages(getWelcomeMessages());
-  }, []);
+    if (historyLoaded) {
+      if (persistedMessages.length > 0) {
+        // Restore messages from history
+        const restoredMessages: Message[] = persistedMessages.map(pm => ({
+          id: pm.id,
+          role: pm.role,
+          content: pm.content,
+          chart: pm.chart
+        }));
+        setMessages(restoredMessages);
+      } else {
+        // Show welcome message for new session
+        setMessages(getWelcomeMessages());
+      }
+    }
+  }, [historyLoaded, currentSessionId]);
 
   // Load data on mount
   const loadData = async () => {
@@ -216,6 +254,13 @@ export default function AnalystAssistantPage() {
 
     setMessages(prev => [...prev, userMessage, loadingMessage]);
     setIsLoading(true);
+    
+    // Persist user message
+    addPersistedMessage({
+      id: userMessage.id,
+      role: userMessage.role,
+      content: userMessage.content
+    });
 
     try {
       // Call the API with the user's query
@@ -251,6 +296,14 @@ export default function AnalystAssistantPage() {
         
         // Debug: log the created message
         console.log('Created AI response message:', aiResponse);
+        
+        // Persist AI response
+        addPersistedMessage({
+          id: aiResponse.id,
+          role: aiResponse.role,
+          content: aiResponse.content,
+          chart: aiResponse.chart
+        });
 
         return [...filtered, aiResponse];
       });
@@ -265,12 +318,39 @@ export default function AnalystAssistantPage() {
           role: 'assistant',
           content: t('analyst.errorProcessing')
         };
+        
+        // Persist error message
+        addPersistedMessage({
+          id: errorResponse.id,
+          role: errorResponse.role,
+          content: errorResponse.content
+        });
+        
         return [...filtered, errorResponse];
       });
     } finally {
       setIsLoading(false);
     }
   };
+  
+  // Handle starting a new chat session
+  const handleNewSession = useCallback(() => {
+    startNewSession();
+    setMessages(getWelcomeMessages());
+  }, [startNewSession]);
+  
+  // Handle switching to a different session
+  const handleSwitchSession = useCallback((sessionId: string) => {
+    switchSession(sessionId);
+  }, [switchSession]);
+  
+  // Handle clearing chat history
+  const handleClearHistory = useCallback(() => {
+    if (confirm('確定要清除所有對話歷史嗎？此操作無法恢復。')) {
+      clearHistory();
+      setMessages(getWelcomeMessages());
+    }
+  }, [clearHistory]);
 
   // Handle adding a chart to the dashboard
   const handleAddToDashboard = (
@@ -288,16 +368,24 @@ export default function AnalystAssistantPage() {
       | undefined
   ) => {
     if (!chart) {
-      console.warn('handleAddToDashboard: No chart provided');
+      console.warn('[Dashboard] handleAddToDashboard: No chart provided');
       return;
     }
     
+    // Debug: log incoming chart data
+    console.log('[Dashboard] handleAddToDashboard called with chart:', chart);
+    console.log('[Dashboard] Chart data:', chart.data);
+    console.log('[Dashboard] Chart data length:', chart.data?.length);
+    
     if (!chart.data || chart.data.length === 0) {
-      console.warn('handleAddToDashboard: Chart has no data', chart);
-      // Still add it but show warning
+      console.warn('[Dashboard] handleAddToDashboard: Chart has no data', chart);
+      // Still add it but show warning in console
     }
 
-    console.log('Adding chart to dashboard:', chart);
+    // Deep clone the data to avoid reference issues
+    const chartData = chart.data ? JSON.parse(JSON.stringify(chart.data)) : [];
+    
+    console.log('[Dashboard] Adding chart to dashboard with data:', chartData);
 
     const newWidget: WidgetData = {
       id: `widget-${Date.now()}`,
@@ -306,14 +394,20 @@ export default function AnalystAssistantPage() {
       title: chart.title,
       description: chart.description,
       size: { width: 2, height: 1 },
-      data: chart.data || [],
+      data: chartData,
       xKey: chart.xKey,
       yKey: chart.yKey,
       labelKey: chart.labelKey,
       valueKey: chart.valueKey
     };
 
-    setWidgets([...widgets, newWidget]);
+    console.log('[Dashboard] New widget created:', newWidget);
+    
+    setWidgets(prevWidgets => {
+      const updated = [...prevWidgets, newWidget];
+      console.log('[Dashboard] Updated widgets:', updated);
+      return updated;
+    });
   };
 
   // Handle deleting a widget
@@ -576,6 +670,11 @@ export default function AnalystAssistantPage() {
                 dataLoaded={dataLoaded}
                 isDemo={isDemo}
                 suggestedPrompts={samplePromptKeys}
+                sessions={sessions}
+                currentSessionId={currentSessionId}
+                onNewSession={handleNewSession}
+                onSwitchSession={handleSwitchSession}
+                onClearHistory={handleClearHistory}
               />
             </TabsContent>
 
