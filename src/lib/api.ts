@@ -503,6 +503,277 @@ export const assistantsApi = {
   
   // 財務助手
   analyzeReceipt: (formData: FormData) => api.upload('/api/v1/finance-assistant/analyze/', formData),
+
+  // =========================================================================
+  // Accounting Assistant API / 會計助手 API
+  // =========================================================================
+  
+  // Receipt Upload and Analysis
+  uploadReceipt: (formData: FormData) => 
+    api.upload<{
+      receipt_id: string;
+      status: string;
+      receipt: any;
+      processing_result: any;
+    }>('/api/v1/accounting-assistant/upload/', formData),
+  
+  // Receipt CRUD
+  getReceipts: (params?: { status?: string; category?: string; date_from?: string; date_to?: string }) =>
+    api.get<{ count: number; results: any[] }>('/api/v1/accounting-assistant/receipts/', { params }),
+  
+  getReceipt: (receiptId: string) =>
+    api.get<any>(`/api/v1/accounting-assistant/${receiptId}/receipt/`),
+  
+  updateReceipt: (receiptId: string, data: any) =>
+    api.patch(`/api/v1/accounting-assistant/${receiptId}/update-receipt/`, data),
+  
+  // Approval and Journal Entry
+  approveReceipt: (receiptId: string, options?: { auto_journal?: boolean; auto_post?: boolean; notes?: string }) =>
+    api.post<{
+      status: string;
+      journal_created: boolean;
+      journal_entry?: {
+        id: string;
+        entry_number: string;
+        date: string;
+        total_debit: number;
+        total_credit: number;
+        status: string;
+      };
+      receipt: any;
+    }>(`/api/v1/accounting-assistant/${receiptId}/approve/`, options || {}),
+  
+  createJournalEntry: (receiptId: string, options?: { auto_post?: boolean }) =>
+    api.post<{
+      status: string;
+      journal_entry: {
+        id: string;
+        entry_number: string;
+        date: string;
+        description: string;
+        total_debit: number;
+        total_credit: number;
+        status: string;
+        lines: Array<{
+          account_code: string;
+          account_name: string;
+          debit: number;
+          credit: number;
+        }>;
+      };
+      receipt: any;
+    }>(`/api/v1/accounting-assistant/${receiptId}/create-journal/`, options || {}),
+  
+  postJournal: (receiptId: string) =>
+    api.post<{
+      status: string;
+      journal_entry: { id: string; entry_number: string; status: string };
+      receipt: any;
+    }>(`/api/v1/accounting-assistant/${receiptId}/post-journal/`),
+  
+  voidJournal: (receiptId: string, reason?: string) =>
+    api.post<{ status: string; receipt: any }>(`/api/v1/accounting-assistant/${receiptId}/void-journal/`, { reason }),
+  
+  // Batch Operations
+  batchCreateJournals: (receiptIds: string[], options?: { auto_post?: boolean }) =>
+    api.post<{
+      status: string;
+      results: {
+        success: Array<{ receipt_id: string; journal_entry_id: string; entry_number: string }>;
+        failed: Array<{ receipt_id: string; error: string }>;
+        total: number;
+        success_count: number;
+        failed_count: number;
+      };
+    }>('/api/v1/accounting-assistant/batch-create-journals/', {
+      receipt_ids: receiptIds,
+      ...options
+    }),
+  
+  batchApprove: (receiptIds: string[], options?: { auto_journal?: boolean; auto_post?: boolean }) =>
+    api.post<{
+      status: string;
+      results: {
+        success: Array<{ receipt_id: string; journal_entry_id?: string; entry_number?: string }>;
+        failed: Array<{ receipt_id: string; error: string }>;
+        total: number;
+        success_count: number;
+        failed_count: number;
+      };
+    }>('/api/v1/accounting-assistant/batch-approve/', {
+      receipt_ids: receiptIds,
+      ...options
+    }),
+  
+  // AI Review
+  aiReviewReceipt: (receiptId: string) =>
+    api.post<{
+      ai_review: {
+        validation_status: string;
+        validation_issues: string[];
+        categorization_review: { is_correct: boolean; suggested_category?: string; reason?: string };
+        tax_compliance: { status: string; notes: string[] };
+        suggestions: Array<{ type: string; title: string; description: string; priority: string }>;
+        anomalies: string[];
+        overall_score: number;
+        summary: string;
+      };
+      receipt: any;
+    }>(`/api/v1/accounting-assistant/${receiptId}/ai-review/`),
+  
+  // Anomaly Detection
+  detectAnomalies: (receiptId: string, includeAi?: boolean) =>
+    api.get<{
+      receipt_id: string;
+      anomalies_count: number;
+      anomalies: Array<{
+        type: string;
+        severity: string;
+        title: string;
+        description: string;
+        details: any;
+        recommendation: string;
+      }>;
+      ai_analysis?: {
+        risk_score: number;
+        risk_level: string;
+        summary: string;
+        analysis: string;
+        recommendations: string[];
+        should_flag_for_review: boolean;
+      };
+    }>(`/api/v1/accounting-assistant/${receiptId}/detect-anomalies/`, { 
+      params: { include_ai: includeAi ? 'true' : 'false' } 
+    }),
+  
+  getAnomalySummary: (days?: number) =>
+    api.get<{
+      total_receipts: number;
+      anomalies_found: number;
+      by_type: Record<string, number>;
+      by_severity: Record<string, number>;
+      period_days: number;
+      recommendations: string[];
+    }>('/api/v1/accounting-assistant/anomaly-summary/', { params: { days } }),
+  
+  // Vendor Recognition
+  processVendor: (receiptId: string) =>
+    api.post<{
+      receipt_id: string;
+      vendor_result: {
+        vendor_name: string;
+        contact: { id: string; company_name: string; is_existing: boolean } | null;
+        contact_created: boolean;
+        suggested_category: string | null;
+        vendor_stats: { total_transactions: number; total_amount: number; most_common_category: string | null };
+      };
+    }>(`/api/v1/accounting-assistant/${receiptId}/process-vendor/`),
+  
+  findVendor: (vendorName: string, taxId?: string) =>
+    api.post<{
+      found: boolean;
+      contact?: { id: string; company_name: string; contact_name: string; tax_number: string; contact_type: string };
+      suggestions?: Array<{ contact_id: string; company_name: string; contact_name: string; similarity_score: number }>;
+    }>('/api/v1/accounting-assistant/find-vendor/', { vendor_name: vendorName, tax_id: taxId }),
+  
+  suggestCategory: (vendorName: string) =>
+    api.get<{
+      vendor_name: string;
+      suggested_category: string | null;
+      vendor_stats: { total_transactions: number; total_amount: number; category_breakdown: any[] };
+    }>('/api/v1/accounting-assistant/suggest-category/', { params: { vendor_name: vendorName } }),
+  
+  // Recurring Expenses
+  getRecurringExpenses: (months?: number) =>
+    api.get<{
+      recurring_count: number;
+      recurring_expenses: Array<{
+        vendor_name: string;
+        pattern_type: string;
+        average_interval_days: number;
+        average_amount: number;
+        amount_variance: number;
+        total_occurrences: number;
+        first_occurrence: string;
+        last_occurrence: string;
+        most_common_category: string;
+        confidence: number;
+        estimated_monthly_cost: number;
+        estimated_annual_cost: number;
+        next_expected_date: string;
+        receipt_ids: string[];
+      }>;
+      analysis_period_months: number;
+    }>('/api/v1/accounting-assistant/recurring-expenses/', { params: { months } }),
+  
+  getRecurringSummary: (months?: number) =>
+    api.get<{
+      total_recurring_items: number;
+      total_estimated_monthly: number;
+      total_estimated_annual: number;
+      by_category: Record<string, { count: number; monthly_cost: number }>;
+      by_pattern: Record<string, number>;
+      top_recurring: any[];
+      analysis_period_months: number;
+    }>('/api/v1/accounting-assistant/recurring-summary/', { params: { months } }),
+  
+  predictExpenses: (monthsAhead?: number) =>
+    api.get<{
+      prediction_period: string;
+      total_predicted: number;
+      predictions: Array<{
+        vendor_name: string;
+        category: string;
+        pattern_type: string;
+        expected_amount: number;
+        expected_dates: string[];
+        expected_count: number;
+        expected_total: number;
+        confidence: number;
+      }>;
+      monthly_breakdown: Record<string, number>;
+      recurring_vendors_count: number;
+    }>('/api/v1/accounting-assistant/predict-expenses/', { params: { months: monthsAhead } }),
+  
+  getRecurringAnalysis: (months?: number) =>
+    api.get<{
+      summary: string;
+      insights: string[];
+      cost_optimization: string[];
+      risks: string[];
+      recommendations: Array<{ type: string; suggestion: string }>;
+      predicted_trend: string;
+      raw_summary: any;
+    }>('/api/v1/accounting-assistant/recurring-analysis/', { params: { months } }),
+  
+  // Excel Comparison
+  compareExcel: (formData: FormData) =>
+    api.upload<{
+      comparison_id: string;
+      total_excel_records: number;
+      total_db_records: number;
+      matched_count: number;
+      missing_in_db_count: number;
+      missing_in_excel_count: number;
+      amount_mismatch_count: number;
+      health_score: number;
+      ai_analysis: any;
+    }>('/api/v1/accounting-assistant/compare/', formData),
+  
+  // Reports
+  createReport: (data: { title: string; period_start: string; period_end: string; receipt_ids: string[] }) =>
+    api.post<{
+      report: any;
+      excel_url?: string;
+    }>('/api/v1/accounting-assistant/reports/', data),
+  
+  getReports: (params?: { page?: number; page_size?: number }) =>
+    api.get<{ count: number; results: any[] }>('/api/v1/accounting-assistant/reports/', { params }),
+  
+  downloadReport: (reportId: string, format: 'excel' | 'pdf') =>
+    api.get<Blob>(`/api/v1/accounting-assistant/reports/${reportId}/download/?format=${format}`, {
+      headers: { Accept: format === 'excel' ? 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' : 'application/pdf' }
+    }),
 };
 
 // =================================================================

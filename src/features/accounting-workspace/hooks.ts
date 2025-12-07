@@ -770,3 +770,271 @@ export function useCorrectField() {
     },
   });
 }
+
+// =================================================================
+// AI Accounting Assistant Hooks (New)
+// =================================================================
+import { assistantsApi } from '@/lib/api';
+
+export const aiAccountingKeys = {
+  all: ['ai-accounting'] as const,
+  receipts: () => [...aiAccountingKeys.all, 'receipts'] as const,
+  receiptList: (filters?: Record<string, any>) =>
+    [...aiAccountingKeys.receipts(), 'list', filters] as const,
+  receipt: (id: string) => [...aiAccountingKeys.receipts(), id] as const,
+  anomalies: (id: string) => [...aiAccountingKeys.receipt(id), 'anomalies'] as const,
+  anomalySummary: (days?: number) => [...aiAccountingKeys.all, 'anomaly-summary', days] as const,
+  recurring: (months?: number) => [...aiAccountingKeys.all, 'recurring', months] as const,
+  recurringSummary: (months?: number) => [...aiAccountingKeys.all, 'recurring-summary', months] as const,
+  predictions: (months?: number) => [...aiAccountingKeys.all, 'predictions', months] as const,
+  recurringAnalysis: (months?: number) => [...aiAccountingKeys.all, 'recurring-analysis', months] as const,
+};
+
+// Upload receipt with AI analysis
+export function useUploadReceipt() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (formData: FormData) => assistantsApi.uploadReceipt(formData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipts() });
+      toast.success('Receipt uploaded and analyzed / 收據已上傳並分析');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to upload receipt: ${error.message}`);
+    },
+  });
+}
+
+// Get receipts list
+export function useAIReceipts(filters?: { status?: string; category?: string; date_from?: string; date_to?: string }) {
+  return useQuery({
+    queryKey: aiAccountingKeys.receiptList(filters),
+    queryFn: () => assistantsApi.getReceipts(filters),
+  });
+}
+
+// Approve receipt with auto journal creation
+export function useApproveReceipt() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptId,
+      options,
+    }: {
+      receiptId: string;
+      options?: { auto_journal?: boolean; auto_post?: boolean; notes?: string };
+    }) => assistantsApi.approveReceipt(receiptId, options),
+    onSuccess: (result, { receiptId }) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipts() });
+      
+      if (result.journal_created) {
+        toast.success(`Approved & Journal Entry Created: ${result.journal_entry?.entry_number} / 已核准並建立分錄`);
+      } else {
+        toast.success('Receipt approved / 收據已核准');
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to approve: ${error.message}`);
+    },
+  });
+}
+
+// Create journal entry from receipt
+export function useCreateJournalEntry() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptId,
+      options,
+    }: {
+      receiptId: string;
+      options?: { auto_post?: boolean };
+    }) => assistantsApi.createJournalEntry(receiptId, options),
+    onSuccess: (result, { receiptId }) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      toast.success(`Journal Entry Created: ${result.journal_entry.entry_number} / 分錄已建立`);
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to create journal entry: ${error.message}`);
+    },
+  });
+}
+
+// Post journal entry
+export function usePostJournal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (receiptId: string) => assistantsApi.postJournal(receiptId),
+    onSuccess: (result, receiptId) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      toast.success('Journal entry posted / 分錄已過帳');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to post journal: ${error.message}`);
+    },
+  });
+}
+
+// Void journal entry
+export function useVoidJournal() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ receiptId, reason }: { receiptId: string; reason?: string }) =>
+      assistantsApi.voidJournal(receiptId, reason),
+    onSuccess: (_, { receiptId }) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      toast.success('Journal entry voided / 分錄已作廢');
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to void journal: ${error.message}`);
+    },
+  });
+}
+
+// Batch create journals
+export function useBatchCreateJournals() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptIds,
+      options,
+    }: {
+      receiptIds: string[];
+      options?: { auto_post?: boolean };
+    }) => assistantsApi.batchCreateJournals(receiptIds, options),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipts() });
+      toast.success(
+        `Created ${result.results.success_count} journal entries (${result.results.failed_count} failed) / 已建立 ${result.results.success_count} 筆分錄`
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(`Batch creation failed: ${error.message}`);
+    },
+  });
+}
+
+// Batch approve
+export function useBatchApprove() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      receiptIds,
+      options,
+    }: {
+      receiptIds: string[];
+      options?: { auto_journal?: boolean; auto_post?: boolean };
+    }) => assistantsApi.batchApprove(receiptIds, options),
+    onSuccess: (result) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipts() });
+      toast.success(
+        `Approved ${result.results.success_count} receipts / 已核准 ${result.results.success_count} 張收據`
+      );
+    },
+    onError: (error: Error) => {
+      toast.error(`Batch approval failed: ${error.message}`);
+    },
+  });
+}
+
+// AI Review
+export function useAIReview() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (receiptId: string) => assistantsApi.aiReviewReceipt(receiptId),
+    onSuccess: (result, receiptId) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      toast.success('AI review complete / AI審核完成');
+    },
+    onError: (error: Error) => {
+      toast.error(`AI review failed: ${error.message}`);
+    },
+  });
+}
+
+// Detect anomalies
+export function useDetectAnomalies(receiptId: string, includeAi?: boolean) {
+  return useQuery({
+    queryKey: aiAccountingKeys.anomalies(receiptId),
+    queryFn: () => assistantsApi.detectAnomalies(receiptId, includeAi),
+    enabled: !!receiptId,
+  });
+}
+
+// Anomaly summary
+export function useAnomalySummary(days?: number) {
+  return useQuery({
+    queryKey: aiAccountingKeys.anomalySummary(days),
+    queryFn: () => assistantsApi.getAnomalySummary(days),
+  });
+}
+
+// Process vendor
+export function useProcessVendor() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (receiptId: string) => assistantsApi.processVendor(receiptId),
+    onSuccess: (result, receiptId) => {
+      queryClient.invalidateQueries({ queryKey: aiAccountingKeys.receipt(receiptId) });
+      if (result.vendor_result.contact_created) {
+        toast.success('New vendor contact created / 已建立新供應商');
+      } else if (result.vendor_result.contact) {
+        toast.info('Vendor matched to existing contact / 已配對現有供應商');
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(`Vendor processing failed: ${error.message}`);
+    },
+  });
+}
+
+// Suggest category
+export function useSuggestCategory(vendorName: string) {
+  return useQuery({
+    queryKey: [...aiAccountingKeys.all, 'suggest-category', vendorName],
+    queryFn: () => assistantsApi.suggestCategory(vendorName),
+    enabled: !!vendorName,
+  });
+}
+
+// Recurring expenses
+export function useRecurringExpenses(months?: number) {
+  return useQuery({
+    queryKey: aiAccountingKeys.recurring(months),
+    queryFn: () => assistantsApi.getRecurringExpenses(months),
+  });
+}
+
+// Recurring summary
+export function useRecurringSummary(months?: number) {
+  return useQuery({
+    queryKey: aiAccountingKeys.recurringSummary(months),
+    queryFn: () => assistantsApi.getRecurringSummary(months),
+  });
+}
+
+// Predict expenses
+export function usePredictExpenses(monthsAhead?: number) {
+  return useQuery({
+    queryKey: aiAccountingKeys.predictions(monthsAhead),
+    queryFn: () => assistantsApi.predictExpenses(monthsAhead),
+  });
+}
+
+// Recurring analysis
+export function useRecurringAnalysis(months?: number) {
+  return useQuery({
+    queryKey: aiAccountingKeys.recurringAnalysis(months),
+    queryFn: () => assistantsApi.getRecurringAnalysis(months),
+  });
+}
