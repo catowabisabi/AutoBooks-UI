@@ -15,11 +15,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { IconUser, IconBell, IconCreditCard, IconKey, IconDatabase, IconLoader } from '@tabler/icons-react';
+import { IconUser, IconBell, IconCreditCard, IconKey, IconDatabase, IconLoader, IconMail } from '@tabler/icons-react';
 import { toast } from 'sonner';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/provider';
 import { useAuth } from '@/contexts/auth-context';
+import { emailApi, type EmailAccount } from '@/features/ai-assistants';
 import {
   getUserProfile,
   updateUserProfile,
@@ -41,7 +42,7 @@ export default function SettingsPage() {
   
   // Update active tab when URL param changes
   useEffect(() => {
-    if (tabParam && ['profile', 'notifications', 'billing', 'api-keys', 'data'].includes(tabParam)) {
+    if (tabParam && ['profile', 'notifications', 'billing', 'api-keys', 'data', 'email'].includes(tabParam)) {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
@@ -83,6 +84,22 @@ export default function SettingsPage() {
     company_name: '',
     tax_id: '',
   });
+
+  // Email Assistant accounts
+  const [emailAccounts, setEmailAccounts] = useState<EmailAccount[]>([]);
+  const [emailAccountForm, setEmailAccountForm] = useState({
+    email_address: '',
+    display_name: '',
+    smtp_host: '',
+    smtp_port: 587,
+    smtp_user: '',
+    smtp_password: '',
+    use_tls: true,
+    imap_host: '',
+    imap_port: 993,
+    is_demo: true,
+  });
+  const [isEmailSaving, setIsEmailSaving] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -127,6 +144,8 @@ export default function SettingsPage() {
         company_name: settingsData.company_name || '',
         tax_id: settingsData.tax_id || '',
       });
+
+      await loadEmailAccounts();
     } catch (error) {
       console.error('Failed to load settings:', error);
       // Use demo data if API fails
@@ -148,6 +167,16 @@ export default function SettingsPage() {
       });
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const loadEmailAccounts = async () => {
+    try {
+      const response = await emailApi.getAccounts();
+      const items = Array.isArray(response) ? response : response.results || [];
+      setEmailAccounts(items as EmailAccount[]);
+    } catch (error) {
+      setEmailAccounts([]);
     }
   };
 
@@ -193,6 +222,33 @@ export default function SettingsPage() {
     }
   };
 
+  const handleSaveEmailAccount = async () => {
+    setIsEmailSaving(true);
+    try {
+      await emailApi.createAccount(emailAccountForm);
+      toast.success(t('settings.emailAccountSaved', 'Email account saved'));
+      setEmailAccountForm({
+        email_address: '',
+        display_name: '',
+        smtp_host: '',
+        smtp_port: 587,
+        smtp_user: '',
+        smtp_password: '',
+        use_tls: true,
+        imap_host: '',
+        imap_port: 993,
+        is_demo: true,
+      });
+      await loadEmailAccounts();
+    } catch (error) {
+      toast.error(t('common.error', 'Error'), {
+        description: t('settings.emailAccountFailed', 'Failed to save email account'),
+      });
+    } finally {
+      setIsEmailSaving(false);
+    }
+  };
+
   if (isLoading) {
     return (
       <PageContainer>
@@ -215,7 +271,7 @@ export default function SettingsPage() {
         <Separator />
         
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-5 lg:w-[600px]">
+          <TabsList className="grid w-full grid-cols-6 lg:w-[720px]">
             <TabsTrigger value="profile" className="flex items-center gap-2">
               <IconUser className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.profile', 'Profile')}</span>
@@ -235,6 +291,10 @@ export default function SettingsPage() {
             <TabsTrigger value="data" className="flex items-center gap-2">
               <IconDatabase className="h-4 w-4" />
               <span className="hidden sm:inline">{t('settings.data', 'Data')}</span>
+            </TabsTrigger>
+            <TabsTrigger value="email" className="flex items-center gap-2">
+              <IconMail className="h-4 w-4" />
+              <span className="hidden sm:inline">{t('settings.emailAssistant', 'Email Assistant')}</span>
             </TabsTrigger>
           </TabsList>
 
@@ -692,6 +752,148 @@ export default function SettingsPage() {
                 <Link href="/dashboard/settings/knowledge-base">
                   <Button>{t('settings.manageKnowledgeBase', 'Manage Knowledge Base')}</Button>
                 </Link>
+              </CardContent>
+            </Card>
+          </TabsContent>
+
+          {/* Email Assistant Tab */}
+          <TabsContent value="email" className="space-y-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>{t('settings.emailAssistant', 'Email Assistant')}</CardTitle>
+                <CardDescription>
+                  {t('settings.emailAssistantDesc', 'Connect mailboxes for the Email AI assistant.')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-2">{t('settings.connectedAccounts', 'Connected accounts')}</h4>
+                  {emailAccounts.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      {t('settings.noEmailAccounts', 'No accounts yet. Add one below to enable the assistant.')}
+                    </p>
+                  ) : (
+                    <div className="space-y-2">
+                      {emailAccounts.map((account) => (
+                        <div key={account.id} className="flex items-center justify-between border rounded-lg p-3">
+                          <div>
+                            <p className="font-medium">{account.display_name || account.email_address}</p>
+                            <p className="text-sm text-muted-foreground">{account.email_address}</p>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            {account.is_demo && <Badge variant="secondary">Demo</Badge>}
+                            <Badge variant={account.is_active ? 'default' : 'outline'}>
+                              {account.is_active ? t('settings.active', 'Active') : t('settings.inactive', 'Inactive')}
+                            </Badge>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+
+                <Separator />
+
+                <div className="grid gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <Label htmlFor="email_address">{t('settings.emailAddress', 'Email address')}</Label>
+                    <Input
+                      id="email_address"
+                      value={emailAccountForm.email_address}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, email_address: e.target.value })}
+                      placeholder="user@company.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="display_name">{t('settings.displayName', 'Display name')}</Label>
+                    <Input
+                      id="display_name"
+                      value={emailAccountForm.display_name}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, display_name: e.target.value })}
+                      placeholder="Finance Team"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp_host">SMTP Host</Label>
+                    <Input
+                      id="smtp_host"
+                      value={emailAccountForm.smtp_host}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, smtp_host: e.target.value })}
+                      placeholder="smtp.office365.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp_port">SMTP Port</Label>
+                    <Input
+                      id="smtp_port"
+                      type="number"
+                      value={emailAccountForm.smtp_port}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, smtp_port: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp_user">SMTP Username</Label>
+                    <Input
+                      id="smtp_user"
+                      value={emailAccountForm.smtp_user}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, smtp_user: e.target.value })}
+                      placeholder="user@company.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="smtp_password">SMTP Password</Label>
+                    <Input
+                      id="smtp_password"
+                      type="password"
+                      value={emailAccountForm.smtp_password}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, smtp_password: e.target.value })}
+                      placeholder="••••••••"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imap_host">IMAP Host</Label>
+                    <Input
+                      id="imap_host"
+                      value={emailAccountForm.imap_host}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, imap_host: e.target.value })}
+                      placeholder="outlook.office365.com"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="imap_port">IMAP Port</Label>
+                    <Input
+                      id="imap_port"
+                      type="number"
+                      value={emailAccountForm.imap_port}
+                      onChange={(e) => setEmailAccountForm({ ...emailAccountForm, imap_port: Number(e.target.value) })}
+                    />
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="use_tls"
+                      checked={emailAccountForm.use_tls}
+                      onCheckedChange={(checked) => setEmailAccountForm({ ...emailAccountForm, use_tls: checked })}
+                    />
+                    <Label htmlFor="use_tls">{t('settings.useTls', 'Use TLS for SMTP')}</Label>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Switch
+                      id="is_demo"
+                      checked={emailAccountForm.is_demo}
+                      onCheckedChange={(checked) => setEmailAccountForm({ ...emailAccountForm, is_demo: checked })}
+                    />
+                    <Label htmlFor="is_demo">{t('settings.demoAccount', 'Mark as demo account')}</Label>
+                  </div>
+                </div>
+
+                <div className="flex justify-end">
+                  <Button onClick={handleSaveEmailAccount} disabled={isEmailSaving}>
+                    {isEmailSaving ? t('common.saving', 'Saving...') : t('settings.saveAccount', 'Save account')}
+                  </Button>
+                </div>
               </CardContent>
             </Card>
           </TabsContent>

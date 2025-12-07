@@ -58,11 +58,11 @@ export const navItems: NavItem[] = [
     ]
   },
   {
-    title: 'AI Assistants',
-    titleKey: 'nav.aiAssistants',
+    title: 'AI Accounting',
+    titleKey: 'nav.aiAccounting',
     url: '/dashboard/accounting-workspace',
     icon: 'bot',
-    shortcut: ['a', 'i'],
+    shortcut: ['a', 'c'],
     isActive: false,
     items: [
       {
@@ -76,19 +76,29 @@ export const navItems: NavItem[] = [
         url: '/dashboard/accounting-workspace/unrecognized'
       },
       {
-        title: 'Accounting',
-        titleKey: 'nav.accountingAssistant',
+        title: 'Receipt Processing',
+        titleKey: 'nav.receiptProcessing',
         url: '/dashboard/accounting-assistant'
       },
+      {
+        title: 'Document Assistant',
+        titleKey: 'nav.documentAssistant',
+        url: '/dashboard/document-assistant'
+      }
+    ]
+  },
+  {
+    title: 'AI Assistants',
+    titleKey: 'nav.aiAssistants',
+    url: '/dashboard/emails',
+    icon: 'sparkles',
+    shortcut: ['a', 'i'],
+    isActive: false,
+    items: [
       {
         title: 'Email',
         titleKey: 'nav.emailAssistant',
         url: '/dashboard/emails'
-      },
-      {
-        title: 'Document',
-        titleKey: 'nav.documentAssistant',
-        url: '/dashboard/document-assistant'
       },
       {
         title: 'Planner',
@@ -131,9 +141,34 @@ export const navItems: NavItem[] = [
         url: '/dashboard/finance/expenses'
       },
       {
-        title: 'Accounts',
-        titleKey: 'nav.accountingItems',
-        url: '/dashboard/finance/accounts'
+        title: 'Payments',
+        titleKey: 'nav.payments',
+        url: '/dashboard/finance/payments'
+      },
+      {
+        title: 'Contacts',
+        titleKey: 'nav.contacts',
+        url: '/dashboard/finance/contacts'
+      },
+      {
+        title: 'General Ledger',
+        titleKey: 'nav.generalLedger',
+        url: '/dashboard/finance/ledgers'
+      },
+      {
+        title: 'Journal Entries',
+        titleKey: 'nav.journalEntries',
+        url: '/dashboard/finance/journal'
+      },
+      {
+        title: 'Approvals',
+        titleKey: 'nav.approvals',
+        url: '/dashboard/finance/approvals'
+      },
+      {
+        title: 'Reports',
+        titleKey: 'nav.reports',
+        url: '/dashboard/finance/reports'
       }
     ]
   }

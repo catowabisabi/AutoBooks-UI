@@ -138,7 +138,7 @@ export function useToggleEmailStar() {
 export function useDeleteEmail() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (id: number | string) => emailApi.delete ? emailApi.delete(String(id)) : Promise.resolve({ success: true }),
+    mutationFn: (id: number | string) => emailApi.delete(String(id)),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['emails'] });
     },

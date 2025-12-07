@@ -3,7 +3,7 @@
  * Comprehensive finance and accounting API services
  */
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://127.0.0.1:8000/api/v1';
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1`;
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {
@@ -1079,20 +1079,186 @@ export async function updatePeriod(id: string, data: Partial<Period>): Promise<P
 export async function getInvoices(params?: {
   type?: 'SALES' | 'PURCHASE';
   status?: string;
+  page?: number;
+  page_size?: number;
 }): Promise<{ count: number; results: Invoice[] }> {
   const searchParams = new URLSearchParams();
   if (params?.type) searchParams.append('type', params.type);
   if (params?.status) searchParams.append('status', params.status);
+  if (params?.page) searchParams.append('page', String(params.page));
+  if (params?.page_size) searchParams.append('page_size', String(params.page_size));
   
   const url = `${API_BASE_URL}/accounting/invoices/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
   
-  const response = await fetch(url, {
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch invoices');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo invoices data:', error);
+    return { count: DEMO_INVOICES.length, results: DEMO_INVOICES };
+  }
+}
+
+export async function getInvoice(id: string): Promise<Invoice> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/invoices/${id}/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch invoice');
+    return response.json();
+  } catch (error) {
+    const invoice = DEMO_INVOICES.find(inv => inv.id === id);
+    if (invoice) return invoice;
+    throw new Error('Invoice not found');
+  }
+}
+
+export async function createInvoice(data: Partial<Invoice>): Promise<Invoice> {
+  const response = await fetch(`${API_BASE_URL}/accounting/invoices/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) throw new Error('Failed to create invoice');
+  return response.json();
+}
+
+export async function updateInvoice(id: string, data: Partial<Invoice>): Promise<Invoice> {
+  const response = await fetch(`${API_BASE_URL}/accounting/invoices/${id}/`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) throw new Error('Failed to update invoice');
+  return response.json();
+}
+
+export async function deleteInvoice(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/accounting/invoices/${id}/`, {
+    method: 'DELETE',
     headers: getAuthHeaders(),
   });
   
-  if (!response.ok) throw new Error('Failed to fetch invoices');
-  return response.json();
+  if (!response.ok) throw new Error('Failed to delete invoice');
 }
+
+export async function downloadInvoicePdf(id: string): Promise<Blob> {
+  const response = await fetch(`${API_BASE_URL}/accounting/invoices/${id}/pdf/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) throw new Error('Failed to download invoice PDF');
+  return response.blob();
+}
+
+export async function getOverdueInvoices(): Promise<Invoice[]> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/invoices/overdue/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch overdue invoices');
+    return response.json();
+  } catch (error) {
+    return DEMO_INVOICES.filter(inv => inv.status === 'OVERDUE');
+  }
+}
+
+// Demo invoices data
+const DEMO_INVOICES: Invoice[] = [
+  {
+    id: '1',
+    invoice_number: 'INV-2024-001',
+    invoice_type: 'SALES',
+    contact: '1',
+    contact_name: 'Acme Corporation',
+    invoice_date: '2024-01-15',
+    due_date: '2024-02-15',
+    subtotal: 5000,
+    tax_amount: 250,
+    total: 5250,
+    amount_paid: 5250,
+    balance_due: 0,
+    currency: 'USD',
+    status: 'PAID',
+    created_at: '2024-01-15',
+  },
+  {
+    id: '2',
+    invoice_number: 'INV-2024-002',
+    invoice_type: 'SALES',
+    contact: '2',
+    contact_name: 'Globex Industries',
+    invoice_date: '2024-01-20',
+    due_date: '2024-02-20',
+    subtotal: 3000,
+    tax_amount: 150,
+    total: 3150,
+    amount_paid: 0,
+    balance_due: 3150,
+    currency: 'USD',
+    status: 'SENT',
+    created_at: '2024-01-20',
+  },
+  {
+    id: '3',
+    invoice_number: 'INV-2024-003',
+    invoice_type: 'SALES',
+    contact: '3',
+    contact_name: 'Wayne Enterprises',
+    invoice_date: '2024-01-25',
+    due_date: '2024-02-25',
+    subtotal: 8500,
+    tax_amount: 425,
+    total: 8925,
+    amount_paid: 4000,
+    balance_due: 4925,
+    currency: 'USD',
+    status: 'PARTIAL',
+    created_at: '2024-01-25',
+  },
+  {
+    id: '4',
+    invoice_number: 'INV-2024-004',
+    invoice_type: 'SALES',
+    contact: '4',
+    contact_name: 'Stark Industries',
+    invoice_date: '2023-12-01',
+    due_date: '2023-12-31',
+    subtotal: 12000,
+    tax_amount: 600,
+    total: 12600,
+    amount_paid: 0,
+    balance_due: 12600,
+    currency: 'USD',
+    status: 'OVERDUE',
+    created_at: '2023-12-01',
+  },
+  {
+    id: '5',
+    invoice_number: 'INV-2024-005',
+    invoice_type: 'SALES',
+    contact: '5',
+    contact_name: 'Umbrella Corp',
+    invoice_date: '2024-02-01',
+    due_date: '2024-03-01',
+    subtotal: 2500,
+    tax_amount: 125,
+    total: 2625,
+    amount_paid: 0,
+    balance_due: 2625,
+    currency: 'USD',
+    status: 'DRAFT',
+    created_at: '2024-02-01',
+  },
+];
 
 // =============================================
 // Expenses / 費用
@@ -1102,21 +1268,530 @@ export async function getExpenses(params?: {
   status?: string;
   date_from?: string;
   date_to?: string;
+  page?: number;
+  page_size?: number;
 }): Promise<{ count: number; results: Expense[] }> {
   const searchParams = new URLSearchParams();
   if (params?.status) searchParams.append('status', params.status);
   if (params?.date_from) searchParams.append('date_from', params.date_from);
   if (params?.date_to) searchParams.append('date_to', params.date_to);
+  if (params?.page) searchParams.append('page', String(params.page));
+  if (params?.page_size) searchParams.append('page_size', String(params.page_size));
   
   const url = `${API_BASE_URL}/accounting/expenses/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
   
-  const response = await fetch(url, {
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch expenses');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo expenses data:', error);
+    return { count: DEMO_EXPENSES.length, results: DEMO_EXPENSES };
+  }
+}
+
+export async function getExpense(id: string): Promise<Expense> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/expenses/${id}/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch expense');
+    return response.json();
+  } catch (error) {
+    const expense = DEMO_EXPENSES.find(exp => exp.id === id);
+    if (expense) return expense;
+    throw new Error('Expense not found');
+  }
+}
+
+export async function createExpense(data: Partial<Expense>): Promise<Expense> {
+  const response = await fetch(`${API_BASE_URL}/accounting/expenses/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) throw new Error('Failed to create expense');
+  return response.json();
+}
+
+export async function updateExpense(id: string, data: Partial<Expense>): Promise<Expense> {
+  const response = await fetch(`${API_BASE_URL}/accounting/expenses/${id}/`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) throw new Error('Failed to update expense');
+  return response.json();
+}
+
+export async function deleteExpense(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/accounting/expenses/${id}/`, {
+    method: 'DELETE',
     headers: getAuthHeaders(),
   });
   
-  if (!response.ok) throw new Error('Failed to fetch expenses');
+  if (!response.ok) throw new Error('Failed to delete expense');
+}
+
+export async function approveExpense(id: string): Promise<Expense> {
+  const response = await fetch(`${API_BASE_URL}/accounting/expenses/${id}/approve/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) throw new Error('Failed to approve expense');
   return response.json();
 }
+
+export async function rejectExpense(id: string): Promise<Expense> {
+  const response = await fetch(`${API_BASE_URL}/accounting/expenses/${id}/reject/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) throw new Error('Failed to reject expense');
+  return response.json();
+}
+
+// Demo expenses data
+const DEMO_EXPENSES: Expense[] = [
+  {
+    id: '1',
+    expense_number: 'EXP-2024-001',
+    date: '2024-01-10',
+    category: 'Travel',
+    vendor: '1',
+    vendor_name: 'Delta Airlines',
+    description: 'Business trip to New York',
+    amount: 850,
+    tax_amount: 0,
+    total: 850,
+    status: 'APPROVED',
+    created_at: '2024-01-10',
+  },
+  {
+    id: '2',
+    expense_number: 'EXP-2024-002',
+    date: '2024-01-15',
+    category: 'Office Supplies',
+    vendor: '2',
+    vendor_name: 'Office Depot',
+    description: 'Printer cartridges and paper',
+    amount: 125,
+    tax_amount: 10,
+    total: 135,
+    status: 'PENDING',
+    created_at: '2024-01-15',
+  },
+  {
+    id: '3',
+    expense_number: 'EXP-2024-003',
+    date: '2024-01-20',
+    category: 'Meals',
+    vendor: '3',
+    vendor_name: 'The Grand Hotel',
+    description: 'Client dinner meeting',
+    amount: 280,
+    tax_amount: 28,
+    total: 308,
+    status: 'PENDING',
+    created_at: '2024-01-20',
+  },
+  {
+    id: '4',
+    expense_number: 'EXP-2024-004',
+    date: '2024-01-25',
+    category: 'Software',
+    vendor: '4',
+    vendor_name: 'Microsoft',
+    description: 'Annual Office 365 subscription',
+    amount: 1200,
+    tax_amount: 96,
+    total: 1296,
+    status: 'APPROVED',
+    created_at: '2024-01-25',
+  },
+  {
+    id: '5',
+    expense_number: 'EXP-2024-005',
+    date: '2024-02-01',
+    category: 'Marketing',
+    vendor: '5',
+    vendor_name: 'Facebook Ads',
+    description: 'Social media advertising campaign',
+    amount: 500,
+    tax_amount: 0,
+    total: 500,
+    status: 'REJECTED',
+    created_at: '2024-02-01',
+  },
+];
+
+// =============================================
+// Financial Reports / 財務報表
+// =============================================
+
+export interface TrialBalanceReport {
+  accounts: {
+    code: string;
+    name: string;
+    type: string;
+    debit: number;
+    credit: number;
+  }[];
+  totals: {
+    debit: number;
+    credit: number;
+    is_balanced: boolean;
+  };
+}
+
+export interface BalanceSheetReport {
+  as_of_date: string | null;
+  assets: number;
+  liabilities: number;
+  equity: number;
+  total_liabilities_equity: number;
+  is_balanced: boolean;
+}
+
+export interface IncomeStatementReport {
+  period: {
+    start_date: string | null;
+    end_date: string | null;
+  };
+  revenue: number;
+  expenses: number;
+  net_income: number;
+}
+
+export interface ARAgingReport {
+  current: number;
+  '1_30_days': number;
+  '31_60_days': number;
+  '61_90_days': number;
+  over_90_days: number;
+  total: number;
+}
+
+export async function getTrialBalance(): Promise<TrialBalanceReport> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/reports/trial_balance/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch trial balance');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo trial balance:', error);
+    return DEMO_TRIAL_BALANCE;
+  }
+}
+
+export async function getBalanceSheet(date?: string): Promise<BalanceSheetReport> {
+  const url = date 
+    ? `${API_BASE_URL}/accounting/reports/balance_sheet/?date=${date}`
+    : `${API_BASE_URL}/accounting/reports/balance_sheet/`;
+  
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch balance sheet');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo balance sheet:', error);
+    return DEMO_BALANCE_SHEET;
+  }
+}
+
+export async function getIncomeStatement(startDate?: string, endDate?: string): Promise<IncomeStatementReport> {
+  const params = new URLSearchParams();
+  if (startDate) params.append('start_date', startDate);
+  if (endDate) params.append('end_date', endDate);
+  
+  const url = `${API_BASE_URL}/accounting/reports/income_statement/${params.toString() ? '?' + params.toString() : ''}`;
+  
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch income statement');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo income statement:', error);
+    return DEMO_INCOME_STATEMENT;
+  }
+}
+
+export async function getARAgingReport(): Promise<ARAgingReport> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/reports/accounts_receivable_aging/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch AR aging report');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo AR aging report:', error);
+    return DEMO_AR_AGING;
+  }
+}
+
+// Demo report data
+const DEMO_TRIAL_BALANCE: TrialBalanceReport = {
+  accounts: [
+    { code: '1100', name: 'Cash', type: 'ASSET', debit: 450000, credit: 0 },
+    { code: '1200', name: 'Accounts Receivable', type: 'ASSET', debit: 280000, credit: 0 },
+    { code: '1300', name: 'Inventory', type: 'ASSET', debit: 120000, credit: 0 },
+    { code: '1500', name: 'Fixed Assets', type: 'ASSET', debit: 350000, credit: 0 },
+    { code: '1510', name: 'Accumulated Depreciation', type: 'ASSET', debit: 0, credit: 50000 },
+    { code: '2100', name: 'Accounts Payable', type: 'LIABILITY', debit: 0, credit: 150000 },
+    { code: '2200', name: 'Accrued Expenses', type: 'LIABILITY', debit: 0, credit: 80000 },
+    { code: '3100', name: 'Share Capital', type: 'EQUITY', debit: 0, credit: 300000 },
+    { code: '3200', name: 'Retained Earnings', type: 'EQUITY', debit: 0, credit: 200000 },
+    { code: '4100', name: 'Service Revenue', type: 'REVENUE', debit: 0, credit: 650000 },
+    { code: '5100', name: 'Salaries', type: 'EXPENSE', debit: 200000, credit: 0 },
+    { code: '5200', name: 'Rent', type: 'EXPENSE', debit: 30000, credit: 0 },
+  ],
+  totals: {
+    debit: 1430000,
+    credit: 1430000,
+    is_balanced: true,
+  },
+};
+
+const DEMO_BALANCE_SHEET: BalanceSheetReport = {
+  as_of_date: new Date().toISOString().split('T')[0],
+  assets: 1150000,
+  liabilities: 230000,
+  equity: 920000,
+  total_liabilities_equity: 1150000,
+  is_balanced: true,
+};
+
+const DEMO_INCOME_STATEMENT: IncomeStatementReport = {
+  period: {
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+  },
+  revenue: 850000,
+  expenses: 480000,
+  net_income: 370000,
+};
+
+const DEMO_AR_AGING: ARAgingReport = {
+  current: 15000,
+  '1_30_days': 8500,
+  '31_60_days': 4200,
+  '61_90_days': 2100,
+  over_90_days: 1500,
+  total: 31300,
+};
+
+// =============================================
+// General Ledger / 總帳
+// =============================================
+
+export interface LedgerEntry {
+  id: string;
+  date: string;
+  entry_number: string;
+  description: string;
+  reference?: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface LedgerAccount {
+  account: Account;
+  opening_balance: number;
+  entries: LedgerEntry[];
+  closing_balance: number;
+  total_debit: number;
+  total_credit: number;
+}
+
+export async function getGeneralLedger(accountId: string, params?: {
+  start_date?: string;
+  end_date?: string;
+}): Promise<LedgerAccount> {
+  const searchParams = new URLSearchParams();
+  if (params?.start_date) searchParams.append('start_date', params.start_date);
+  if (params?.end_date) searchParams.append('end_date', params.end_date);
+  
+  const url = `${API_BASE_URL}/accounting/accounts/${accountId}/ledger/${searchParams.toString() ? '?' + searchParams.toString() : ''}`;
+  
+  try {
+    const response = await fetch(url, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch general ledger');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo ledger data:', error);
+    // Return demo ledger data
+    const account = flattenAccounts(DEMO_ACCOUNTS).find(a => a.id === accountId);
+    return {
+      account: account || DEMO_ACCOUNTS[0],
+      opening_balance: 0,
+      entries: DEMO_LEDGER_ENTRIES,
+      closing_balance: account?.current_balance || 0,
+      total_debit: 50000,
+      total_credit: 20000,
+    };
+  }
+}
+
+const DEMO_LEDGER_ENTRIES: LedgerEntry[] = [
+  {
+    id: '1',
+    date: '2024-01-05',
+    entry_number: 'JE-2024-001',
+    description: 'Opening balance',
+    debit: 100000,
+    credit: 0,
+    balance: 100000,
+  },
+  {
+    id: '2',
+    date: '2024-01-10',
+    entry_number: 'JE-2024-002',
+    description: 'Cash receipt from customer',
+    debit: 25000,
+    credit: 0,
+    balance: 125000,
+  },
+  {
+    id: '3',
+    date: '2024-01-15',
+    entry_number: 'JE-2024-003',
+    description: 'Payment to supplier',
+    debit: 0,
+    credit: 15000,
+    balance: 110000,
+  },
+  {
+    id: '4',
+    date: '2024-01-20',
+    entry_number: 'JE-2024-004',
+    description: 'Utility payment',
+    debit: 0,
+    credit: 5000,
+    balance: 105000,
+  },
+];
+
+// =============================================
+// Approvals / 審批
+// =============================================
+
+export interface ApprovalItem {
+  id: string;
+  type: 'EXPENSE' | 'INVOICE' | 'JOURNAL_ENTRY' | 'PAYMENT';
+  reference_number: string;
+  description: string;
+  amount: number;
+  currency: string;
+  submitted_by: string;
+  submitted_by_name: string;
+  submitted_at: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED';
+  priority: 'LOW' | 'MEDIUM' | 'HIGH';
+}
+
+export async function getPendingApprovals(): Promise<{ count: number; results: ApprovalItem[] }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/accounting/approvals/pending/`, {
+      headers: getAuthHeaders(),
+    });
+    
+    if (!response.ok) throw new Error('Failed to fetch pending approvals');
+    return response.json();
+  } catch (error) {
+    console.warn('Using demo approvals data:', error);
+    return { count: DEMO_APPROVALS.length, results: DEMO_APPROVALS };
+  }
+}
+
+export async function approveItem(type: string, id: string): Promise<void> {
+  const endpoint = type === 'EXPENSE' 
+    ? `${API_BASE_URL}/accounting/expenses/${id}/approve/`
+    : `${API_BASE_URL}/accounting/${type.toLowerCase()}s/${id}/approve/`;
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) throw new Error('Failed to approve item');
+}
+
+export async function rejectItem(type: string, id: string, reason?: string): Promise<void> {
+  const endpoint = type === 'EXPENSE' 
+    ? `${API_BASE_URL}/accounting/expenses/${id}/reject/`
+    : `${API_BASE_URL}/accounting/${type.toLowerCase()}s/${id}/reject/`;
+  
+  const response = await fetch(endpoint, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({ reason }),
+  });
+  
+  if (!response.ok) throw new Error('Failed to reject item');
+}
+
+const DEMO_APPROVALS: ApprovalItem[] = [
+  {
+    id: '1',
+    type: 'EXPENSE',
+    reference_number: 'EXP-2024-002',
+    description: 'Office supplies purchase',
+    amount: 135,
+    currency: 'USD',
+    submitted_by: '1',
+    submitted_by_name: 'John Smith',
+    submitted_at: '2024-01-15',
+    status: 'PENDING',
+    priority: 'MEDIUM',
+  },
+  {
+    id: '2',
+    type: 'EXPENSE',
+    reference_number: 'EXP-2024-003',
+    description: 'Client dinner meeting',
+    amount: 308,
+    currency: 'USD',
+    submitted_by: '2',
+    submitted_by_name: 'Jane Doe',
+    submitted_at: '2024-01-20',
+    status: 'PENDING',
+    priority: 'LOW',
+  },
+  {
+    id: '3',
+    type: 'INVOICE',
+    reference_number: 'INV-2024-005',
+    description: 'Sales invoice - Draft approval',
+    amount: 2625,
+    currency: 'USD',
+    submitted_by: '1',
+    submitted_by_name: 'John Smith',
+    submitted_at: '2024-02-01',
+    status: 'PENDING',
+    priority: 'HIGH',
+  },
+];
 
 // =============================================
 // Finance Summary / 財務摘要

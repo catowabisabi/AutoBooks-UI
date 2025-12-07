@@ -11,6 +11,7 @@ import {
   useStarEmail,
   useDeleteEmail,
   useGenerateReply,
+  useAnalyzeEmail,
   useSendEmail,
   type Email,
   type EmailListItem,
@@ -50,6 +51,7 @@ import {
   Send,
   AlertCircle,
   Clock,
+  Circle,
   Menu,
   MessageSquare,
   Sparkles,
@@ -383,14 +385,18 @@ function EmailDetail({
   onArchive,
   onDelete,
   onGenerateReply,
+  onAnalyze,
   isGeneratingReply,
+  isAnalyzing,
   t,
 }: {
   email: Email;
   onArchive: () => void;
   onDelete: () => void;
   onGenerateReply: () => void;
+  onAnalyze: () => void;
   isGeneratingReply: boolean;
+  isAnalyzing: boolean;
   t: (key: string) => string;
 }) {
   const category = EMAIL_CATEGORIES[email.category as keyof typeof EMAIL_CATEGORIES] || EMAIL_CATEGORIES.GENERAL;
@@ -415,6 +421,13 @@ function EmailDetail({
           )}
         </div>
         <div className="flex items-center gap-1">
+          <Button variant="ghost" size="icon" onClick={onAnalyze} disabled={isAnalyzing}>
+            {isAnalyzing ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Sparkles className="h-4 w-4" />
+            )}
+          </Button>
           <Button variant="ghost" size="icon" onClick={onGenerateReply} disabled={isGeneratingReply}>
             {isGeneratingReply ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -472,6 +485,24 @@ function EmailDetail({
             </CardHeader>
             <CardContent>
               <p className="text-sm">{email.ai_summary}</p>
+              {email.ai_action_items && email.ai_action_items.length > 0 && (
+                <div className="mt-2 space-y-1">
+                  {email.ai_action_items.map((item, idx) => (
+                    <div key={`${item.action}-${idx}`} className="flex items-start gap-2 text-xs">
+                      <Circle className="h-3 w-3 mt-0.5" />
+                      <span>
+                        {item.action}
+                        {item.deadline ? ` — ${item.deadline}` : ''}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {email.ai_sentiment && (
+                <Badge variant="outline" className="mt-3">
+                  Sentiment: {email.ai_sentiment}
+                </Badge>
+              )}
             </CardContent>
           </Card>
         )}
@@ -664,6 +695,7 @@ export default function EmailAssistantClientV2() {
   const markReadMutation = useMarkEmailRead();
   const starMutation = useStarEmail();
   const deleteMutation = useDeleteEmail();
+  const analyzeMutation = useAnalyzeEmail();
   const generateReplyMutation = useGenerateReply();
 
   // Filter emails based on folder
@@ -714,6 +746,26 @@ export default function EmailAssistantClientV2() {
     }
   };
 
+  // Handle analyze
+  const handleAnalyzeEmail = async () => {
+    if (selectedEmail) {
+      try {
+        const result: any = await analyzeMutation.mutateAsync(selectedEmail.id);
+        const updated = {
+          ...selectedEmail,
+          ai_summary: result?.summary,
+          ai_action_items: result?.action_items,
+          ai_sentiment: result?.sentiment,
+        } as Email;
+        setSelectedEmail(updated);
+        toast({ title: 'Analysis complete' });
+        refetchEmails();
+      } catch (error) {
+        toast({ title: 'Failed to analyze email', variant: 'destructive' });
+      }
+    }
+  };
+
   // Handle generate reply
   const handleGenerateReply = async () => {
     if (selectedEmail) {
@@ -755,7 +807,9 @@ export default function EmailAssistantClientV2() {
               email={selectedEmail}
               onArchive={handleArchive}
               onDelete={handleDelete}
+              onAnalyze={handleAnalyzeEmail}
               onGenerateReply={handleGenerateReply}
+              isAnalyzing={analyzeMutation.isPending}
               isGeneratingReply={generateReplyMutation.isPending}
               t={t}
             />
@@ -793,7 +847,9 @@ export default function EmailAssistantClientV2() {
                 email={selectedEmail}
                 onArchive={handleArchive}
                 onDelete={handleDelete}
+                  onAnalyze={handleAnalyzeEmail}
                 onGenerateReply={handleGenerateReply}
+                  isAnalyzing={analyzeMutation.isPending}
                 isGeneratingReply={generateReplyMutation.isPending}
                 t={t}
               />

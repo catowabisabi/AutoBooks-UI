@@ -27,13 +27,29 @@ import {
   PaginationNext,
   PaginationPrevious
 } from '@/components/ui/pagination';
-import { Filter, Search, SortAsc, SortDesc, X, Plus } from 'lucide-react';
+import { Filter, Search, SortAsc, SortDesc, X, Plus, RefreshCw, CheckCircle, XCircle } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { getStatusColor } from './expense-card';
 import Link from 'next/link';
 import { useTranslation } from '@/lib/i18n/provider';
+import { toast } from 'sonner';
+import {
+  getExpenses,
+  deleteExpense,
+  approveExpense,
+  rejectExpense,
+  Expense as ApiExpense,
+} from '../../services';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { IconDotsVertical, IconEye, IconTrash, IconLoader2 } from '@tabler/icons-react';
 
-type ExpenseStatus = 'Pending' | 'Approved' | 'Rejected';
+type ExpenseStatus = 'PENDING' | 'APPROVED' | 'REJECTED' | 'PAID';
 
 interface Expense {
   id: string;
@@ -42,50 +58,24 @@ interface Expense {
   expenseDate: string;
   currency: string;
   claimedAmount: string;
-  city: string;
-  country: string;
+  category: string;
   description: string;
   status: ExpenseStatus;
 }
 
-const EXPENSES: Expense[] = [
-  {
-    id: 'EXP-001',
-    merchantName: 'Amazon',
-    invoiceNo: 'INV-1001',
-    expenseDate: '2023-06-01',
+function mapApiExpense(expense: ApiExpense): Expense {
+  return {
+    id: expense.id,
+    merchantName: expense.vendor_name || expense.vendor || 'Unknown',
+    invoiceNo: expense.expense_number,
+    expenseDate: expense.date,
     currency: 'USD',
-    claimedAmount: '150',
-    city: 'New York',
-    country: 'USA',
-    description: 'Online Purchase',
-    status: 'Pending'
-  },
-  {
-    id: 'EXP-002',
-    merchantName: 'Uber',
-    invoiceNo: 'INV-1002',
-    expenseDate: '2023-06-03',
-    currency: 'USD',
-    claimedAmount: '50',
-    city: 'San Francisco',
-    country: 'USA',
-    description: 'Cab ride',
-    status: 'Approved'
-  },
-  {
-    id: 'EXP-003',
-    merchantName: 'Hotel XYZ',
-    invoiceNo: 'INV-1003',
-    expenseDate: '2023-06-05',
-    currency: 'USD',
-    claimedAmount: '300',
-    city: 'Chicago',
-    country: 'USA',
-    description: 'Hotel stay',
-    status: 'Rejected'
-  }
-];
+    claimedAmount: String(expense.total || expense.amount || 0),
+    category: expense.category || 'General',
+    description: expense.description || '',
+    status: expense.status as ExpenseStatus,
+  };
+}
 
 type SortField = 'merchantName' | 'claimedAmount' | 'status';
 type SortOrder = 'asc' | 'desc';
@@ -93,21 +83,41 @@ type SortOrder = 'asc' | 'desc';
 export default function ExpenseList() {
   const { t } = useTranslation();
   const router = useRouter();
+  const [expenses, setExpenses] = useState<Expense[]>([]);
+  const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
-  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | 'all'>(
-    'all'
-  );
+  const [statusFilter, setStatusFilter] = useState<ExpenseStatus | 'all'>('all');
   const [sortField, setSortField] = useState<SortField>('merchantName');
   const [sortOrder, setSortOrder] = useState<SortOrder>('asc');
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
+
+  const loadExpenses = async () => {
+    setLoading(true);
+    try {
+      const params: { status?: string } = {};
+      if (statusFilter !== 'all') params.status = statusFilter;
+      
+      const response = await getExpenses(params);
+      setExpenses(response.results.map(mapApiExpense));
+    } catch (error) {
+      console.error('Failed to load expenses:', error);
+      toast.error(t('expenses.loadError') || 'Failed to load expenses');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadExpenses();
+  }, [statusFilter]);
 
   useEffect(() => {
     setCurrentPage(1);
   }, [search, statusFilter, sortField, sortOrder]);
 
   const filteredExpenses = useMemo(() => {
-    let data = [...EXPENSES];
+    let data = [...expenses];
 
     if (search) {
       const term = search.toLowerCase();
@@ -117,10 +127,6 @@ export default function ExpenseList() {
           e.invoiceNo.toLowerCase().includes(term) ||
           e.description.toLowerCase().includes(term)
       );
-    }
-
-    if (statusFilter !== 'all') {
-      data = data.filter((e) => e.status === statusFilter);
     }
 
     data.sort((a, b) => {
@@ -139,7 +145,7 @@ export default function ExpenseList() {
     });
 
     return data;
-  }, [search, statusFilter, sortField, sortOrder]);
+  }, [expenses, search, sortField, sortOrder]);
 
   const totalPages = Math.ceil(filteredExpenses.length / itemsPerPage);
   const paginated = filteredExpenses.slice(
@@ -155,21 +161,80 @@ export default function ExpenseList() {
     router.push('/dashboard/finance/expenses/new');
   };
 
+  const handleApprove = async (expense: Expense) => {
+    try {
+      await approveExpense(expense.id);
+      toast.success(t('expenses.approved') || 'Expense approved');
+      loadExpenses();
+    } catch {
+      toast.error(t('expenses.approveError') || 'Failed to approve expense');
+    }
+  };
+
+  const handleReject = async (expense: Expense) => {
+    try {
+      await rejectExpense(expense.id);
+      toast.success(t('expenses.rejected') || 'Expense rejected');
+      loadExpenses();
+    } catch {
+      toast.error(t('expenses.rejectError') || 'Failed to reject expense');
+    }
+  };
+
+  const handleDelete = async (expense: Expense) => {
+    if (!confirm(t('expenses.confirmDelete') || `Are you sure you want to delete ${expense.invoiceNo}?`)) {
+      return;
+    }
+    try {
+      await deleteExpense(expense.id);
+      toast.success(t('expenses.deleted') || 'Expense deleted');
+      loadExpenses();
+    } catch {
+      toast.error(t('expenses.deleteError') || 'Failed to delete expense');
+    }
+  };
+
+  const getStatusDisplayColor = (status: string) => {
+    switch (status) {
+      case 'APPROVED':
+      case 'PAID':
+        return 'bg-green-500/10 text-green-500 hover:bg-green-500/20';
+      case 'PENDING':
+        return 'bg-yellow-500/10 text-yellow-500 hover:bg-yellow-500/20';
+      case 'REJECTED':
+        return 'bg-red-500/10 text-red-500 hover:bg-red-500/20';
+      default:
+        return 'bg-gray-500/10 text-gray-500 hover:bg-gray-500/20';
+    }
+  };
+
   return (
     <div className='flex min-h-[80vh] flex-col'>
       <div className='mb-6 space-y-6'>
         <div className='flex items-center justify-between'>
           <h2 className='text-2xl font-bold'>{t('expenses.title')}</h2>
 
-          {/* Create New Expense Button */}
-          <Button
-            onClick={handleCreateExpense}
-            className='gap-2'
-            variant='default'
-          >
-            <Plus className='h-4 w-4' />
-            {t('expenses.addExpense')}
-          </Button>
+          <div className='flex items-center gap-2'>
+            {/* Refresh Button */}
+            <Button
+              onClick={loadExpenses}
+              variant='outline'
+              size='icon'
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            </Button>
+            
+            {/* Create New Expense Button */}
+            <Button
+              onClick={handleCreateExpense}
+              className='gap-2'
+              variant='default'
+            >
+              <Plus className='h-4 w-4' />
+              {t('expenses.addExpense')}
+            </Button>
+          </div>
         </div>
 
         <div className='flex flex-wrap gap-3'>
@@ -191,13 +256,14 @@ export default function ExpenseList() {
           >
             <SelectTrigger className='w-[150px]'>
               <Filter className='mr-2 h-4 w-4' />
-              <SelectValue>{statusFilter}</SelectValue>
+              <SelectValue>{statusFilter === 'all' ? t('expenses.all') : statusFilter}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value='all'>{t('expenses.all')}</SelectItem>
-              <SelectItem value='Pending'>{t('expenses.pending')}</SelectItem>
-              <SelectItem value='Approved'>{t('expenses.approved')}</SelectItem>
-              <SelectItem value='Rejected'>{t('expenses.rejected')}</SelectItem>
+              <SelectItem value='PENDING'>{t('expenses.pending')}</SelectItem>
+              <SelectItem value='APPROVED'>{t('expenses.approved')}</SelectItem>
+              <SelectItem value='REJECTED'>{t('expenses.rejected')}</SelectItem>
+              <SelectItem value='PAID'>{t('expenses.paid') || 'Paid'}</SelectItem>
             </SelectContent>
           </Select>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useMemo, useRef } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -65,6 +66,7 @@ import {
   type TaskPriority,
   type CreateTaskData,
 } from '@/features/ai-assistants';
+import { plannerApi } from '@/features/ai-assistants/services';
 import { useToast } from '@/hooks/use-toast';
 import { useTranslation } from '@/lib/i18n/provider';
 
@@ -399,9 +401,31 @@ export default function PlannerAssistantPageV2() {
   ]);
   const [newMessage, setNewMessage] = useState('');
   const [chatLoading, setChatLoading] = useState(false);
+  const [plannerQueryText, setPlannerQueryText] = useState('');
+  const [plannerResult, setPlannerResult] = useState<any | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   const { toast } = useToast();
+
+  // Planner dataset actions
+  const loadPlannerData = useMutation({
+    mutationFn: () => plannerApi.start(),
+    onSuccess: (data: any) => {
+      toast({ title: 'Dataset loaded', description: data?.message || 'Planner dataset is ready.' });
+    },
+    onError: () => toast({ title: 'Load failed', description: 'Unable to load planner dataset.', variant: 'destructive' }),
+  });
+
+  const queryPlannerData = useMutation({
+    mutationFn: (query: string) => plannerApi.query(query),
+    onSuccess: (data: any) => {
+      setPlannerResult(data);
+      if (data?.message) {
+        toast({ title: 'Query completed', description: data.message });
+      }
+    },
+    onError: () => toast({ title: 'Query failed', description: 'Please try again.', variant: 'destructive' }),
+  });
 
   // API Hooks
   const { data: tasks = [], isLoading: tasksLoading, refetch: refetchTasks } = usePlannerTasks();
@@ -555,6 +579,65 @@ export default function PlannerAssistantPageV2() {
     } finally {
       setChatLoading(false);
     }
+  };
+
+  const renderPlannerResult = () => {
+    if (!plannerResult) {
+      return <p className="text-sm text-muted-foreground">Run a data question to see results.</p>;
+    }
+
+    if (plannerResult.type === 'error' || plannerResult.type === 'invalid') {
+      return (
+        <p className="text-sm text-destructive">
+          {plannerResult.message || 'Unable to answer this question.'}
+        </p>
+      );
+    }
+
+    if (plannerResult.type === 'table' && Array.isArray(plannerResult.data) && plannerResult.data.length > 0) {
+      const columns = Object.keys(plannerResult.data[0] || {}).slice(0, 6);
+      const rows = plannerResult.data.slice(0, 10);
+
+      return (
+        <div className="space-y-2">
+          <div className="overflow-auto border rounded-md">
+            <table className="min-w-full text-xs">
+              <thead className="bg-muted">
+                <tr>
+                  {columns.map(col => (
+                    <th key={col} className="px-2 py-1 text-left font-medium text-muted-foreground">
+                      {col}
+                    </th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row: any, idx: number) => (
+                  <tr key={idx} className="border-t">
+                    {columns.map(col => (
+                      <td key={col} className="px-2 py-1 whitespace-nowrap">
+                        {String(row[col] ?? '')}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          {plannerResult.data.length > rows.length && (
+            <p className="text-xs text-muted-foreground">
+              Showing first {rows.length} of {plannerResult.data.length} rows.
+            </p>
+          )}
+        </div>
+      );
+    }
+
+    return (
+      <pre className="text-xs whitespace-pre-wrap bg-muted p-2 rounded-md">
+        {JSON.stringify(plannerResult, null, 2)}
+      </pre>
+    );
   };
 
   return (
@@ -818,6 +901,49 @@ export default function PlannerAssistantPageV2() {
                 >
                   <Send className="h-3 w-3" />
                 </Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Planner Data Query */}
+          <Card>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm flex items-center gap-2">
+                <Brain className="h-4 w-4 text-purple-500" />
+                {t('plannerAssistant.dataExplorer', 'Planner Data Explorer')}
+              </CardTitle>
+              <CardDescription>
+                {t('plannerAssistant.dataExplorerDesc', 'Load the demo dataset and ask a quick question.')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <Textarea
+                placeholder={t('plannerAssistant.dataExplorerPlaceholder', 'e.g. Show overdue tasks by priority')}
+                value={plannerQueryText}
+                onChange={(e) => setPlannerQueryText(e.target.value)}
+                className="text-sm"
+              />
+              <div className="flex gap-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => loadPlannerData.mutate()}
+                  disabled={loadPlannerData.isPending}
+                >
+                  {loadPlannerData.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <RefreshCw className="h-4 w-4 mr-1" />}
+                  {t('plannerAssistant.loadDataset', 'Load dataset')}
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => queryPlannerData.mutate(plannerQueryText)}
+                  disabled={!plannerQueryText.trim() || queryPlannerData.isPending}
+                >
+                  {queryPlannerData.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
+                  {t('plannerAssistant.runQuery', 'Run query')}
+                </Button>
+              </div>
+              <div className="rounded-md border p-3 bg-muted/30 min-h-[140px]">
+                {renderPlannerResult()}
               </div>
             </CardContent>
           </Card>

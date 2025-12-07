@@ -1,12 +1,13 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Heading } from '@/components/ui/heading';
 import { Separator } from '@/components/ui/separator';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   Table,
   TableBody,
@@ -42,9 +43,19 @@ import {
   formatCurrency,
   ReportData,
 } from '@/lib/export-utils';
+import {
+  getTrialBalance,
+  getBalanceSheet,
+  getIncomeStatement,
+  getARAgingReport,
+  type TrialBalanceReport,
+  type BalanceSheetReport,
+  type IncomeStatementReport,
+  type ARAgingReport,
+} from '../services';
 
-// 示範資料 - 資產負債表
-const balanceSheetData = {
+// Fallback demo data (used when API is unavailable)
+const DEMO_BALANCE_SHEET = {
   assets: [
     { account: '現金及約當現金', amount: 2500000 },
     { account: '應收帳款', amount: 1850000 },
@@ -66,8 +77,7 @@ const balanceSheetData = {
   ],
 };
 
-// 示範資料 - 損益表
-const incomeStatementData = {
+const DEMO_INCOME_STATEMENT = {
   revenue: [
     { account: '服務收入', amount: 5800000 },
     { account: '顧問收入', amount: 2200000 },
@@ -83,8 +93,7 @@ const incomeStatementData = {
   ],
 };
 
-// 示範資料 - 試算表
-const trialBalanceData = [
+const DEMO_TRIAL_BALANCE = [
   { code: '1100', account: '現金', debit: 2500000, credit: 0 },
   { code: '1200', account: '應收帳款', debit: 1850000, credit: 0 },
   { code: '1300', account: '存貨', debit: 980000, credit: 0 },
@@ -98,8 +107,7 @@ const trialBalanceData = [
   { code: '5200', account: '租金費用', debit: 480000, credit: 0 },
 ];
 
-// 示範資料 - 應收帳款帳齡
-const arAgingData = [
+const DEMO_AR_AGING = [
   { client: 'Acme Corporation', current: 125000, days30: 85000, days60: 25000, days90: 0, total: 235000 },
   { client: 'Globex Industries', current: 280000, days30: 0, days60: 45000, days90: 15000, total: 340000 },
   { client: 'Stark Enterprises', current: 450000, days30: 120000, days60: 0, days90: 0, total: 570000 },
@@ -109,19 +117,78 @@ const arAgingData = [
 
 export default function ReportsPage() {
   const [selectedPeriod, setSelectedPeriod] = useState('2024-Q4');
-  const [isLoading, setIsLoading] = useState(false);
-
-  // 計算總額
-  const totalAssets = balanceSheetData.assets.reduce((sum, item) => sum + item.amount, 0);
-  const totalLiabilities = balanceSheetData.liabilities.reduce((sum, item) => sum + item.amount, 0);
-  const totalEquity = balanceSheetData.equity.reduce((sum, item) => sum + item.amount, 0);
+  const [isLoading, setIsLoading] = useState(true);
   
-  const totalRevenue = incomeStatementData.revenue.reduce((sum, item) => sum + item.amount, 0);
-  const totalExpenses = incomeStatementData.expenses.reduce((sum, item) => sum + item.amount, 0);
-  const netIncome = totalRevenue - totalExpenses;
+  // Report data states
+  const [trialBalanceData, setTrialBalanceData] = useState<TrialBalanceReport | null>(null);
+  const [balanceSheetApiData, setBalanceSheetApiData] = useState<BalanceSheetReport | null>(null);
+  const [incomeStatementApiData, setIncomeStatementApiData] = useState<IncomeStatementReport | null>(null);
+  const [arAgingApiData, setArAgingApiData] = useState<ARAgingReport | null>(null);
 
-  const totalDebit = trialBalanceData.reduce((sum, item) => sum + item.debit, 0);
-  const totalCredit = trialBalanceData.reduce((sum, item) => sum + item.credit, 0);
+  // Use demo data as fallback when API data not available
+  const balanceSheetData = DEMO_BALANCE_SHEET;
+  const incomeStatementData = DEMO_INCOME_STATEMENT;
+
+  // Load report data from API
+  const loadReportData = useCallback(async () => {
+    setIsLoading(true);
+    toast.info('載入報表資料中...');
+    
+    try {
+      const [trialBalance, balanceSheet, incomeStatement, arAging] = await Promise.all([
+        getTrialBalance(),
+        getBalanceSheet(),
+        getIncomeStatement(),
+        getARAgingReport(),
+      ]);
+      
+      setTrialBalanceData(trialBalance);
+      setBalanceSheetApiData(balanceSheet);
+      setIncomeStatementApiData(incomeStatement);
+      setArAgingApiData(arAging);
+      toast.success('報表資料載入完成');
+    } catch (error) {
+      console.error('Failed to load report data:', error);
+      toast.warning('使用示範資料顯示');
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadReportData();
+  }, [loadReportData]);
+
+  // 計算總額 (using demo or combined data)
+  const totalAssets = balanceSheetApiData?.assets || balanceSheetData.assets.reduce((sum, item) => sum + item.amount, 0);
+  const totalLiabilities = balanceSheetApiData?.liabilities || balanceSheetData.liabilities.reduce((sum, item) => sum + item.amount, 0);
+  const totalEquity = balanceSheetApiData?.equity || balanceSheetData.equity.reduce((sum, item) => sum + item.amount, 0);
+  
+  const totalRevenue = incomeStatementApiData?.revenue || incomeStatementData.revenue.reduce((sum, item) => sum + item.amount, 0);
+  const totalExpenses = incomeStatementApiData?.expenses || incomeStatementData.expenses.reduce((sum, item) => sum + item.amount, 0);
+  const netIncome = incomeStatementApiData?.net_income || (totalRevenue - totalExpenses);
+
+  // Trial balance totals (from API or demo)
+  const trialBalanceDisplayData = trialBalanceData?.accounts?.map(acc => ({
+    code: acc.code,
+    account: acc.name,
+    debit: acc.debit,
+    credit: acc.credit,
+  })) || DEMO_TRIAL_BALANCE;
+  
+  const totalDebit = trialBalanceData?.totals?.debit || trialBalanceDisplayData.reduce((sum, item) => sum + item.debit, 0);
+  const totalCredit = trialBalanceData?.totals?.credit || trialBalanceDisplayData.reduce((sum, item) => sum + item.credit, 0);
+  const isBalanced = trialBalanceData?.totals?.is_balanced ?? (totalDebit === totalCredit);
+
+  // AR Aging display data
+  const arAgingDisplayData = arAgingApiData ? [{
+    client: 'All Customers',
+    current: arAgingApiData.current,
+    days30: arAgingApiData['1_30_days'],
+    days60: arAgingApiData['31_60_days'],
+    days90: arAgingApiData['61_90_days'] + arAgingApiData.over_90_days,
+    total: arAgingApiData.total,
+  }] : DEMO_AR_AGING;
 
   // 匯出資產負債表
   const exportBalanceSheet = (format: 'pdf' | 'excel') => {
@@ -197,7 +264,7 @@ export default function ReportsPage() {
       subtitle: `期間: ${selectedPeriod}`,
       date: new Date().toLocaleDateString('zh-TW'),
       columns: ['科目代碼', '科目名稱', '借方', '貸方'],
-      rows: trialBalanceData.map(item => [
+      rows: trialBalanceDisplayData.map(item => [
         item.code,
         item.account,
         item.debit > 0 ? formatCurrency(item.debit) : '',
@@ -221,11 +288,11 @@ export default function ReportsPage() {
 
   // 匯出應收帳款帳齡
   const exportARAgingReport = (format: 'pdf' | 'excel') => {
-    const totalCurrent = arAgingData.reduce((sum, item) => sum + item.current, 0);
-    const total30 = arAgingData.reduce((sum, item) => sum + item.days30, 0);
-    const total60 = arAgingData.reduce((sum, item) => sum + item.days60, 0);
-    const total90 = arAgingData.reduce((sum, item) => sum + item.days90, 0);
-    const grandTotal = arAgingData.reduce((sum, item) => sum + item.total, 0);
+    const totalCurrent = arAgingDisplayData.reduce((sum, item) => sum + item.current, 0);
+    const total30 = arAgingDisplayData.reduce((sum, item) => sum + item.days30, 0);
+    const total60 = arAgingDisplayData.reduce((sum, item) => sum + item.days60, 0);
+    const total90 = arAgingDisplayData.reduce((sum, item) => sum + item.days90, 0);
+    const grandTotal = arAgingDisplayData.reduce((sum, item) => sum + item.total, 0);
 
     const report: ReportData = {
       title: '應收帳款帳齡分析 AR Aging Report',
@@ -233,7 +300,7 @@ export default function ReportsPage() {
       date: new Date().toLocaleDateString('zh-TW'),
       columns: ['客戶', '未到期', '1-30天', '31-60天', '61-90天以上', '總計'],
       rows: [
-        ...arAgingData.map(item => [
+        ...arAgingDisplayData.map(item => [
           item.client,
           formatCurrency(item.current),
           formatCurrency(item.days30),
@@ -246,7 +313,7 @@ export default function ReportsPage() {
       summary: [
         { label: '總應收帳款', value: formatCurrency(grandTotal) },
         { label: '逾期款項 (>30天)', value: formatCurrency(total30 + total60 + total90) },
-        { label: '逾期比例', value: `${(((total30 + total60 + total90) / grandTotal) * 100).toFixed(1)}%` },
+        { label: '逾期比例', value: `${grandTotal > 0 ? (((total30 + total60 + total90) / grandTotal) * 100).toFixed(1) : 0}%` },
       ],
     };
 
@@ -280,8 +347,8 @@ export default function ReportsPage() {
               <SelectItem value='2024'>2024 全年</SelectItem>
             </SelectContent>
           </Select>
-          <Button variant='outline' onClick={() => toast.info('重新載入資料...')}>
-            <IconRefresh className='h-4 w-4' />
+          <Button variant='outline' onClick={loadReportData} disabled={isLoading}>
+            <IconRefresh className={`h-4 w-4 ${isLoading ? 'animate-spin' : ''}`} />
           </Button>
         </div>
       </div>
@@ -489,7 +556,7 @@ export default function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {trialBalanceData.map((item, idx) => (
+                  {trialBalanceDisplayData.map((item, idx) => (
                     <TableRow key={idx}>
                       <TableCell className='font-mono'>{item.code}</TableCell>
                       <TableCell>{item.account}</TableCell>
@@ -510,7 +577,7 @@ export default function ReportsPage() {
                 </TableBody>
               </Table>
               
-              {totalDebit === totalCredit ? (
+              {isBalanced ? (
                 <Badge className='mt-4' variant='default'>✓ 借貸平衡</Badge>
               ) : (
                 <Badge className='mt-4' variant='destructive'>✗ 借貸不平衡: {formatCurrency(totalDebit - totalCredit)}</Badge>
@@ -551,7 +618,7 @@ export default function ReportsPage() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {arAgingData.map((item, idx) => (
+                  {arAgingDisplayData.map((item, idx) => (
                     <TableRow key={idx}>
                       <TableCell className='font-medium'>{item.client}</TableCell>
                       <TableCell className='text-right'>{formatCurrency(item.current)}</TableCell>

@@ -162,12 +162,6 @@ export default function UnrecognizedReceiptsPage() {
     receipt.unrecognized_reason?.toLowerCase().includes(searchQuery.toLowerCase())
   );
   
-  // i18n helper
-  const getText = (key: string, fallback: string) => {
-    const translated = t(key);
-    return translated === key ? fallback : translated;
-  };
-  
   // Handle selection
   const handleSelectAll = (checked: boolean) => {
     if (checked) {
@@ -290,10 +284,10 @@ export default function UnrecognizedReceiptsPage() {
           <div className="flex-1">
             <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
               <FileQuestion className="h-8 w-8 text-amber-500" />
-              {getText('unrecognized.title', 'Unrecognized Documents')}
+              {t('unrecognized.title')}
             </h1>
             <p className="text-muted-foreground">
-              {getText('unrecognized.description', 'Documents that could not be automatically processed. Manual classification required.')}
+              {t('unrecognized.description')}
               {error && (
                 <span className="text-amber-500 ml-2">(Demo data)</span>
               )}
@@ -309,7 +303,7 @@ export default function UnrecognizedReceiptsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                {getText('unrecognized.total', 'Total Unrecognized')}
+                {t('unrecognized.total')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -319,7 +313,7 @@ export default function UnrecognizedReceiptsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                {getText('unrecognized.selected', 'Selected')}
+                {t('unrecognized.selected')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -329,7 +323,7 @@ export default function UnrecognizedReceiptsPage() {
           <Card>
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground">
-                {getText('unrecognized.avgConfidence', 'Avg. Confidence')}
+                {t('unrecognized.avgConfidence')}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -354,7 +348,7 @@ export default function UnrecognizedReceiptsPage() {
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
-                  placeholder={getText('unrecognized.search', 'Search by filename or reason...')}
+                  placeholder={t('unrecognized.search')}
                   className="pl-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
@@ -371,7 +365,7 @@ export default function UnrecognizedReceiptsPage() {
                   ) : (
                     <CheckCircle className="h-4 w-4 mr-2" />
                   )}
-                  {getText('unrecognized.moveToPending', 'Move to Pending Review')}
+                  {t('unrecognized.moveToPending')}
                 </Button>
               </div>
             </div>
@@ -390,12 +384,12 @@ export default function UnrecognizedReceiptsPage() {
                       onCheckedChange={handleSelectAll}
                     />
                   </TableHead>
-                  <TableHead className="w-20">Preview</TableHead>
-                  <TableHead>Filename</TableHead>
-                  <TableHead>Reason</TableHead>
-                  <TableHead className="w-24">Confidence</TableHead>
-                  <TableHead className="w-36">Date</TableHead>
-                  <TableHead className="w-20 text-right">Actions</TableHead>
+                  <TableHead className="w-20">{t('unrecognized.preview')}</TableHead>
+                  <TableHead>{t('unrecognized.filename')}</TableHead>
+                  <TableHead>{t('unrecognized.reason')}</TableHead>
+                  <TableHead className="w-24">{t('unrecognized.confidence')}</TableHead>
+                  <TableHead className="w-36">{t('unrecognized.date')}</TableHead>
+                  <TableHead className="w-20 text-right">{t('unrecognized.actions')}</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -404,7 +398,7 @@ export default function UnrecognizedReceiptsPage() {
                     <TableCell colSpan={7} className="text-center py-12">
                       <FileQuestion className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
                       <p className="text-muted-foreground">
-                        {getText('unrecognized.empty', 'No unrecognized documents found')}
+                        {t('unrecognized.empty')}
                       </p>
                     </TableCell>
                   </TableRow>
@@ -462,11 +456,11 @@ export default function UnrecognizedReceiptsPage() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem onClick={() => handleOpenClassify(receipt)}>
                               <Tag className="h-4 w-4 mr-2" />
-                              {getText('unrecognized.classify', 'Classify Manually')}
+                              {t('unrecognized.classify')}
                             </DropdownMenuItem>
                             <DropdownMenuItem>
                               <Eye className="h-4 w-4 mr-2" />
-                              {getText('unrecognized.viewOriginal', 'View Original')}
+                              {t('unrecognized.viewOriginal')}
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
@@ -485,10 +479,10 @@ export default function UnrecognizedReceiptsPage() {
             <DialogHeader>
               <DialogTitle className="flex items-center gap-2">
                 <Tag className="h-5 w-5" />
-                {getText('unrecognized.classifyTitle', 'Manually Classify Document')}
+                {t('unrecognized.classifyTitle')}
               </DialogTitle>
               <DialogDescription>
-                {getText('unrecognized.classifyDesc', 'Enter the document details to process it correctly.')}
+                {t('unrecognized.classifyDesc')}
               </DialogDescription>
             </DialogHeader>
             
@@ -524,7 +518,7 @@ export default function UnrecognizedReceiptsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="vendor_name">
                       <Building2 className="h-4 w-4 inline mr-1" />
-                      {getText('unrecognized.vendorName', 'Vendor Name')}
+                      {t('unrecognized.vendorName')}
                     </Label>
                     <Input
                       id="vendor_name"
@@ -532,14 +526,14 @@ export default function UnrecognizedReceiptsPage() {
                       onChange={(e) =>
                         setClassificationData({ ...classificationData, vendor_name: e.target.value })
                       }
-                      placeholder="Enter vendor name"
+                      placeholder={t('unrecognized.vendorName')}
                     />
                   </div>
                   
                   <div className="space-y-2">
                     <Label htmlFor="receipt_date">
                       <Calendar className="h-4 w-4 inline mr-1" />
-                      {getText('unrecognized.receiptDate', 'Receipt Date')}
+                      {t('unrecognized.receiptDate')}
                     </Label>
                     <Input
                       id="receipt_date"
@@ -554,7 +548,7 @@ export default function UnrecognizedReceiptsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="total_amount">
                       <DollarSign className="h-4 w-4 inline mr-1" />
-                      {getText('unrecognized.totalAmount', 'Total Amount')}
+                      {t('unrecognized.totalAmount')}
                     </Label>
                     <Input
                       id="total_amount"
@@ -571,7 +565,7 @@ export default function UnrecognizedReceiptsPage() {
                   <div className="space-y-2">
                     <Label htmlFor="category">
                       <Tag className="h-4 w-4 inline mr-1" />
-                      {getText('unrecognized.category', 'Category')}
+                      {t('unrecognized.category')}
                     </Label>
                     <Select
                       value={classificationData.category}
@@ -595,7 +589,7 @@ export default function UnrecognizedReceiptsPage() {
                 
                 <div className="space-y-2">
                   <Label htmlFor="new_status">
-                    {getText('unrecognized.newStatus', 'New Status After Classification')}
+                    {t('unrecognized.newStatus')}
                   </Label>
                   <Select
                     value={classificationData.new_status}
@@ -617,7 +611,7 @@ export default function UnrecognizedReceiptsPage() {
             
             <DialogFooter>
               <Button variant="outline" onClick={() => setIsClassifyDialogOpen(false)}>
-                {getText('common.cancel', 'Cancel')}
+                {t('common.cancel')}
               </Button>
               <Button
                 onClick={handleSubmitClassification}
@@ -628,7 +622,7 @@ export default function UnrecognizedReceiptsPage() {
                 ) : (
                   <CheckCircle className="h-4 w-4 mr-2" />
                 )}
-                {getText('unrecognized.saveClassification', 'Save Classification')}
+                {t('unrecognized.saveClassification')}
               </Button>
             </DialogFooter>
           </DialogContent>

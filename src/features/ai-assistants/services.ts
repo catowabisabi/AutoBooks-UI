@@ -163,6 +163,9 @@ export const emailApi = {
   archive: (id: string) => 
     apiClient.post(`/email-assistant/emails/${id}/archive/`),
 
+  delete: (id: string) =>
+    apiClient.delete(`/email-assistant/emails/${id}/`),
+
   analyze: (id: string) => 
     apiClient.post<{
       summary: string;

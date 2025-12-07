@@ -239,7 +239,11 @@ export default function ExpenseView({ expenseId }: ExpenseViewProps) {
 
       {/* Action buttons */}
       <div className='mt-8 flex justify-end gap-4'>
-        <Button variant='outline'>Edit Expense</Button>
+        <Button variant='outline' asChild>
+          <Link href={`/dashboard/finance/expenses/${expense.id}/edit`}>
+            Edit Expense
+          </Link>
+        </Button>
         <Button>Approve / Reject</Button>
       </div>
     </div>
