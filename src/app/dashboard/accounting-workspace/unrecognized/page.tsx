@@ -278,20 +278,20 @@ export default function UnrecognizedReceiptsPage() {
 
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="flex items-center gap-4">
-          <Button variant="ghost" size="icon" asChild>
+        <div className="flex items-center gap-3">
+          <Button variant="ghost" size="icon" className="h-8 w-8" asChild>
             <Link href="/dashboard/accounting-workspace">
-              <ArrowLeft className="h-5 w-5" />
+              <ArrowLeft className="h-4 w-4" />
             </Link>
           </Button>
           <div className="flex-1">
-            <h1 className="text-3xl font-bold tracking-tight flex items-center gap-2">
-              <FileQuestion className="h-8 w-8 text-amber-500" />
+            <h1 className="text-xl font-bold tracking-tight flex items-center gap-2">
+              <FileQuestion className="h-5 w-5 text-amber-500" />
               {t('unrecognized.title')}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {t('unrecognized.description')}
               {error && (
                 <span className="text-amber-500 ml-2">(Demo data)</span>
@@ -304,35 +304,35 @@ export default function UnrecognizedReceiptsPage() {
         </div>
         
         {/* Stats */}
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-3 md:grid-cols-3">
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="pb-1 pt-3">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {t('unrecognized.total')}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{filteredReceipts.length}</div>
+            <CardContent className="pb-3">
+              <div className="text-xl font-bold">{filteredReceipts.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="pb-1 pt-3">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {t('unrecognized.selected')}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{selectedIds.length}</div>
+            <CardContent className="pb-3">
+              <div className="text-xl font-bold">{selectedIds.length}</div>
             </CardContent>
           </Card>
           <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
+            <CardHeader className="pb-1 pt-3">
+              <CardTitle className="text-xs font-medium text-muted-foreground">
                 {t('unrecognized.avgConfidence')}
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
+            <CardContent className="pb-3">
+              <div className="text-xl font-bold">
                 {filteredReceipts.length > 0
                   ? Math.round(
                       (filteredReceipts.reduce((acc: number, r: AccountingDocument) => acc + (r.ai_confidence_score || 0), 0) /
@@ -348,13 +348,13 @@ export default function UnrecognizedReceiptsPage() {
         
         {/* Filters & Actions */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <CardContent className="py-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
               <div className="relative flex-1 max-w-md">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder={t('unrecognized.search')}
-                  className="pl-9"
+                  className="pl-9 h-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
@@ -362,6 +362,7 @@ export default function UnrecognizedReceiptsPage() {
               <div className="flex gap-2">
                 <Button
                   variant="outline"
+                  size="sm"
                   onClick={handleBatchMoveToPending}
                   disabled={selectedIds.length === 0 || batchReclassifyMutation.isPending}
                 >

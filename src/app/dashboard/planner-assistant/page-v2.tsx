@@ -642,78 +642,78 @@ export default function PlannerAssistantPageV2() {
   };
 
   return (
-    <div className="flex flex-1 flex-col p-6 gap-6">
-      {/* AI Panel at the top */}
-      <PlannerAIPanel 
-        onTasksCreated={() => refetchTasks()}
-        onReprioritized={() => refetchTasks()}
-      />
-
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-2xl font-bold">{t('plannerAssistant.title')}</h1>
-          <p className="text-muted-foreground">{t('plannerAssistant.description')}</p>
-        </div>
-        <div className="flex gap-2">
-          <Badge variant="outline" className="gap-1">
-            <Target className="h-3 w-3" />
-            {stats.total - stats.completed} {t('plannerAssistant.active')}
-          </Badge>
-          <Badge variant="outline" className="gap-1">
-            <AlertCircle className="h-3 w-3" />
-            {stats.urgent} {t('plannerAssistant.urgent')}
-          </Badge>
-          {stats.overdue > 0 && (
-            <Badge variant="destructive" className="gap-1">
-              <Clock className="h-3 w-3" />
-              {stats.overdue} {t('plannerAssistant.overdue')}
+    <div className="flex flex-1 flex-col p-4 gap-4">
+      {/* Header with AI Panel inline */}
+      <div className="flex items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div>
+            <h1 className="text-xl font-bold">{t('plannerAssistant.title')}</h1>
+            <p className="text-sm text-muted-foreground">{t('plannerAssistant.description')}</p>
+          </div>
+          <div className="flex gap-2">
+            <Badge variant="outline" className="gap-1 text-xs">
+              <Target className="h-3 w-3" />
+              {stats.total - stats.completed} {t('plannerAssistant.active')}
             </Badge>
-          )}
+            <Badge variant="outline" className="gap-1 text-xs">
+              <AlertCircle className="h-3 w-3" />
+              {stats.urgent} {t('plannerAssistant.urgent')}
+            </Badge>
+            {stats.overdue > 0 && (
+              <Badge variant="destructive" className="gap-1 text-xs">
+                <Clock className="h-3 w-3" />
+                {stats.overdue} {t('plannerAssistant.overdue')}
+              </Badge>
+            )}
+          </div>
         </div>
+        <PlannerAIPanel 
+          onTasksCreated={() => refetchTasks()}
+          onReprioritized={() => refetchTasks()}
+        />
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="pt-3 pb-3">
             <div className="flex items-center gap-2">
-              <ListTodo className="h-5 w-5 text-blue-500" />
+              <ListTodo className="h-4 w-4 text-blue-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.total}</p>
+                <p className="text-xl font-bold">{stats.total}</p>
                 <p className="text-xs text-muted-foreground">{t('plannerAssistant.totalTasks')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="pt-3 pb-3">
             <div className="flex items-center gap-2">
-              <Play className="h-5 w-5 text-yellow-500" />
+              <Play className="h-4 w-4 text-yellow-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.inProgress}</p>
+                <p className="text-xl font-bold">{stats.inProgress}</p>
                 <p className="text-xs text-muted-foreground">{t('plannerAssistant.status.inProgress')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="pt-3 pb-3">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-5 w-5 text-green-500" />
+              <CheckCircle2 className="h-4 w-4 text-green-500" />
               <div>
-                <p className="text-2xl font-bold">{stats.completed}</p>
+                <p className="text-xl font-bold">{stats.completed}</p>
                 <p className="text-xs text-muted-foreground">{t('plannerAssistant.completed')}</p>
               </div>
             </div>
           </CardContent>
         </Card>
         <Card>
-          <CardContent className="pt-4">
+          <CardContent className="pt-3 pb-3">
             <div className="flex items-center gap-2">
-              <Brain className="h-5 w-5 text-purple-500" />
+              <Brain className="h-4 w-4 text-purple-500" />
               <div>
-                <p className="text-2xl font-bold">
+                <p className="text-xl font-bold">
                   {Math.round((stats.completed / (stats.total || 1)) * 100)}%
                 </p>
                 <p className="text-xs text-muted-foreground">{t('plannerAssistant.completion')}</p>
@@ -723,17 +723,17 @@ export default function PlannerAssistantPageV2() {
         </Card>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 flex-1 min-h-0">
         {/* Task List */}
-        <Card className="lg:col-span-2 h-[600px] flex flex-col">
-          <CardHeader className="pb-3">
+        <Card className="lg:col-span-2 flex flex-col overflow-hidden">
+          <CardHeader className="pb-2">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2">
-                  <Calendar className="h-5 w-5" />
+                <CardTitle className="flex items-center gap-2 text-base">
+                  <Calendar className="h-4 w-4" />
                   {t('plannerAssistant.tasks')}
                 </CardTitle>
-                <CardDescription>{t('plannerAssistant.tasksDescription')}</CardDescription>
+                <CardDescription className="text-xs">{t('plannerAssistant.tasksDescription')}</CardDescription>
               </div>
               <div className="flex items-center gap-2">
                 <Button 
@@ -741,28 +741,29 @@ export default function PlannerAssistantPageV2() {
                   size="sm"
                   onClick={handleAIPrioritize}
                   disabled={aiPrioritizeMutation.isPending}
+                  className="h-7 text-xs"
                 >
                   {aiPrioritizeMutation.isPending ? (
-                    <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                    <Loader2 className="h-3 w-3 animate-spin mr-1" />
                   ) : (
-                    <Sparkles className="h-4 w-4 mr-1 text-purple-500" />
+                    <Sparkles className="h-3 w-3 mr-1 text-purple-500" />
                   )}
                   {t('plannerAssistant.aiPrioritize')}
                 </Button>
-                <Button variant="outline" size="icon" onClick={() => refetchTasks()}>
-                  <RefreshCw className="h-4 w-4" />
+                <Button variant="outline" size="icon" className="h-7 w-7" onClick={() => refetchTasks()}>
+                  <RefreshCw className="h-3 w-3" />
                 </Button>
-                <Button size="sm" onClick={() => setCreateDialogOpen(true)}>
-                  <Plus className="h-4 w-4 mr-1" />
+                <Button size="sm" className="h-7 text-xs" onClick={() => setCreateDialogOpen(true)}>
+                  <Plus className="h-3 w-3 mr-1" />
                   {t('plannerAssistant.addTask')}
                 </Button>
               </div>
             </div>
             
             {/* Filters */}
-            <div className="flex items-center gap-2 mt-3">
+            <div className="flex items-center gap-2 mt-2">
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[140px] h-8">
+                <SelectTrigger className="w-[120px] h-7 text-xs">
                   <Filter className="h-3 w-3 mr-1" />
                   <SelectValue placeholder={t('plannerAssistant.status.label')} />
                 </SelectTrigger>
@@ -775,7 +776,7 @@ export default function PlannerAssistantPageV2() {
               </Select>
               
               <Select value={filterPriority} onValueChange={setFilterPriority}>
-                <SelectTrigger className="w-[140px] h-8">
+                <SelectTrigger className="w-[120px] h-7 text-xs">
                   <SelectValue placeholder={t('plannerAssistant.priority')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -787,7 +788,7 @@ export default function PlannerAssistantPageV2() {
               </Select>
               
               <Select value={sortBy} onValueChange={(v) => setSortBy(v as typeof sortBy)}>
-                <SelectTrigger className="w-[140px] h-8">
+                <SelectTrigger className="w-[120px] h-7 text-xs">
                   <ArrowUpDown className="h-3 w-3 mr-1" />
                   <SelectValue />
                 </SelectTrigger>
@@ -844,117 +845,122 @@ export default function PlannerAssistantPageV2() {
         </Card>
 
         {/* Right Sidebar: Events + AI Chat */}
-        <div className="space-y-6">
-          {/* Upcoming Events */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <CalendarDays className="h-4 w-4" />
-                {t('plannerAssistant.upcomingEvents')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <EventsSidebar events={events} isLoading={eventsLoading} />
-            </CardContent>
-          </Card>
+        <ScrollArea className="h-full">
+          <div className="space-y-4 pr-2">
+            {/* Upcoming Events */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <CalendarDays className="h-4 w-4" />
+                  {t('plannerAssistant.upcomingEvents')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-0">
+                <EventsSidebar events={events} isLoading={eventsLoading} />
+              </CardContent>
+            </Card>
 
-          {/* AI Chat */}
-          <Card className="h-[350px] flex flex-col">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-500" />
-                {t('plannerAssistant.aiChat')}
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="flex-1 flex flex-col overflow-hidden p-3">
-              <ScrollArea className="flex-1">
-                <div className="space-y-3 pr-2">
-                  {messages.map(message => (
-                    <div
-                      key={message.id}
-                      className={cn(
-                        "max-w-[90%] rounded-lg p-2.5 text-sm",
-                        message.type === 'user'
-                          ? "ml-auto bg-primary text-primary-foreground"
-                          : "mr-auto bg-muted"
-                      )}
-                    >
-                      <p className="whitespace-pre-wrap">{message.content}</p>
-                      <span className="text-xs opacity-60 block mt-1">{message.timestamp}</span>
-                    </div>
-                  ))}
-                  {chatLoading && (
-                    <div className="mr-auto bg-muted rounded-lg p-3">
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    </div>
-                  )}
-                  <div ref={messagesEndRef} />
+            {/* AI Chat */}
+            <Card className="flex flex-col">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Sparkles className="h-4 w-4 text-purple-500" />
+                  {t('plannerAssistant.aiChat')}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="flex flex-col p-3 pt-0">
+                <div className="h-[200px] overflow-y-auto mb-2">
+                  <div className="space-y-2">
+                    {messages.map(message => (
+                      <div
+                        key={message.id}
+                        className={cn(
+                          "max-w-[90%] rounded-lg p-2 text-xs",
+                          message.type === 'user'
+                            ? "ml-auto bg-primary text-primary-foreground"
+                            : "mr-auto bg-muted"
+                        )}
+                      >
+                        <p className="whitespace-pre-wrap">{message.content}</p>
+                        <span className="text-[10px] opacity-60 block mt-1">{message.timestamp}</span>
+                      </div>
+                    ))}
+                    {chatLoading && (
+                      <div className="mr-auto bg-muted rounded-lg p-2">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                      </div>
+                    )}
+                    <div ref={messagesEndRef} />
+                  </div>
                 </div>
-              </ScrollArea>
-              
-              <div className="flex gap-2 mt-3 pt-3 border-t">
-                <Input
-                  placeholder={t('plannerAssistant.askForHelp')}
-                  value={newMessage}
-                  onChange={(e) => setNewMessage(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
-                  disabled={chatLoading}
-                  className="h-8 text-sm"
-                />
-                <Button 
-                  size="sm" 
-                  onClick={handleSendMessage} 
-                  disabled={chatLoading || !newMessage.trim()}
-                >
-                  <Send className="h-3 w-3" />
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
+                
+                <div className="flex gap-2 pt-2 border-t">
+                  <Input
+                    placeholder={t('plannerAssistant.askForHelp')}
+                    value={newMessage}
+                    onChange={(e) => setNewMessage(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSendMessage()}
+                    disabled={chatLoading}
+                    className="h-7 text-xs"
+                  />
+                  <Button 
+                    size="sm" 
+                    className="h-7 w-7 p-0"
+                    onClick={handleSendMessage} 
+                    disabled={chatLoading || !newMessage.trim()}
+                  >
+                    <Send className="h-3 w-3" />
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
 
-          {/* Planner Data Query */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Brain className="h-4 w-4 text-purple-500" />
-                {t('plannerAssistant.dataExplorer', 'Planner Data Explorer')}
-              </CardTitle>
-              <CardDescription>
-                {t('plannerAssistant.dataExplorerDesc', 'Load the demo dataset and ask a quick question.')}
-              </CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              <Textarea
-                placeholder={t('plannerAssistant.dataExplorerPlaceholder', 'e.g. Show overdue tasks by priority')}
-                value={plannerQueryText}
-                onChange={(e) => setPlannerQueryText(e.target.value)}
-                className="text-sm"
-              />
-              <div className="flex gap-2">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => loadPlannerData.mutate()}
-                  disabled={loadPlannerData.isPending}
-                >
-                  {loadPlannerData.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <RefreshCw className="h-4 w-4 mr-1" />}
-                  {t('plannerAssistant.loadDataset', 'Load dataset')}
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => queryPlannerData.mutate(plannerQueryText)}
-                  disabled={!plannerQueryText.trim() || queryPlannerData.isPending}
-                >
-                  {queryPlannerData.isPending ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Sparkles className="h-4 w-4 mr-1" />}
-                  {t('plannerAssistant.runQuery', 'Run query')}
-                </Button>
-              </div>
-              <div className="rounded-md border p-3 bg-muted/30 min-h-[140px]">
-                {renderPlannerResult()}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+            {/* Planner Data Query */}
+            <Card>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2">
+                  <Brain className="h-4 w-4 text-purple-500" />
+                  {t('plannerAssistant.dataExplorer', 'Planner Data Explorer')}
+                </CardTitle>
+                <CardDescription className="text-xs">
+                  {t('plannerAssistant.dataExplorerDesc', 'Load the demo dataset and ask a quick question.')}
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-2 pt-0">
+                <Textarea
+                  placeholder={t('plannerAssistant.dataExplorerPlaceholder', 'e.g. Show overdue tasks by priority')}
+                  value={plannerQueryText}
+                  onChange={(e) => setPlannerQueryText(e.target.value)}
+                  className="text-xs h-16 resize-none"
+                />
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => loadPlannerData.mutate()}
+                    disabled={loadPlannerData.isPending}
+                  >
+                    {loadPlannerData.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <RefreshCw className="h-3 w-3 mr-1" />}
+                    {t('plannerAssistant.loadDataset', 'Load dataset')}
+                  </Button>
+                  <Button
+                    size="sm"
+                    className="h-7 text-xs"
+                    onClick={() => queryPlannerData.mutate(plannerQueryText)}
+                    disabled={!plannerQueryText.trim() || queryPlannerData.isPending}
+                  >
+                    {queryPlannerData.isPending ? <Loader2 className="h-3 w-3 animate-spin mr-1" /> : <Sparkles className="h-3 w-3 mr-1" />}
+                    {t('plannerAssistant.runQuery', 'Run query')}
+                  </Button>
+                </div>
+                <div className="rounded-md border p-2 bg-muted/30 min-h-[100px] max-h-[150px] overflow-y-auto">
+                  {renderPlannerResult()}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        </ScrollArea>
       </div>
 
       {/* Create Task Dialog */}

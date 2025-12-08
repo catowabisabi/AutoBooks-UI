@@ -173,28 +173,28 @@ function EmailSidebar({
   ];
 
   return (
-    <div className="w-60 h-full flex flex-col border-r bg-muted/30">
-      <div className="p-4 border-b flex items-center justify-between">
-        <h2 className="font-semibold text-lg">{t('emailAssistant.title')}</h2>
-        <Button variant="ghost" size="icon" className="md:hidden" onClick={onToggle}>
+    <div className="w-56 h-full flex flex-col border-r bg-muted/30">
+      <div className="p-3 border-b flex items-center justify-between">
+        <h2 className="font-semibold text-base">{t('emailAssistant.title')}</h2>
+        <Button variant="ghost" size="icon" className="h-8 w-8 md:hidden" onClick={onToggle}>
           <Menu className="h-4 w-4" />
         </Button>
       </div>
       
-      <div className="p-2 space-y-1">
+      <div className="p-1.5 space-y-0.5">
         {folders.map(folder => {
           const Icon = folder.icon;
           return (
             <Button
               key={folder.id}
               variant={selectedFolder === folder.id ? 'secondary' : 'ghost'}
-              className="w-full justify-start"
+              className="w-full justify-start h-8 text-sm"
               onClick={() => onSelectFolder(folder.id as EmailFolder)}
             >
-              <Icon className="h-4 w-4 mr-2" />
+              <Icon className="h-3.5 w-3.5 mr-2" />
               {folder.label}
               {folder.count !== undefined && folder.count > 0 && (
-                <Badge variant="secondary" className="ml-auto">
+                <Badge variant="secondary" className="ml-auto text-xs h-5">
                   {folder.count}
                 </Badge>
               )}
@@ -203,15 +203,15 @@ function EmailSidebar({
         })}
       </div>
 
-      <Separator className="my-2" />
+      <Separator className="my-1.5" />
 
-      <div className="p-2">
-        <p className="text-xs text-muted-foreground px-2 mb-2">{t('emailAssistant.accounts')}</p>
+      <div className="p-1.5">
+        <p className="text-xs text-muted-foreground px-2 mb-1.5">{t('emailAssistant.accounts')}</p>
         {accounts.map(account => (
           <Button
             key={account.id}
             variant={selectedFolder === account.id.toString() ? 'secondary' : 'ghost'}
-            className="w-full justify-start text-sm"
+            className="w-full justify-start text-xs h-7"
             onClick={() => onSelectFolder(account.id.toString())}
           >
             <div
@@ -223,22 +223,22 @@ function EmailSidebar({
         ))}
       </div>
 
-      <Separator className="my-2" />
+      <Separator className="my-1.5" />
 
-      <div className="p-2">
-        <p className="text-xs text-muted-foreground px-2 mb-2">{t('emailAssistant.categories')}</p>
-        <ScrollArea className="h-[200px]">
+      <div className="p-1.5 flex-1 overflow-hidden">
+        <p className="text-xs text-muted-foreground px-2 mb-1.5">{t('emailAssistant.categories')}</p>
+        <ScrollArea className="h-full">
           {Object.entries(EMAIL_CATEGORIES).slice(0, -1).map(([key, config]) => {
             const Icon = config.icon;
             return (
               <Button
                 key={key}
                 variant={selectedFolder === key ? 'secondary' : 'ghost'}
-                className="w-full justify-start text-sm mb-1"
+                className="w-full justify-start text-xs mb-0.5 h-7"
                 onClick={() => onSelectFolder(key)}
               >
                 <Icon className="h-3 w-3 mr-2" />
-                <span className="truncate text-xs">{t(config.labelKey)}</span>
+                <span className="truncate">{t(config.labelKey)}</span>
               </Button>
             );
           })}
@@ -268,39 +268,39 @@ function EmailListItemComponent({
   return (
     <div
       className={cn(
-        "flex items-start gap-3 p-3 cursor-pointer hover:bg-muted/50 border-b transition-colors",
+        "flex items-start gap-2 p-2 cursor-pointer hover:bg-muted/50 border-b transition-colors",
         isSelected && "bg-muted",
         !email.is_read && "bg-primary/5"
       )}
       onClick={onSelect}
     >
-      <Avatar className="h-10 w-10 shrink-0">
-        <AvatarFallback className={cn(!email.is_read && "bg-primary text-primary-foreground")}>
+      <Avatar className="h-8 w-8 shrink-0">
+        <AvatarFallback className={cn("text-xs", !email.is_read && "bg-primary text-primary-foreground")}>
           {getInitials(email.from_name || '', email.from_address)}
         </AvatarFallback>
       </Avatar>
 
       <div className="flex-1 min-w-0">
         <div className="flex items-center justify-between gap-2">
-          <span className={cn("font-medium text-sm truncate", !email.is_read && "font-semibold")}>
+          <span className={cn("font-medium text-xs truncate", !email.is_read && "font-semibold")}>
             {email.from_name || email.from_address}
           </span>
-          <span className="text-xs text-muted-foreground shrink-0">
+          <span className="text-[10px] text-muted-foreground shrink-0">
             {timeAgo(email.received_at || email.sent_at || '')}
           </span>
         </div>
         
-        <p className={cn("text-sm truncate", !email.is_read && "font-medium")}>
+        <p className={cn("text-xs truncate", !email.is_read && "font-medium")}>
           {email.subject}
         </p>
         
-        <div className="flex items-center gap-2 mt-1">
-          <Badge variant="outline" className={cn("text-xs py-0 h-5", category.color)}>
-            <CategoryIcon className="h-3 w-3 mr-1" />
+        <div className="flex items-center gap-1.5 mt-0.5">
+          <Badge variant="outline" className={cn("text-[10px] py-0 h-4 px-1", category.color)}>
+            <CategoryIcon className="h-2.5 w-2.5 mr-0.5" />
             {t(category.labelKey)}
           </Badge>
           {email.priority === 'HIGH' && (
-            <Badge variant="destructive" className="text-xs py-0 h-5">Urgent</Badge>
+            <Badge variant="destructive" className="text-[10px] py-0 h-4 px-1">Urgent</Badge>
           )}
         </div>
       </div>
@@ -308,13 +308,13 @@ function EmailListItemComponent({
       <Button
         variant="ghost"
         size="icon"
-        className="shrink-0"
+        className="shrink-0 h-7 w-7"
         onClick={(e) => {
           e.stopPropagation();
           onStar();
         }}
       >
-        <Star className={cn("h-4 w-4", email.is_starred && "fill-yellow-400 text-yellow-400")} />
+        <Star className={cn("h-3.5 w-3.5", email.is_starred && "fill-yellow-400 text-yellow-400")} />
       </Button>
     </div>
   );
@@ -370,26 +370,26 @@ function EmailList({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-3 border-b flex items-center gap-2">
+      <div className="p-2 border-b flex items-center gap-2">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-muted-foreground" />
           <Input
             placeholder={t('emailAssistant.search')}
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-9"
+            className="pl-8 h-8 text-sm"
           />
         </div>
-        <Button variant="outline" size="icon" onClick={onRefresh}>
-          <RefreshCw className="h-4 w-4" />
+        <Button variant="outline" size="icon" className="h-8 w-8" onClick={onRefresh}>
+          <RefreshCw className="h-3.5 w-3.5" />
         </Button>
       </div>
 
       <ScrollArea className="flex-1">
         {filteredEmails.length === 0 ? (
-          <div className="flex flex-col items-center justify-center h-[300px] text-muted-foreground">
-            <Mail className="h-12 w-12 mb-2" />
-            <p>{t('emailAssistant.noEmails')}</p>
+          <div className="flex flex-col items-center justify-center h-[200px] text-muted-foreground">
+            <Mail className="h-10 w-10 mb-2" />
+            <p className="text-sm">{t('emailAssistant.noEmails')}</p>
           </div>
         ) : (
           filteredEmails.map(email => (
@@ -433,57 +433,57 @@ function EmailDetail({
 
   return (
     <div className="flex flex-col h-full">
-      <div className="p-4 border-b flex items-center justify-between">
+      <div className="p-3 border-b flex items-center justify-between">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className={cn("text-xs", category.color)}>
             <CategoryIcon className="h-3 w-3 mr-1" />
             {t(category.labelKey)}
           </Badge>
           {email.priority === 'HIGH' && (
-            <Badge variant="destructive">Urgent</Badge>
+            <Badge variant="destructive" className="text-xs">Urgent</Badge>
           )}
           {email.ai_summary && (
-            <Badge variant="secondary">
+            <Badge variant="secondary" className="text-xs">
               <Sparkles className="h-3 w-3 mr-1" />
               AI Summary
             </Badge>
           )}
         </div>
-        <div className="flex items-center gap-1">
-          <Button variant="ghost" size="icon" onClick={onAnalyze} disabled={isAnalyzing}>
+        <div className="flex items-center gap-0.5">
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onAnalyze} disabled={isAnalyzing}>
             {isAnalyzing ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Sparkles className="h-4 w-4" />
+              <Sparkles className="h-3.5 w-3.5" />
             )}
           </Button>
-          <Button variant="ghost" size="icon" onClick={onGenerateReply} disabled={isGeneratingReply}>
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onGenerateReply} disabled={isGeneratingReply}>
             {isGeneratingReply ? (
-              <Loader2 className="h-4 w-4 animate-spin" />
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
             ) : (
-              <Reply className="h-4 w-4" />
+              <Reply className="h-3.5 w-3.5" />
             )}
           </Button>
-          <Button variant="ghost" size="icon">
-            <Forward className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Forward className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onArchive}>
-            <Archive className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onArchive}>
+            <Archive className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon" onClick={onDelete}>
-            <Trash2 className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onDelete}>
+            <Trash2 className="h-3.5 w-3.5" />
           </Button>
-          <Button variant="ghost" size="icon">
-            <MoreHorizontal className="h-4 w-4" />
+          <Button variant="ghost" size="icon" className="h-8 w-8">
+            <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
         </div>
       </div>
 
-      <ScrollArea className="flex-1 p-4">
-        <h1 className="text-xl font-semibold mb-4">{email.subject}</h1>
+      <ScrollArea className="flex-1 p-3">
+        <h1 className="text-lg font-semibold mb-3">{email.subject}</h1>
 
-        <div className="flex items-start gap-3 mb-6">
-          <Avatar className="h-12 w-12">
+        <div className="flex items-start gap-2 mb-4">
+          <Avatar className="h-10 w-10">
             <AvatarFallback>
               {getInitials(email.from_name || '', email.from_address)}
             </AvatarFallback>
@@ -491,34 +491,34 @@ function EmailDetail({
           <div className="flex-1">
             <div className="flex items-center justify-between">
               <div>
-                <p className="font-medium">{email.from_name || 'Unknown'}</p>
-                <p className="text-sm text-muted-foreground">{email.from_address}</p>
+                <p className="font-medium text-sm">{email.from_name || 'Unknown'}</p>
+                <p className="text-xs text-muted-foreground">{email.from_address}</p>
               </div>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs text-muted-foreground">
                 {new Date(email.received_at || email.sent_at || email.created_at).toLocaleString()}
               </p>
             </div>
-            <p className="text-sm text-muted-foreground mt-1">
+            <p className="text-xs text-muted-foreground mt-0.5">
               To: {email.to_addresses?.join(', ')}
             </p>
           </div>
         </div>
 
         {email.ai_summary && (
-          <Card className="mb-4 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-purple-500" />
+          <Card className="mb-3 bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/30 dark:to-blue-950/30">
+            <CardHeader className="py-2 px-3">
+              <CardTitle className="text-xs flex items-center gap-2">
+                <Sparkles className="h-3.5 w-3.5 text-purple-500" />
                 AI Summary
               </CardTitle>
             </CardHeader>
-            <CardContent>
-              <p className="text-sm">{email.ai_summary}</p>
+            <CardContent className="py-0 px-3 pb-2">
+              <p className="text-xs">{email.ai_summary}</p>
               {email.ai_action_items && email.ai_action_items.length > 0 && (
-                <div className="mt-2 space-y-1">
+                <div className="mt-1.5 space-y-0.5">
                   {email.ai_action_items.map((item, idx) => (
-                    <div key={`${item.action}-${idx}`} className="flex items-start gap-2 text-xs">
-                      <Circle className="h-3 w-3 mt-0.5" />
+                    <div key={`${item.action}-${idx}`} className="flex items-start gap-1.5 text-[10px]">
+                      <Circle className="h-2.5 w-2.5 mt-0.5" />
                       <span>
                         {item.action}
                         {item.deadline ? ` — ${item.deadline}` : ''}
@@ -528,7 +528,7 @@ function EmailDetail({
                 </div>
               )}
               {email.ai_sentiment && (
-                <Badge variant="outline" className="mt-3">
+                <Badge variant="outline" className="mt-2 text-xs">
                   Sentiment: {email.ai_sentiment}
                 </Badge>
               )}

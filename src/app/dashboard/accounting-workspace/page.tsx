@@ -391,14 +391,14 @@ export default function AccountingWorkspacePage() {
 
   return (
     <PageContainer>
-      <div className="space-y-6">
+      <div className="space-y-4">
         {/* Header */}
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+        <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
           <div>
-            <h1 className="text-3xl font-bold tracking-tight">
+            <h1 className="text-xl font-bold tracking-tight">
               {getText('accountingWorkspace.title', 'Accounting Workspace')}
             </h1>
-            <p className="text-muted-foreground">
+            <p className="text-sm text-muted-foreground">
               {getText('accountingWorkspace.description', 'Unified workspace for document processing and bookkeeping')}
               {error && (
                 <span className="text-amber-500 ml-2">
@@ -411,6 +411,7 @@ export default function AccountingWorkspacePage() {
             <Button 
               variant="outline" 
               size="icon" 
+              className="h-8 w-8"
               onClick={() => refetch()}
               disabled={isLoading}
               title={getText('common.refresh', 'Refresh')}
@@ -419,7 +420,8 @@ export default function AccountingWorkspacePage() {
             </Button>
             <Button 
               onClick={() => setIsCreateDialogOpen(true)} 
-              className="gap-2"
+              className="gap-2 h-8"
+              size="sm"
               disabled={createProjectMutation.isPending}
             >
               {createProjectMutation.isPending ? (
@@ -434,19 +436,19 @@ export default function AccountingWorkspacePage() {
 
         {/* Filters */}
         <Card>
-          <CardContent className="pt-6">
-            <div className="flex flex-col gap-4 md:flex-row md:items-center">
+          <CardContent className="py-3">
+            <div className="flex flex-col gap-3 md:flex-row md:items-center">
               <div className="relative flex-1">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
                 <Input
                   placeholder={getText('accountingWorkspace.search', 'Search projects...')}
-                  className="pl-9"
+                  className="pl-9 h-9"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                 />
               </div>
               <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder={getText('accountingWorkspace.filterByStatus', 'Status')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -458,7 +460,7 @@ export default function AccountingWorkspacePage() {
                 </SelectContent>
               </Select>
               <Select value={filterType} onValueChange={setFilterType}>
-                <SelectTrigger className="w-[150px]">
+                <SelectTrigger className="w-[140px] h-9">
                   <SelectValue placeholder={getText('accountingWorkspace.filterByType', 'Type')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -470,7 +472,7 @@ export default function AccountingWorkspacePage() {
                 </SelectContent>
               </Select>
               <Select value={filterYear} onValueChange={setFilterYear}>
-                <SelectTrigger className="w-[120px]">
+                <SelectTrigger className="w-[100px] h-9">
                   <SelectValue placeholder={getText('accountingWorkspace.fiscalYear', 'Year')} />
                 </SelectTrigger>
                 <SelectContent>
@@ -504,21 +506,21 @@ export default function AccountingWorkspacePage() {
 
         {/* Projects Grid View */}
         {viewMode === 'grid' && (
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {filteredProjects.map((project) => (
               <Card
                 key={project.id}
                 className="group hover:shadow-lg transition-shadow cursor-pointer"
                 onClick={() => handleOpenProject(project.id)}
               >
-                <CardHeader className="pb-3">
+                <CardHeader className="pb-2 pt-3 px-3">
                   <div className="flex items-start justify-between">
-                    <div className="space-y-1">
-                      <CardTitle className="text-lg flex items-center gap-2">
-                        <Building2 className="h-4 w-4 text-muted-foreground" />
-                        {project.companyName}
+                    <div className="space-y-0.5 flex-1 min-w-0">
+                      <CardTitle className="text-sm font-semibold flex items-center gap-1.5 truncate">
+                        <Building2 className="h-3.5 w-3.5 text-muted-foreground flex-shrink-0" />
+                        <span className="truncate">{project.companyName}</span>
                       </CardTitle>
-                      <CardDescription className="flex items-center gap-2">
+                      <CardDescription className="flex items-center gap-1.5 text-xs">
                         <Calendar className="h-3 w-3" />
                         {project.fiscalYear} {project.fiscalPeriod}
                       </CardDescription>
@@ -528,7 +530,7 @@ export default function AccountingWorkspacePage() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-8 w-8 opacity-0 group-hover:opacity-100 transition-opacity"
+                          className="h-7 w-7 opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                         >
                           <MoreHorizontal className="h-4 w-4" />
                         </Button>
@@ -556,41 +558,41 @@ export default function AccountingWorkspacePage() {
                     </DropdownMenu>
                   </div>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-2 pb-3 px-3">
                   {/* Client Contact Info */}
-                  <div className="text-sm text-muted-foreground space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Mail className="h-3 w-3" />
+                  <div className="text-xs text-muted-foreground space-y-0.5">
+                    <div className="flex items-center gap-1.5">
+                      <Mail className="h-3 w-3 flex-shrink-0" />
                       <span className="truncate">{project.clientInfo.email || '-'}</span>
                     </div>
-                    <div className="flex items-center gap-2">
-                      <Phone className="h-3 w-3" />
+                    <div className="flex items-center gap-1.5">
+                      <Phone className="h-3 w-3 flex-shrink-0" />
                       <span>{project.clientInfo.phone || '-'}</span>
                     </div>
                   </div>
                   
-                  <div className="flex items-center justify-between">
+                  <div className="flex items-center justify-between gap-2">
                     {getStatusBadge(project.status)}
-                    <Badge variant="outline">{getTypeLabel(project.type)}</Badge>
+                    <Badge variant="outline" className="text-xs">{getTypeLabel(project.type)}</Badge>
                   </div>
                   
-                  <div className="grid grid-cols-2 gap-4 text-sm">
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <FileText className="h-4 w-4" />
+                  <div className="grid grid-cols-2 gap-2 text-xs">
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
                       <span>
                         {project.documentsCount} {getText('accountingWorkspace.documentsTab', 'docs')}
                       </span>
                     </div>
-                    <div className="flex items-center gap-2 text-muted-foreground">
-                      <FileText className="h-4 w-4" />
+                    <div className="flex items-center gap-1.5 text-muted-foreground">
+                      <FileText className="h-3.5 w-3.5" />
                       <span>
                         {project.entriesCount} {getText('accountingWorkspace.entriesTab', 'entries')}
                       </span>
                     </div>
                   </div>
                   
-                  <Button className="w-full gap-2" variant="secondary">
-                    <FolderOpen className="h-4 w-4" />
+                  <Button className="w-full gap-2 h-8 text-xs" variant="secondary" size="sm">
+                    <FolderOpen className="h-3.5 w-3.5" />
                     {getText('accountingWorkspace.view', 'Open Project')}
                   </Button>
                 </CardContent>

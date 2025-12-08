@@ -1704,20 +1704,20 @@ ${langInstructions}`;
             ) : (
               <div className="h-full flex flex-col">
                 {/* Welcome Section */}
-                <div className="flex-1 p-6 overflow-y-auto">
+                <div className="flex-1 p-4 overflow-y-auto">
                   <div className="max-w-4xl mx-auto">
                     {/* Hero Card */}
-                    <Card className="mb-6 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 border-none">
-                      <CardContent className="p-8">
-                        <div className="flex items-start gap-6">
-                          <div className="p-4 rounded-2xl bg-gradient-to-br from-purple-500 to-blue-500 shadow-lg">
-                            <Brain className="h-10 w-10 text-white" />
+                    <Card className="mb-4 bg-gradient-to-br from-purple-500/10 via-blue-500/10 to-cyan-500/10 border-none">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-4">
+                          <div className="p-2.5 rounded-xl bg-gradient-to-br from-purple-500 to-blue-500 shadow-md">
+                            <Brain className="h-7 w-7 text-white" />
                           </div>
                           <div className="flex-1">
-                            <h2 className="text-2xl font-bold mb-2">{t('brainstormingAssistant.welcome.title')}</h2>
-                            <p className="text-muted-foreground mb-4">{t('brainstormingAssistant.welcome.description')}</p>
-                            <Button size="lg" onClick={() => setCreateDialogOpen(true)} className="gap-2">
-                              <Sparkles className="h-5 w-5" />
+                            <h2 className="text-lg font-bold mb-1">{t('brainstormingAssistant.welcome.title')}</h2>
+                            <p className="text-sm text-muted-foreground mb-3">{t('brainstormingAssistant.welcome.description')}</p>
+                            <Button size="sm" onClick={() => setCreateDialogOpen(true)} className="gap-2">
+                              <Sparkles className="h-4 w-4" />
                               {t('brainstormingAssistant.newSession')}
                             </Button>
                           </div>
@@ -1726,45 +1726,45 @@ ${langInstructions}`;
                     </Card>
 
                     {/* Stats Cards */}
-                    <div className="grid grid-cols-3 gap-4 mb-6">
+                    <div className="grid grid-cols-3 gap-3 mb-4">
                       <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          <div className="p-3 rounded-lg bg-purple-500/10">
-                            <FolderOpen className="h-6 w-6 text-purple-500" />
+                        <CardContent className="p-3 flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-purple-500/10">
+                            <FolderOpen className="h-5 w-5 text-purple-500" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{stats.totalSessions}</p>
-                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.sessions')}</p>
+                            <p className="text-xl font-bold">{stats.totalSessions}</p>
+                            <p className="text-xs text-muted-foreground">{t('brainstormingAssistant.sessions')}</p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          <div className="p-3 rounded-lg bg-amber-500/10">
-                            <Lightbulb className="h-6 w-6 text-amber-500" />
+                        <CardContent className="p-3 flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-amber-500/10">
+                            <Lightbulb className="h-5 w-5 text-amber-500" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{stats.totalIdeas}</p>
-                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.ideas')}</p>
+                            <p className="text-xl font-bold">{stats.totalIdeas}</p>
+                            <p className="text-xs text-muted-foreground">{t('brainstormingAssistant.ideas')}</p>
                           </div>
                         </CardContent>
                       </Card>
                       <Card>
-                        <CardContent className="p-4 flex items-center gap-4">
-                          <div className="p-3 rounded-lg bg-green-500/10">
-                            <Save className="h-6 w-6 text-green-500" />
+                        <CardContent className="p-3 flex items-center gap-3">
+                          <div className="p-2 rounded-lg bg-green-500/10">
+                            <Save className="h-5 w-5 text-green-500" />
                           </div>
                           <div>
-                            <p className="text-2xl font-bold">{stats.savedIdeas}</p>
-                            <p className="text-sm text-muted-foreground">{t('brainstormingAssistant.saved')}</p>
+                            <p className="text-xl font-bold">{stats.savedIdeas}</p>
+                            <p className="text-xs text-muted-foreground">{t('brainstormingAssistant.saved')}</p>
                           </div>
                         </CardContent>
                       </Card>
                     </div>
 
                     {/* Session Types Grid */}
-                    <h3 className="text-lg font-semibold mb-4">{t('brainstormingAssistant.welcome.sessionTypes')}</h3>
-                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
+                    <h3 className="text-sm font-semibold mb-3">{t('brainstormingAssistant.welcome.sessionTypes')}</h3>
+                    <div className="grid grid-cols-2 lg:grid-cols-4 gap-2 mb-4">
                       {Object.entries(SESSION_TYPES).map(([key, config]) => {
                         const Icon = config.icon;
                         return (
@@ -1773,11 +1773,11 @@ ${langInstructions}`;
                             className="cursor-pointer hover:shadow-md transition-all hover:border-purple-500/50"
                             onClick={() => setCreateDialogOpen(true)}
                           >
-                            <CardContent className="p-4 flex flex-col items-center text-center">
-                              <div className={cn("p-3 rounded-xl mb-3", config.color)}>
-                                <Icon className="h-6 w-6 text-white" />
+                            <CardContent className="p-3 flex flex-col items-center text-center">
+                              <div className={cn("p-2 rounded-lg mb-2", config.color)}>
+                                <Icon className="h-5 w-5 text-white" />
                               </div>
-                              <p className="font-medium text-sm">{t(config.labelKey)}</p>
+                              <p className="font-medium text-xs">{t(config.labelKey)}</p>
                             </CardContent>
                           </Card>
                         );
@@ -1787,8 +1787,8 @@ ${langInstructions}`;
                     {/* Recent Sessions */}
                     {sessions.length > 0 && (
                       <>
-                        <h3 className="text-lg font-semibold mb-4">{t('brainstormingAssistant.welcome.recentSessions')}</h3>
-                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <h3 className="text-sm font-semibold mb-3">{t('brainstormingAssistant.welcome.recentSessions')}</h3>
+                        <div className="grid grid-cols-1 lg:grid-cols-2 gap-2">
                           {sessions.slice(0, 4).map((session) => {
                             const typeConfig = SESSION_TYPES[session.session_type] || SESSION_TYPES.STRATEGY;
                             const Icon = typeConfig.icon;
@@ -1798,21 +1798,21 @@ ${langInstructions}`;
                                 className="cursor-pointer hover:shadow-md transition-all hover:border-purple-500/50"
                                 onClick={() => setSelectedSessionId(session.id)}
                               >
-                                <CardContent className="p-4">
-                                  <div className="flex items-start gap-3">
-                                    <div className={cn("p-2 rounded-lg shrink-0", typeConfig.color)}>
-                                      <Icon className="h-4 w-4 text-white" />
+                                <CardContent className="p-3">
+                                  <div className="flex items-start gap-2">
+                                    <div className={cn("p-1.5 rounded-lg shrink-0", typeConfig.color)}>
+                                      <Icon className="h-3.5 w-3.5 text-white" />
                                     </div>
                                     <div className="flex-1 min-w-0">
-                                      <h4 className="font-medium truncate">{session.title}</h4>
-                                      <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{session.prompt}</p>
-                                      <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                                        <span className="flex items-center gap-1">
-                                          <Lightbulb className="h-3 w-3" />
+                                      <h4 className="font-medium text-sm truncate">{session.title}</h4>
+                                      <p className="text-xs text-muted-foreground line-clamp-1 mt-0.5">{session.prompt}</p>
+                                      <div className="flex items-center gap-2 mt-1.5 text-[10px] text-muted-foreground">
+                                        <span className="flex items-center gap-0.5">
+                                          <Lightbulb className="h-2.5 w-2.5" />
                                           {session.ideas_count} {t('brainstormingAssistant.ideas')}
                                         </span>
-                                        <span className="flex items-center gap-1">
-                                          <Clock className="h-3 w-3" />
+                                        <span className="flex items-center gap-0.5">
+                                          <Clock className="h-2.5 w-2.5" />
                                           {new Date(session.created_at).toLocaleDateString()}
                                         </span>
                                       </div>
@@ -1828,13 +1828,13 @@ ${langInstructions}`;
 
                     {/* Tips Section */}
                     {sessions.length === 0 && (
-                      <Card className="bg-muted/50">
-                        <CardContent className="p-6">
-                          <h3 className="font-semibold mb-3 flex items-center gap-2">
-                            <Zap className="h-5 w-5 text-amber-500" />
+                      <Card className="bg-muted/50 mt-4">
+                        <CardContent className="p-4">
+                          <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                            <Zap className="h-4 w-4 text-amber-500" />
                             {t('brainstormingAssistant.welcome.tips')}
                           </h3>
-                          <ul className="space-y-2 text-sm text-muted-foreground">
+                          <ul className="space-y-1.5 text-xs text-muted-foreground">
                             <li className="flex items-start gap-2">
                               <span className="text-purple-500">•</span>
                               {t('brainstormingAssistant.welcome.tip1')}

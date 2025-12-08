@@ -15,6 +15,7 @@ import {
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import {
   AreaChart,
   Area,
@@ -27,8 +28,8 @@ import {
   Cell,
   Legend
 } from 'recharts';
-import { IconTrendingDown, IconTrendingUp } from '@tabler/icons-react';
-import { useState, useEffect } from 'react';
+import { IconTrendingDown, IconTrendingUp, IconRefresh } from '@tabler/icons-react';
+import { useState, useEffect, useMemo } from 'react';
 import { useTranslation } from '@/lib/i18n/provider';
 import {
   AICashFlowAnalysis,
@@ -37,10 +38,13 @@ import {
   AIComplianceAlerts
 } from '@/components/ai/finance-ai-cards';
 import { AIAssistantCard } from '@/components/ai/ai-assistant-card';
+import { getFinanceAnalytics, type FinanceAnalytics } from '../analytics/services';
+import { toast } from 'sonner';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
-const revenueData = [
+// Demo data for fallback
+const demoRevenueData = [
   { month: 'Jan', Income: 45000, Expenses: 38000 },
   { month: 'Feb', Income: 50000, Expenses: 42000 },
   { month: 'Mar', Income: 52000, Expenses: 46000 },
@@ -49,7 +53,7 @@ const revenueData = [
   { month: 'Jun', Income: 60000, Expenses: 55000 }
 ];
 
-const expenseDistribution = [
+const demoExpenseDistribution = [
   { name: 'Operations', value: 50 },
   { name: 'Marketing', value: 28 },
   { name: 'Payroll', value: 35 },
@@ -62,13 +66,109 @@ const COLORS = ['#22c55e', '#3b82f6', '#eab308', '#06b6d4', '#8b5cf6'];
 export default function FinanceHomePage() {
   const { t } = useTranslation();
   const [isClient, setIsClient] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [apiData, setApiData] = useState<FinanceAnalytics | null>(null);
+  const [isUsingDemo, setIsUsingDemo] = useState(false);
+
+  // Fetch data function
+  const fetchData = async (showRefreshToast = false) => {
+    try {
+      if (showRefreshToast) setIsRefreshing(true);
+      const data = await getFinanceAnalytics();
+      setApiData(data);
+      // Check if it's demo data (getFinanceAnalytics returns demo on error)
+      setIsUsingDemo(data.total_income === 325890); // Known demo value
+      if (showRefreshToast) {
+        toast.success(t('common.refreshed') || 'Data refreshed');
+      }
+    } catch (error) {
+      console.error('Failed to fetch finance data:', error);
+      setIsUsingDemo(true);
+    } finally {
+      setIsLoading(false);
+      setIsRefreshing(false);
+    }
+  };
 
   useEffect(() => {
     setIsClient(true);
+    fetchData();
   }, []);
+
+  // Derived data from API or demo
+  const totalRevenue = apiData?.total_income ?? 325890;
+  const totalExpenses = apiData?.total_expenses ?? 231450;
+  const cashFlow = apiData?.cash_flow ?? 94440;
+  const profitMargin = apiData?.profit_margin ?? 24.5;
+  const accountsReceivable = apiData?.accounts_receivable ?? 78500;
+  const accountsPayable = apiData?.accounts_payable ?? 45200;
+
+  // Transform API data for charts
+  const revenueData = useMemo(() => {
+    if (apiData?.income_by_period && apiData.income_by_period.length > 0) {
+      return apiData.income_by_period.map((item, idx) => ({
+        month: item.period,
+        Income: item.income,
+        Expenses: apiData.expenses_by_category?.[idx]?.amount ?? item.income * 0.75
+      }));
+    }
+    return demoRevenueData;
+  }, [apiData]);
+
+  const expenseDistribution = useMemo(() => {
+    if (apiData?.expenses_by_category && apiData.expenses_by_category.length > 0) {
+      return apiData.expenses_by_category.map(item => ({
+        name: item.category,
+        value: item.amount
+      }));
+    }
+    return demoExpenseDistribution;
+  }, [apiData]);
 
   if (!isClient) {
     return null;
+  }
+
+  if (isLoading) {
+    return (
+      <div className='flex flex-1 flex-col space-y-2'>
+        <div className='flex items-center justify-between'>
+          <Skeleton className='h-8 w-48' />
+        </div>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
+          {[1, 2, 3, 4].map((i) => (
+            <Card key={i}>
+              <CardHeader className='pb-2'>
+                <Skeleton className='h-4 w-24' />
+                <Skeleton className='h-8 w-32' />
+              </CardHeader>
+              <CardFooter>
+                <Skeleton className='h-4 w-full' />
+              </CardFooter>
+            </Card>
+          ))}
+        </div>
+        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
+          <Card className='col-span-4'>
+            <CardHeader>
+              <Skeleton className='h-6 w-48' />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className='h-[250px] w-full' />
+            </CardContent>
+          </Card>
+          <Card className='col-span-3'>
+            <CardHeader>
+              <Skeleton className='h-6 w-48' />
+            </CardHeader>
+            <CardContent>
+              <Skeleton className='h-[250px] w-full' />
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -76,7 +176,21 @@ export default function FinanceHomePage() {
       <div className='flex items-center justify-between space-y-2'>
         <h2 className='text-2xl font-bold tracking-tight'>
           {t('finance.overview')} 💰
+          {isUsingDemo && (
+            <span className='ml-2 text-sm font-normal text-amber-500'>
+              (Demo data)
+            </span>
+          )}
         </h2>
+        <Button
+          variant='outline'
+          size='icon'
+          onClick={() => fetchData(true)}
+          disabled={isRefreshing}
+          title={t('common.refresh') || 'Refresh'}
+        >
+          <IconRefresh className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
+        </Button>
       </div>
 
       {/*<Separator />*/}
@@ -87,7 +201,7 @@ export default function FinanceHomePage() {
           <CardHeader>
             <CardDescription>{t('finance.totalRevenue')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-              $325,890
+              ${totalRevenue.toLocaleString()}
             </CardTitle>
             <CardAction>
               <Badge variant='outline'>
@@ -108,7 +222,7 @@ export default function FinanceHomePage() {
           <CardHeader>
             <CardDescription>{t('finance.totalExpenses')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-              $231,450
+              ${totalExpenses.toLocaleString()}
             </CardTitle>
             <CardAction>
               <Badge variant='outline'>
@@ -152,7 +266,7 @@ export default function FinanceHomePage() {
           <CardHeader>
             <CardDescription>{t('finance.cashFlow')}</CardDescription>
             <CardTitle className='text-2xl font-semibold tabular-nums @[250px]/card:text-3xl'>
-              $94,440
+              ${cashFlow.toLocaleString()}
             </CardTitle>
             <CardAction>
               <Badge variant='outline'>
@@ -378,17 +492,17 @@ export default function FinanceHomePage() {
             {[
               {
                 name: 'Profit Margin',
-                value: '24.5%',
+                value: `${profitMargin.toFixed(1)}%`,
                 trend: 'Up 2.3% from last month'
               },
               {
                 name: 'Operating Expenses',
-                value: '$45,200',
+                value: `$${accountsPayable.toLocaleString()}`,
                 trend: 'Down 5% from last month'
               },
               {
                 name: 'Accounts Receivable',
-                value: '$78,500',
+                value: `$${accountsReceivable.toLocaleString()}`,
                 trend: 'Up 12% from last month'
               }
             ].map((insight, idx) => (
@@ -420,10 +534,10 @@ export default function FinanceHomePage() {
             title="Finance AI Assistant"
             description="Summarize, analyze, and classify your financial data"
             contextData={{
-              revenue: 325890,
-              expenses: 231450,
+              revenue: totalRevenue,
+              expenses: totalExpenses,
               pendingInvoices: 24,
-              cashFlow: 94440,
+              cashFlow: cashFlow,
               recentTransactions: revenueData,
               expenseBreakdown: expenseDistribution,
             }}
