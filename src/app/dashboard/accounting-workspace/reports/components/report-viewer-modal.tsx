@@ -24,7 +24,7 @@ import { Download, RefreshCw, Loader2, Calendar, FileText } from 'lucide-react';
 import { format } from 'date-fns';
 import { financialReportApi } from '@/features/accounting-workspace/services';
 import type {
-  Report,
+  FinancialReport,
   IncomeStatementData,
   BalanceSheetData,
   GeneralLedgerData,
@@ -41,7 +41,7 @@ export function ReportViewerModal({
   onClose,
   reportId,
 }: ReportViewerModalProps) {
-  const [report, setReport] = useState<Report | null>(null);
+  const [report, setReport] = useState<FinancialReport | null>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -51,7 +51,7 @@ export function ReportViewerModal({
       setLoading(true);
       setError(null);
       const response = await financialReportApi.getReport(reportId);
-      setReport(response.data);
+      setReport(response);
     } catch (err) {
       console.error('Error fetching report:', err);
       setError('Failed to load report');

@@ -94,7 +94,7 @@ export function GenerateReportModal({
       setIsSubmitting(true);
       setError(null);
 
-      const reportData: GenerateReportInput = {
+      const reportData: GenerateFinancialReportInput = {
         name: values.name,
         report_type: values.report_type as any,
         period_start: values.period_start,

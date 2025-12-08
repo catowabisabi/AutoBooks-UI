@@ -53,9 +53,7 @@ import type {
   FinancialReportStatus,
   FinancialReportTypeInfo,
 } from '@/features/accounting-workspace/types';
-import { GenerateReportModal } from './components/generate-report-modal';
-import { ReportViewerModal } from './components/report-viewer-modal';
-import { ExportReportModal } from './components/export-report-modal';
+import { GenerateReportModal, ReportViewerModal, ExportReportModal } from './components';
 
 // Status badge colors
 const statusColors: Record<FinancialReportStatus, string> = {

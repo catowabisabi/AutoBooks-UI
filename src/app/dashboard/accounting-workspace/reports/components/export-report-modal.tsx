@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { financialReportApi } from '@/features/accounting-workspace/services';
-import type { ExportFormat, ReportExport, ExportReportInput } from '@/features/accounting-workspace/types';
+import type { FinancialExportFormat, FinancialReportExport, ExportFinancialReportInput } from '@/features/accounting-workspace/types';
 
 interface ExportReportModalProps {
   open: boolean;
@@ -35,14 +35,14 @@ interface ExportReportModalProps {
   reportId: string;
 }
 
-const formatIcons: Record<ExportFormat, typeof FileText> = {
+const formatIcons: Record<FinancialExportFormat, typeof FileText> = {
   EXCEL: FileSpreadsheet,
   WORD: FileText,
   PDF: FileType,
   CSV: FileType,
 };
 
-const formatLabels: Record<ExportFormat, string> = {
+const formatLabels: Record<FinancialExportFormat, string> = {
   EXCEL: 'Excel Spreadsheet (.xlsx)',
   WORD: 'Word Document (.docx)',
   PDF: 'PDF Document (.pdf)',
@@ -54,11 +54,11 @@ export function ExportReportModal({
   onClose,
   reportId,
 }: ExportReportModalProps) {
-  const [exports, setExports] = useState<ReportExport[]>([]);
+  const [exports, setExports] = useState<FinancialReportExport[]>([]);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [downloading, setDownloading] = useState<string | null>(null);
-  const [selectedFormat, setSelectedFormat] = useState<ExportFormat>('EXCEL');
+  const [selectedFormat, setSelectedFormat] = useState<FinancialExportFormat>('EXCEL');
   const [includeCharts, setIncludeCharts] = useState(true);
   const [landscape, setLandscape] = useState(false);
 
@@ -66,7 +66,7 @@ export function ExportReportModal({
     try {
       setLoading(true);
       const response = await financialReportApi.getExports(reportId);
-      setExports(response.data.results || []);
+      setExports(response.results || []);
     } catch (error) {
       console.error('Error fetching exports:', error);
     } finally {
@@ -83,7 +83,7 @@ export function ExportReportModal({
   const handleExport = async () => {
     try {
       setExporting(true);
-      const exportData: ExportReportInput = {
+      const exportData: ExportFinancialReportInput = {
         export_format: selectedFormat,
         export_config: {
           include_charts: includeCharts,
@@ -100,7 +100,7 @@ export function ExportReportModal({
     }
   };
 
-  const handleDownload = async (exportRecord: ReportExport) => {
+  const handleDownload = async (exportRecord: FinancialReportExport) => {
     try {
       setDownloading(exportRecord.id);
       const blob = await financialReportApi.downloadExport(reportId, exportRecord.id);
@@ -146,10 +146,10 @@ export function ExportReportModal({
             <Label>Export Format</Label>
             <RadioGroup
               value={selectedFormat}
-              onValueChange={(value) => setSelectedFormat(value as ExportFormat)}
+              onValueChange={(value) => setSelectedFormat(value as FinancialExportFormat)}
               className="grid grid-cols-2 gap-3"
             >
-              {(['EXCEL', 'WORD', 'CSV'] as ExportFormat[]).map((format) => {
+              {(['EXCEL', 'WORD', 'CSV'] as FinancialExportFormat[]).map((format) => {
                 const Icon = formatIcons[format];
                 return (
                   <div key={format}>
