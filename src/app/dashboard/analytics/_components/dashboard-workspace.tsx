@@ -380,7 +380,8 @@ import { useState, useRef, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
-import { IconShare, IconSend } from '@tabler/icons-react';
+import { IconShare, IconSend, IconCopy, IconDownload, IconClock } from '@tabler/icons-react';
+import { toast } from 'sonner';
 import {
   Sheet,
   SheetContent,
@@ -498,9 +499,20 @@ export default function DashboardWorkspace({
   useEffect(() => {
     const handleAddToDashboard = (event: CustomEvent) => {
       const { chart } = event.detail;
-      if (chart) {
-        addChartToDashboard(chart);
+      if (!chart) {
+        toast.error('No chart data provided');
+        return;
       }
+      
+      // Validate that chart has data for data-driven chart types
+      const requiresData = ['bar', 'area', 'line', 'pie', 'scatter', 'table'];
+      if (requiresData.includes(chart.type) && (!chart.data || chart.data.length === 0)) {
+        toast.error('Cannot add chart: No data available. Try a different query.');
+        return;
+      }
+      
+      addChartToDashboard(chart);
+      toast.success(`"${chart.title}" added to dashboard`);
     };
 
     window.addEventListener(
@@ -625,7 +637,7 @@ export default function DashboardWorkspace({
   };
 
   // Handle adding a chart to the dashboard from chat
-  const handleAddToDashboard = (
+  const handleAddToDashboardFromChat = (
     chart:
       | {
           type: ChartType;
@@ -640,11 +652,19 @@ export default function DashboardWorkspace({
       | undefined
   ) => {
     if (!chart) {
-      console.error('No chart data provided');
+      toast.error('No chart data provided');
+      return;
+    }
+
+    // Validate that chart has data for data-driven chart types
+    const requiresData = ['bar', 'area', 'line', 'pie', 'scatter', 'table'];
+    if (requiresData.includes(chart.type) && (!chart.data || chart.data.length === 0)) {
+      toast.error('Cannot add chart: No data available. Try a different query.');
       return;
     }
 
     addChartToDashboard(chart);
+    toast.success(`"${chart.title}" added to dashboard`);
   };
 
   // Handle deleting a widget
@@ -767,7 +787,7 @@ export default function DashboardWorkspace({
                 <ChatMessage
                   key={message.id}
                   message={message}
-                  onAddToDashboard={handleAddToDashboard}
+                  onAddToDashboard={handleAddToDashboardFromChat}
                 />
               ))}
               {isLoading && (

@@ -534,7 +534,7 @@
 // _components/widget.tsx
 'use client';
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useSortable } from '@dnd-kit/sortable';
 import { CSS } from '@dnd-kit/utilities';
 import { cn } from '@/lib/utils';
@@ -546,9 +546,29 @@ import {
   CardHeader,
   CardTitle
 } from '@/components/ui/card';
-import { IconEdit, IconResize, IconTrash } from '@tabler/icons-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from '@/components/ui/tooltip';
+import { IconEdit, IconResize, IconTrash, IconDotsVertical, IconDownload, IconCopy, IconPhoto, IconFileTypeSvg, IconClock } from '@tabler/icons-react';
 import { ChartRenderer } from './chart-renderer';
 import { MarkdownDisplay } from '@/components/ui/markdown-display';
+import { toast } from 'sonner';
+import {
+  exportChartToPng,
+  exportChartToSvg,
+  copyChartData,
+  copyChartDataAsCsv,
+  formatLastSyncTime,
+} from '@/lib/chart-utils';
 
 // Import shared types
 import type { WidgetData } from '@/types/dashboard';
@@ -557,15 +577,18 @@ interface WidgetProps {
   widget: WidgetData;
   isOverlay?: boolean;
   onDelete?: (id: string) => void;
+  lastSync?: Date | string | null;
 }
 
 export default function Widget({
   widget,
   isOverlay = false,
-  onDelete
+  onDelete,
+  lastSync = new Date()
 }: WidgetProps) {
   const [isEditing, setIsEditing] = useState(false);
   const [textContent, setTextContent] = useState(widget.content || '');
+  const chartRef = useRef<HTMLDivElement>(null);
 
   const { attributes, listeners, setNodeRef, transform, transition } =
     useSortable({
@@ -585,6 +608,52 @@ export default function Widget({
     setIsEditing(false);
   };
 
+  const handleExportPng = async () => {
+    if (!chartRef.current) return;
+    try {
+      await exportChartToPng(chartRef.current, widget.title.replace(/\s+/g, '_'));
+      toast.success('Chart exported as PNG');
+    } catch {
+      toast.error('Failed to export chart');
+    }
+  };
+
+  const handleExportSvg = () => {
+    if (!chartRef.current) return;
+    try {
+      exportChartToSvg(chartRef.current, widget.title.replace(/\s+/g, '_'));
+      toast.success('Chart exported as SVG');
+    } catch {
+      toast.error('Failed to export chart');
+    }
+  };
+
+  const handleCopyData = async () => {
+    if (!widget.data) {
+      toast.error('No data to copy');
+      return;
+    }
+    try {
+      await copyChartData(widget.data);
+      toast.success('Data copied as JSON');
+    } catch {
+      toast.error('Failed to copy data');
+    }
+  };
+
+  const handleCopyDataCsv = async () => {
+    if (!widget.data) {
+      toast.error('No data to copy');
+      return;
+    }
+    try {
+      await copyChartDataAsCsv(widget.data);
+      toast.success('Data copied as CSV');
+    } catch {
+      toast.error('Failed to copy data');
+    }
+  };
+
   return (
     <div
       ref={setNodeRef}
@@ -599,7 +668,22 @@ export default function Widget({
             <CardTitle className='text-base font-semibold'>
               {widget.title}
             </CardTitle>
-            <div className='flex gap-1'>
+            <div className='flex items-center gap-1'>
+              {/* Last Sync Timestamp */}
+              {lastSync && widget.type !== 'text' && (
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className='text-muted-foreground flex items-center gap-1 text-xs'>
+                      <IconClock className='h-3 w-3' />
+                      <span className='hidden sm:inline'>{formatLastSyncTime(lastSync)}</span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>
+                    Last synced: {formatLastSyncTime(lastSync)}
+                  </TooltipContent>
+                </Tooltip>
+              )}
+              
               {widget.type === 'text' && (
                 <Button
                   variant='ghost'
@@ -613,6 +697,42 @@ export default function Widget({
                   <IconEdit className='h-3 w-3' />
                 </Button>
               )}
+              
+              {/* Chart Actions Dropdown */}
+              {widget.type !== 'text' && widget.data && widget.data.length > 0 && (
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      variant='ghost'
+                      size='icon'
+                      className='h-6 w-6'
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <IconDotsVertical className='h-3 w-3' />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align='end' onClick={(e) => e.stopPropagation()}>
+                    <DropdownMenuItem onClick={handleExportPng}>
+                      <IconPhoto className='mr-2 h-4 w-4' />
+                      Export as PNG
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleExportSvg}>
+                      <IconFileTypeSvg className='mr-2 h-4 w-4' />
+                      Export as SVG
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem onClick={handleCopyData}>
+                      <IconCopy className='mr-2 h-4 w-4' />
+                      Copy Data (JSON)
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleCopyDataCsv}>
+                      <IconCopy className='mr-2 h-4 w-4' />
+                      Copy Data (CSV)
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              )}
+              
               <Button
                 variant='ghost'
                 size='icon'
@@ -674,6 +794,7 @@ export default function Widget({
 
           {widget.data && widget.data.length > 0 && widget.type !== 'text' ? (
             <div
+              ref={chartRef}
               className={cn(
                 'w-full',
                 widget.type === 'table' ? 'h-full' : 'h-full'
