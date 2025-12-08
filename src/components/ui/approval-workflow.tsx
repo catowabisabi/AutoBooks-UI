@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -87,9 +87,21 @@ const actionIcons: Record<ApprovalHistoryItem['action'], React.ReactNode> = {
   cancelled: <IconX className="h-4 w-4 text-gray-500" />,
 };
 
-// Format timestamp
-function formatTimestamp(timestamp: string): string {
+// Format timestamp - returns static format for SSR, relative time on client
+function formatTimestamp(timestamp: string, isClient: boolean): string {
   const date = new Date(timestamp);
+  
+  // On server, return static ISO format to avoid hydration mismatch
+  if (!isClient) {
+    return date.toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+  
   const now = new Date();
   const diffMs = now.getTime() - date.getTime();
   const diffMins = Math.floor(diffMs / 60000);
