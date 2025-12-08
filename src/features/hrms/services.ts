@@ -471,3 +471,26 @@ export const hrmsDashboardApi = {
   overview: () => 
     api.get<HRMSDashboard>(`${BASE_URL}/dashboard/`),
 };
+
+// Aliases for component compatibility
+export const leavesApi = leaveApplicationsApi;
+
+// Users API (simplified - typically from auth module)
+export interface User {
+  id: string;
+  email: string;
+  full_name?: string;
+  first_name?: string;
+  last_name?: string;
+  is_active: boolean;
+}
+
+export const usersApi = {
+  list: async (params?: Record<string, any>) => {
+    const data = await api.get<User[] | PaginatedResponse<User>>('/api/v1/users/', { params });
+    return normalizeResponse(data);
+  },
+  
+  get: (id: string) => 
+    api.get<User>(`/api/v1/users/${id}/`),
+};
