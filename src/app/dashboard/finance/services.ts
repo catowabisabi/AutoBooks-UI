@@ -2350,3 +2350,357 @@ const DEMO_PROJECTS: Project[] = [
     created_at: '2024-01-01',
   },
 ];
+
+
+// =============================================
+// Receipt Types & API / 收據類型與 API
+// =============================================
+
+export type RecognitionStatus = 'PENDING' | 'RECOGNIZED' | 'UNRECOGNIZED' | 'MANUALLY_CLASSIFIED';
+
+export interface Receipt {
+  id: string;
+  file: string;
+  file_url: string;
+  original_filename: string;
+  file_size: number;
+  mime_type: string;
+  recognition_status: RecognitionStatus;
+  confidence_score: number | null;
+  confidence_threshold: number;
+  extracted_data: Record<string, unknown> | null;
+  vendor_name: string;
+  receipt_date: string | null;
+  total_amount: number | null;
+  currency_code: string;
+  tax_amount: number | null;
+  description: string;
+  manual_category: string | null;
+  category_name: string | null;
+  category_code: string | null;
+  manual_vendor: string;
+  manual_amount: number | null;
+  manual_date: string | null;
+  classification_notes: string;
+  classified_by: string | null;
+  classified_by_name: string | null;
+  classified_at: string | null;
+  project: string | null;
+  project_name: string | null;
+  project_code: string | null;
+  expense: string | null;
+  expense_number: string | null;
+  processing_started_at: string | null;
+  processing_completed_at: string | null;
+  processing_error: string;
+  retry_count: number;
+  uploaded_by: string;
+  uploaded_by_name: string;
+  batch_id: string | null;
+  tags: string[];
+  final_amount: number | null;
+  final_vendor: string;
+  final_date: string | null;
+  is_recognized: boolean;
+  needs_manual_review: boolean;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface ReceiptListItem {
+  id: string;
+  file_url: string;
+  original_filename: string;
+  file_size: number;
+  recognition_status: RecognitionStatus;
+  confidence_score: number | null;
+  final_amount: number | null;
+  final_vendor: string;
+  final_date: string | null;
+  project: string | null;
+  project_name: string | null;
+  category_name: string | null;
+  uploaded_by_name: string;
+  batch_id: string | null;
+  needs_manual_review: boolean;
+  created_at: string;
+}
+
+export interface BulkUploadResult {
+  id: string | null;
+  original_filename: string;
+  recognition_status: string;
+  confidence_score: number | null;
+  vendor_name: string;
+  total_amount: number | null;
+  receipt_date: string | null;
+  error: string;
+}
+
+export interface BulkUploadResponse {
+  batch_id: string;
+  total_files: number;
+  processed: number;
+  recognized: number;
+  unrecognized: number;
+  failed: number;
+  results: BulkUploadResult[];
+}
+
+export interface ReceiptStatistics {
+  total_receipts: number;
+  by_status: Record<RecognitionStatus, number>;
+  total_recognized_amount: number;
+  needs_review: number;
+  recent_batches: {
+    batch_id: string;
+    count: number;
+    recognized: number;
+    unrecognized: number;
+  }[];
+}
+
+export interface ReceiptBatch {
+  batch_id: string;
+  total: number;
+  recognized: number;
+  unrecognized: number;
+  manually_classified: number;
+  first_upload: string;
+}
+
+// Get all receipts with optional filters
+export async function getReceipts(params?: {
+  status?: RecognitionStatus;
+  project?: string;
+  batch?: string;
+  date_from?: string;
+  date_to?: string;
+  unclassified?: boolean;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<PaginatedResponse<ReceiptListItem>> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  const url = `${API_BASE_URL}/accounting/receipts/?${searchParams.toString()}`;
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipts');
+  }
+  return response.json();
+}
+
+// Get single receipt by ID
+export async function getReceipt(id: string): Promise<Receipt> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/${id}/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Receipt not found');
+  }
+  return response.json();
+}
+
+// Upload single receipt
+export async function uploadReceipt(data: FormData): Promise<Receipt> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+    body: data,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to upload receipt');
+  }
+  return response.json();
+}
+
+// Bulk upload receipts
+export async function bulkUploadReceipts(data: FormData): Promise<BulkUploadResponse> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/bulk_upload/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+    body: data,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to upload receipts');
+  }
+  return response.json();
+}
+
+// Get unrecognized receipts
+export async function getUnrecognizedReceipts(params?: {
+  page?: number;
+  page_size?: number;
+}): Promise<PaginatedResponse<ReceiptListItem>> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  const url = `${API_BASE_URL}/accounting/receipts/unrecognized/?${searchParams.toString()}`;
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch unrecognized receipts');
+  }
+  return response.json();
+}
+
+// Classify single receipt
+export async function classifyReceipt(
+  id: string,
+  data: {
+    category_id?: string;
+    vendor?: string;
+    amount?: number;
+    date?: string;
+    notes?: string;
+    tags?: string[];
+  }
+): Promise<{ message: string; receipt: Receipt }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/${id}/classify/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to classify receipt');
+  }
+  return response.json();
+}
+
+// Bulk classify receipts
+export async function bulkClassifyReceipts(data: {
+  receipt_ids: string[];
+  category_id?: string;
+  project_id?: string;
+  tags?: string[];
+  notes?: string;
+}): Promise<{ message: string; updated_count: number }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/bulk_classify/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to classify receipts');
+  }
+  return response.json();
+}
+
+// Bulk status update
+export async function bulkUpdateReceiptStatus(data: {
+  receipt_ids: string[];
+  status: RecognitionStatus;
+  notes?: string;
+}): Promise<{ message: string; updated_count: number }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/bulk_status_update/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update receipts');
+  }
+  return response.json();
+}
+
+// Get receipt statistics
+export async function getReceiptStatistics(): Promise<ReceiptStatistics> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/statistics/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipt statistics');
+  }
+  return response.json();
+}
+
+// Get receipt batches
+export async function getReceiptBatches(params?: {
+  page?: number;
+  page_size?: number;
+}): Promise<{ count: number; results: ReceiptBatch[] }> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  const url = `${API_BASE_URL}/accounting/receipts/batches/?${searchParams.toString()}`;
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to fetch receipt batches');
+  }
+  return response.json();
+}
+
+// Reprocess receipt
+export async function reprocessReceipt(id: string): Promise<{ message: string; receipt: Receipt }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/${id}/reprocess/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to reprocess receipt');
+  }
+  return response.json();
+}
+
+// Delete receipt
+export async function deleteReceipt(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/accounting/receipts/${id}/`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete receipt');
+  }
+}
