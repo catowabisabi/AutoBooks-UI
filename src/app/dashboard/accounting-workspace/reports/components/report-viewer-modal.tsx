@@ -30,6 +30,60 @@ import type {
   GeneralLedgerData,
 } from '@/features/accounting-workspace/types';
 
+// Trial Balance types
+interface TrialBalanceLine {
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  account_type: string;
+  debit: number;
+  credit: number;
+}
+
+interface TrialBalanceData {
+  lines: TrialBalanceLine[];
+  total_debits: number;
+  total_credits: number;
+  is_balanced: boolean;
+  difference: number;
+}
+
+// Sub-Ledger types
+interface SubLedgerEntry {
+  date: string;
+  entry_number: string;
+  description: string;
+  reference?: string;
+  account_code: string;
+  account_name: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+interface SubLedgerContact {
+  contact_id: string;
+  contact_name: string;
+  contact_type: string;
+  linked_account_code?: string;
+  linked_account_name?: string;
+  opening_balance: number;
+  entries: SubLedgerEntry[];
+  total_debits: number;
+  total_credits: number;
+  closing_balance: number;
+  entry_count: number;
+}
+
+interface SubLedgerData {
+  ledger_type: string;
+  contacts: SubLedgerContact[];
+  total_debits: number;
+  total_credits: number;
+  entry_count: number;
+  contact_count: number;
+}
+
 interface ReportViewerModalProps {
   open: boolean;
   onClose: () => void;
@@ -348,6 +402,188 @@ export function ReportViewerModal({
     </div>
   );
 
+  // Render Trial Balance
+  const renderTrialBalance = (data: TrialBalanceData) => (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid gap-4 sm:grid-cols-4 mb-6">
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Total Debits</p>
+          <p className="text-lg font-semibold text-blue-600">{formatCurrency(data.total_debits)}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Total Credits</p>
+          <p className="text-lg font-semibold text-green-600">{formatCurrency(data.total_credits)}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Difference</p>
+          <p className={`text-lg font-semibold ${data.difference === 0 ? 'text-green-600' : 'text-red-600'}`}>
+            {formatCurrency(Math.abs(data.difference))}
+          </p>
+        </div>
+        <div className={`rounded-lg border p-4 ${data.is_balanced ? 'bg-green-50 border-green-200' : 'bg-red-50 border-red-200'}`}>
+          <p className="text-sm text-muted-foreground">Status</p>
+          <p className={`text-lg font-semibold ${data.is_balanced ? 'text-green-600' : 'text-red-600'}`}>
+            {data.is_balanced ? '✓ Balanced' : '✗ Unbalanced'}
+          </p>
+        </div>
+      </div>
+
+      {/* Trial Balance Table */}
+      <Table>
+        <TableHeader>
+          <TableRow>
+            <TableHead>Account Code</TableHead>
+            <TableHead>Account Name</TableHead>
+            <TableHead>Type</TableHead>
+            <TableHead className="text-right">Debit</TableHead>
+            <TableHead className="text-right">Credit</TableHead>
+          </TableRow>
+        </TableHeader>
+        <TableBody>
+          {data.lines?.map((line) => (
+            <TableRow key={line.account_id}>
+              <TableCell className="font-mono text-sm">{line.account_code}</TableCell>
+              <TableCell>{line.account_name}</TableCell>
+              <TableCell>
+                <Badge variant="outline" className="text-xs">
+                  {line.account_type}
+                </Badge>
+              </TableCell>
+              <TableCell className="text-right">
+                {line.debit > 0 ? formatCurrency(line.debit) : '-'}
+              </TableCell>
+              <TableCell className="text-right">
+                {line.credit > 0 ? formatCurrency(line.credit) : '-'}
+              </TableCell>
+            </TableRow>
+          ))}
+          {/* Totals Row */}
+          <TableRow className="font-bold bg-muted/50">
+            <TableCell colSpan={3} className="text-right">TOTALS</TableCell>
+            <TableCell className="text-right text-blue-600">
+              {formatCurrency(data.total_debits)}
+            </TableCell>
+            <TableCell className="text-right text-green-600">
+              {formatCurrency(data.total_credits)}
+            </TableCell>
+          </TableRow>
+        </TableBody>
+      </Table>
+
+      {/* Balance Check Footer */}
+      {!data.is_balanced && (
+        <div className="rounded-lg border border-red-200 bg-red-50 p-4">
+          <p className="text-sm text-red-700">
+            ⚠️ The trial balance is not balanced. The difference of {formatCurrency(Math.abs(data.difference))} 
+            suggests there may be unposted entries or errors in the journal entries.
+          </p>
+        </div>
+      )}
+    </div>
+  );
+
+  // Render Sub-Ledger (by Contact/Vendor/Customer)
+  const renderSubLedger = (data: SubLedgerData) => (
+    <div className="space-y-6">
+      {/* Summary Cards */}
+      <div className="grid gap-4 sm:grid-cols-4 mb-6">
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Ledger Type</p>
+          <p className="text-lg font-semibold capitalize">{data.ledger_type}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Contacts</p>
+          <p className="text-lg font-semibold">{data.contact_count}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Total Debits</p>
+          <p className="text-lg font-semibold text-blue-600">{formatCurrency(data.total_debits)}</p>
+        </div>
+        <div className="rounded-lg border p-4">
+          <p className="text-sm text-muted-foreground">Total Credits</p>
+          <p className="text-lg font-semibold text-green-600">{formatCurrency(data.total_credits)}</p>
+        </div>
+      </div>
+
+      {/* Contact Ledgers */}
+      {data.contacts?.map((contact) => (
+        <div key={contact.contact_id} className="border rounded-lg overflow-hidden">
+          <div className="bg-muted px-4 py-3 flex items-center justify-between">
+            <div>
+              <span className="font-semibold">{contact.contact_name}</span>
+              <Badge variant="outline" className="ml-2">
+                {contact.contact_type}
+              </Badge>
+              {contact.linked_account_code && (
+                <span className="ml-2 text-sm text-muted-foreground">
+                  ({contact.linked_account_code} - {contact.linked_account_name})
+                </span>
+              )}
+            </div>
+            <div className="text-sm">
+              Opening: {formatCurrency(contact.opening_balance)}
+            </div>
+          </div>
+          
+          {contact.entries.length > 0 ? (
+            <>
+              <Table>
+                <TableHeader>
+                  <TableRow>
+                    <TableHead>Date</TableHead>
+                    <TableHead>Entry #</TableHead>
+                    <TableHead>Description</TableHead>
+                    <TableHead>Reference</TableHead>
+                    <TableHead className="text-right">Debit</TableHead>
+                    <TableHead className="text-right">Credit</TableHead>
+                    <TableHead className="text-right">Balance</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {contact.entries.slice(0, 10).map((entry, idx) => (
+                    <TableRow key={idx}>
+                      <TableCell>{format(new Date(entry.date), 'MMM d, yyyy')}</TableCell>
+                      <TableCell>{entry.entry_number}</TableCell>
+                      <TableCell className="max-w-xs truncate">{entry.description}</TableCell>
+                      <TableCell className="text-xs text-muted-foreground">{entry.reference}</TableCell>
+                      <TableCell className="text-right">{entry.debit ? formatCurrency(entry.debit) : '-'}</TableCell>
+                      <TableCell className="text-right">{entry.credit ? formatCurrency(entry.credit) : '-'}</TableCell>
+                      <TableCell className="text-right font-medium">{formatCurrency(entry.balance)}</TableCell>
+                    </TableRow>
+                  ))}
+                  {contact.entries.length > 10 && (
+                    <TableRow>
+                      <TableCell colSpan={7} className="text-center text-muted-foreground">
+                        ... and {contact.entries.length - 10} more entries
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+              <div className="bg-muted px-4 py-2 flex justify-between text-sm">
+                <span>Closing Balance:</span>
+                <span className={`font-semibold ${contact.closing_balance >= 0 ? 'text-green-600' : 'text-red-600'}`}>
+                  {formatCurrency(contact.closing_balance)}
+                </span>
+              </div>
+            </>
+          ) : (
+            <div className="px-4 py-3 text-sm text-muted-foreground">
+              No transactions in this period
+            </div>
+          )}
+        </div>
+      ))}
+
+      {data.contacts?.length === 0 && (
+        <div className="text-center py-8 text-muted-foreground">
+          No contacts with transactions found for this period.
+        </div>
+      )}
+    </div>
+  );
+
   // Render report data based on type
   const renderReportData = () => {
     if (!report?.cached_data) {
@@ -374,8 +610,11 @@ export function ReportViewerModal({
       case 'BALANCE_SHEET':
         return renderBalanceSheet(data);
       case 'GENERAL_LEDGER':
-      case 'SUB_LEDGER':
         return renderGeneralLedger(data);
+      case 'SUB_LEDGER':
+        return renderSubLedger(data);
+      case 'TRIAL_BALANCE':
+        return renderTrialBalance(data);
       default:
         return (
           <pre className="text-sm overflow-auto bg-muted p-4 rounded-lg">
