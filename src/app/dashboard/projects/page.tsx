@@ -33,6 +33,7 @@ import {
   AIBottleneckDetection,
   AITaskPrioritization
 } from '@/components/ai/dashboard-ai-cards';
+import { AIAssistantCard } from '@/components/ai/ai-assistant-card';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -406,6 +407,25 @@ export default function ProjectsHomePage() {
       {/* AI-Powered Project Insights */}
       <div className='mt-6'>
         <h3 className='text-lg font-semibold mb-4'>🤖 AI-Powered Project Insights</h3>
+        
+        {/* Universal AI Assistant Card */}
+        <div className='mb-4'>
+          <AIAssistantCard
+            module="projects"
+            title="Projects AI Assistant"
+            description="Analyze project status, detect bottlenecks, and prioritize tasks"
+            contextData={{
+              activeProjects: 24,
+              completedTasks: 156,
+              pendingTasks: 48,
+              atRiskProjects: 4,
+              projectPerformance: projectPerformance,
+              projectDistribution: projectDistribution,
+            }}
+            className="w-full"
+          />
+        </div>
+        
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <AIBottleneckDetection
             project={{

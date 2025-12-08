@@ -33,6 +33,7 @@ import {
   AIAttritionRisk,
   AIBottleneckDetection
 } from '@/components/ai/dashboard-ai-cards';
+import { AIAssistantCard } from '@/components/ai/ai-assistant-card';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -393,6 +394,25 @@ export default function HRMSHomePage() {
       {/* AI-Powered HR Insights */}
       <div className='mt-6'>
         <h3 className='text-lg font-semibold mb-4'>🤖 AI-Powered HR Insights</h3>
+        
+        {/* Universal AI Assistant Card */}
+        <div className='mb-4'>
+          <AIAssistantCard
+            module="hrms"
+            title="HRMS AI Assistant"
+            description="Analyze workforce data, predict attrition, and get HR insights"
+            contextData={{
+              totalPresent: 99,
+              totalAbsent: 15,
+              onLeave: 6,
+              totalEmployees: 120,
+              teamPerformance: teamPerformance,
+              employeeDistribution: employeeDistribution,
+            }}
+            className="w-full"
+          />
+        </div>
+        
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2'>
           <AIAttritionRisk
             employees={[

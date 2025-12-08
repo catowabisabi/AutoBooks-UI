@@ -36,6 +36,7 @@ import {
   AIPaymentPrediction,
   AIComplianceAlerts
 } from '@/components/ai/finance-ai-cards';
+import { AIAssistantCard } from '@/components/ai/ai-assistant-card';
 
 // Metadata needs to be in a separate layout file when using 'use client'
 
@@ -411,6 +412,25 @@ export default function FinanceHomePage() {
       {/* AI-Powered Insights Section */}
       <div className='mt-6'>
         <h3 className='text-lg font-semibold mb-4'>🤖 {t('finance.aiInsights') || 'AI-Powered Insights'}</h3>
+        
+        {/* Universal AI Assistant Card */}
+        <div className='mb-4'>
+          <AIAssistantCard
+            module="finance"
+            title="Finance AI Assistant"
+            description="Summarize, analyze, and classify your financial data"
+            contextData={{
+              revenue: 325890,
+              expenses: 231450,
+              pendingInvoices: 24,
+              cashFlow: 94440,
+              recentTransactions: revenueData,
+              expenseBreakdown: expenseDistribution,
+            }}
+            className="w-full"
+          />
+        </div>
+        
         <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-3'>
           <AICashFlowAnalysis
             transactions={[

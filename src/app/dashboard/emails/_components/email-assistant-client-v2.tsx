@@ -82,6 +82,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { aiApi } from '@/lib/api';
+import { AIAssistantCard } from '@/components/ai/ai-assistant-card';
 
 // Email Category Configuration with Icons
 const EMAIL_CATEGORIES = {
@@ -970,6 +971,32 @@ export default function EmailAssistantClientV2() {
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] w-full overflow-hidden">
+      {/* Universal AI Assistant Card - Top Section */}
+      <div className="px-4 py-2 border-b bg-muted/30">
+        <AIAssistantCard
+          module="email"
+          title="Email AI Assistant"
+          description="Summarize inbox, classify emails, and extract action items"
+          contextData={{
+            totalEmails: emails.length,
+            unreadCount: unreadCount,
+            selectedEmail: selectedEmail ? {
+              subject: selectedEmail.subject,
+              from: selectedEmail.from_name || selectedEmail.from_address,
+              category: selectedEmail.category,
+              priority: selectedEmail.priority,
+            } : null,
+            folderStats: {
+              inbox: emails.filter((e: EmailListItem) => e.status === 'RECEIVED').length,
+              sent: emails.filter((e: EmailListItem) => e.status === 'SENT').length,
+              starred: emails.filter((e: EmailListItem) => e.is_starred).length,
+            },
+          }}
+          defaultCollapsed={true}
+          className="w-full"
+        />
+      </div>
+
       {/* AI Assistant Panel - Top Section */}
       <AIChatPanel
         email={selectedEmail}
