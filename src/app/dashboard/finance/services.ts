@@ -1833,3 +1833,520 @@ export async function getFinanceSummary(): Promise<FinanceSummary> {
   }
   return response.json();
 }
+
+
+// =============================================
+// Projects / 專案管理
+// =============================================
+
+export type ProjectStatus = 'ACTIVE' | 'COMPLETED' | 'ON_HOLD' | 'CANCELLED' | 'ARCHIVED';
+
+export interface Project {
+  id: string;
+  code: string;
+  name: string;
+  description?: string;
+  status: ProjectStatus;
+  start_date?: string;
+  end_date?: string;
+  budget_amount: number;
+  currency?: string;
+  currency_code?: string;
+  client?: string;
+  client_name?: string;
+  category?: string;
+  tags?: string[];
+  created_by?: string;
+  created_by_name?: string;
+  manager?: string;
+  manager_name?: string;
+  notes?: string;
+  settings?: Record<string, unknown>;
+  total_expenses?: number;
+  total_invoiced?: number;
+  budget_remaining?: number;
+  budget_utilization_percent?: number;
+  expense_count?: number;
+  invoice_count?: number;
+  journal_entry_count?: number;
+  document_count?: number;
+  is_active: boolean;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ProjectDocument {
+  id: string;
+  project: string;
+  document_type: string;
+  title: string;
+  description?: string;
+  file?: string;
+  file_url?: string;
+  file_name?: string;
+  file_size: number;
+  file_size_display?: string;
+  mime_type?: string;
+  uploaded_by?: string;
+  uploaded_by_name?: string;
+  tags?: string[];
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface ProjectSummary {
+  project: Project;
+  expenses: Array<{
+    id: string;
+    expense_number: string;
+    date: string;
+    description: string;
+    amount: number;
+    status: string;
+  }>;
+  invoices: Array<{
+    id: string;
+    invoice_number: string;
+    invoice_type: string;
+    issue_date: string;
+    total: number;
+    status: string;
+  }>;
+  journal_entries: Array<{
+    id: string;
+    entry_number: string;
+    date: string;
+    description: string;
+    status: string;
+    total_debit: number;
+  }>;
+  documents: Array<{
+    id: string;
+    document_type: string;
+    title: string;
+    file_name: string;
+    created_at: string;
+  }>;
+  totals: {
+    expense_count: number;
+    invoice_count: number;
+    journal_entry_count: number;
+    document_count: number;
+    total_expenses: number;
+    total_invoiced: number;
+    budget_remaining: number;
+    budget_utilization: number;
+  };
+}
+
+export interface ProjectStatistics {
+  total_projects: number;
+  by_status: {
+    active: number;
+    completed: number;
+    on_hold: number;
+    cancelled: number;
+    archived: number;
+  };
+  total_budget: number;
+}
+
+export interface PaginatedResponse<T> {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+}
+
+// Get all projects with optional filters
+export async function getProjects(params?: {
+  status?: ProjectStatus;
+  category?: string;
+  client?: string;
+  manager?: string;
+  start_date?: string;
+  end_date?: string;
+  is_active?: boolean;
+  search?: string;
+  page?: number;
+  page_size?: number;
+}): Promise<PaginatedResponse<Project>> {
+  const searchParams = new URLSearchParams();
+  if (params) {
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        searchParams.append(key, String(value));
+      }
+    });
+  }
+  
+  const url = `${API_BASE_URL}/accounting/projects/?${searchParams.toString()}`;
+  const response = await fetch(url, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    // Return demo data for development
+    return {
+      count: DEMO_PROJECTS.length,
+      next: null,
+      previous: null,
+      results: DEMO_PROJECTS,
+    };
+  }
+  return response.json();
+}
+
+// Get single project by ID
+export async function getProject(id: string): Promise<Project> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${id}/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    const demo = DEMO_PROJECTS.find(p => p.id === id);
+    if (demo) return demo;
+    throw new Error('Project not found');
+  }
+  return response.json();
+}
+
+// Get project summary with all linked documents
+export async function getProjectSummary(id: string): Promise<ProjectSummary> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${id}/summary/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    const demo = DEMO_PROJECTS.find(p => p.id === id);
+    if (demo) {
+      return {
+        project: demo,
+        expenses: [],
+        invoices: [],
+        journal_entries: [],
+        documents: [],
+        totals: {
+          expense_count: demo.expense_count || 0,
+          invoice_count: demo.invoice_count || 0,
+          journal_entry_count: demo.journal_entry_count || 0,
+          document_count: demo.document_count || 0,
+          total_expenses: demo.total_expenses || 0,
+          total_invoiced: demo.total_invoiced || 0,
+          budget_remaining: demo.budget_remaining || 0,
+          budget_utilization: demo.budget_utilization_percent || 0,
+        }
+      };
+    }
+    throw new Error('Project not found');
+  }
+  return response.json();
+}
+
+// Create new project
+export async function createProject(data: Partial<Project>): Promise<Project> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to create project');
+  }
+  return response.json();
+}
+
+// Update project
+export async function updateProject(id: string, data: Partial<Project>): Promise<Project> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${id}/`, {
+    method: 'PATCH',
+    headers: getAuthHeaders(),
+    body: JSON.stringify(data),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to update project');
+  }
+  return response.json();
+}
+
+// Delete project
+export async function deleteProject(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${id}/`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete project');
+  }
+}
+
+// Link documents to project
+export async function linkDocumentsToProject(
+  projectId: string,
+  documentType: 'expense' | 'invoice' | 'journal_entry',
+  documentIds: string[]
+): Promise<{ message: string; linked_count: number }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${projectId}/link_documents/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      document_type: documentType,
+      document_ids: documentIds,
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to link documents');
+  }
+  return response.json();
+}
+
+// Unlink documents from project
+export async function unlinkDocumentsFromProject(
+  projectId: string,
+  documentType: 'expense' | 'invoice' | 'journal_entry',
+  documentIds: string[]
+): Promise<{ message: string; unlinked_count: number }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${projectId}/unlink_documents/`, {
+    method: 'POST',
+    headers: getAuthHeaders(),
+    body: JSON.stringify({
+      document_type: documentType,
+      document_ids: documentIds,
+    }),
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to unlink documents');
+  }
+  return response.json();
+}
+
+// Get project expenses
+export async function getProjectExpenses(projectId: string): Promise<PaginatedResponse<Expense>> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${projectId}/expenses/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+  return response.json();
+}
+
+// Get project invoices
+export async function getProjectInvoices(projectId: string): Promise<PaginatedResponse<Invoice>> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${projectId}/invoices/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+  return response.json();
+}
+
+// Get project journal entries
+export async function getProjectJournalEntries(projectId: string): Promise<PaginatedResponse<JournalEntry>> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/${projectId}/journal_entries/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+  return response.json();
+}
+
+// Get project statistics
+export async function getProjectStatistics(): Promise<ProjectStatistics> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/statistics/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return {
+      total_projects: DEMO_PROJECTS.length,
+      by_status: {
+        active: DEMO_PROJECTS.filter(p => p.status === 'ACTIVE').length,
+        completed: DEMO_PROJECTS.filter(p => p.status === 'COMPLETED').length,
+        on_hold: DEMO_PROJECTS.filter(p => p.status === 'ON_HOLD').length,
+        cancelled: DEMO_PROJECTS.filter(p => p.status === 'CANCELLED').length,
+        archived: DEMO_PROJECTS.filter(p => p.status === 'ARCHIVED').length,
+      },
+      total_budget: DEMO_PROJECTS.reduce((sum, p) => sum + p.budget_amount, 0),
+    };
+  }
+  return response.json();
+}
+
+// Get project categories
+export async function getProjectCategories(): Promise<{ categories: string[] }> {
+  const response = await fetch(`${API_BASE_URL}/accounting/projects/categories/`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return { categories: ['Audit', 'Tax', 'Consulting', 'Bookkeeping', 'Advisory'] };
+  }
+  return response.json();
+}
+
+// Project Documents API
+export async function getProjectDocuments(projectId: string): Promise<PaginatedResponse<ProjectDocument>> {
+  const response = await fetch(`${API_BASE_URL}/accounting/project-documents/?project=${projectId}`, {
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    return { count: 0, next: null, previous: null, results: [] };
+  }
+  return response.json();
+}
+
+export async function uploadProjectDocument(
+  projectId: string,
+  data: FormData
+): Promise<ProjectDocument> {
+  const token = typeof window !== 'undefined' ? localStorage.getItem('access_token') : null;
+  
+  const response = await fetch(`${API_BASE_URL}/accounting/project-documents/`, {
+    method: 'POST',
+    headers: {
+      'Authorization': token ? `Bearer ${token}` : '',
+    },
+    body: data,
+  });
+  
+  if (!response.ok) {
+    const error = await response.json();
+    throw new Error(error.detail || 'Failed to upload document');
+  }
+  return response.json();
+}
+
+export async function deleteProjectDocument(id: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/accounting/project-documents/${id}/`, {
+    method: 'DELETE',
+    headers: getAuthHeaders(),
+  });
+  
+  if (!response.ok) {
+    throw new Error('Failed to delete document');
+  }
+}
+
+// Demo projects data
+const DEMO_PROJECTS: Project[] = [
+  {
+    id: '1',
+    code: 'PROJ-2024-001',
+    name: '2024 Annual Audit - TechCorp',
+    description: 'Annual financial audit for TechCorp Inc.',
+    status: 'ACTIVE',
+    start_date: '2024-01-15',
+    end_date: '2024-03-31',
+    budget_amount: 50000,
+    currency_code: 'USD',
+    client_name: 'TechCorp Inc.',
+    category: 'Audit',
+    tags: ['annual', 'audit', '2024'],
+    created_by_name: 'John Smith',
+    manager_name: 'Alice Chen',
+    total_expenses: 15000,
+    total_invoiced: 25000,
+    budget_remaining: 35000,
+    budget_utilization_percent: 30,
+    expense_count: 12,
+    invoice_count: 2,
+    journal_entry_count: 8,
+    document_count: 15,
+    is_active: true,
+    created_at: '2024-01-10',
+  },
+  {
+    id: '2',
+    code: 'PROJ-2024-002',
+    name: 'Q1 Tax Filing - StartupXYZ',
+    description: 'Quarterly tax filing and compliance for StartupXYZ',
+    status: 'COMPLETED',
+    start_date: '2024-01-01',
+    end_date: '2024-04-15',
+    budget_amount: 15000,
+    currency_code: 'USD',
+    client_name: 'StartupXYZ Ltd.',
+    category: 'Tax',
+    tags: ['tax', 'quarterly', 'Q1'],
+    created_by_name: 'Bob Wang',
+    manager_name: 'John Smith',
+    total_expenses: 12000,
+    total_invoiced: 15000,
+    budget_remaining: 3000,
+    budget_utilization_percent: 80,
+    expense_count: 8,
+    invoice_count: 1,
+    journal_entry_count: 5,
+    document_count: 10,
+    is_active: true,
+    created_at: '2024-01-02',
+  },
+  {
+    id: '3',
+    code: 'PROJ-2024-003',
+    name: 'Financial Consulting - RetailMax',
+    description: 'Financial restructuring and advisory services',
+    status: 'ON_HOLD',
+    start_date: '2024-02-01',
+    end_date: '2024-06-30',
+    budget_amount: 75000,
+    currency_code: 'USD',
+    client_name: 'RetailMax Corp',
+    category: 'Consulting',
+    tags: ['consulting', 'restructuring'],
+    created_by_name: 'Alice Chen',
+    manager_name: 'Alice Chen',
+    total_expenses: 20000,
+    total_invoiced: 30000,
+    budget_remaining: 55000,
+    budget_utilization_percent: 26.67,
+    expense_count: 5,
+    invoice_count: 2,
+    journal_entry_count: 3,
+    document_count: 8,
+    is_active: true,
+    created_at: '2024-02-01',
+  },
+  {
+    id: '4',
+    code: 'PROJ-2024-004',
+    name: 'Monthly Bookkeeping - CafeDelight',
+    description: 'Monthly bookkeeping and reconciliation services',
+    status: 'ACTIVE',
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    budget_amount: 24000,
+    currency_code: 'USD',
+    client_name: 'CafeDelight LLC',
+    category: 'Bookkeeping',
+    tags: ['bookkeeping', 'monthly', 'recurring'],
+    created_by_name: 'Tom Lee',
+    manager_name: 'Bob Wang',
+    total_expenses: 8000,
+    total_invoiced: 10000,
+    budget_remaining: 16000,
+    budget_utilization_percent: 33.33,
+    expense_count: 24,
+    invoice_count: 4,
+    journal_entry_count: 48,
+    document_count: 60,
+    is_active: true,
+    created_at: '2024-01-01',
+  },
+];
