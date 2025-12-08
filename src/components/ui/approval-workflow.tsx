@@ -139,7 +139,13 @@ export function ApprovalWorkflow({
   const [comment, setComment] = useState('');
   const [showSignature, setShowSignature] = useState(false);
   const [actionType, setActionType] = useState<'approve' | 'reject' | 'request_info' | null>(null);
+  const [isClient, setIsClient] = useState(false);
   const { signatureData, isSigned, handleSave, handleClear } = useSignaturePad();
+
+  // Hydration-safe: only use relative timestamps on client
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const isPending = status === 'pending';
   const config = statusConfig[status];
@@ -242,7 +248,7 @@ export function ApprovalWorkflow({
                         <AvatarFallback>{item.user.name.slice(0, 2).toUpperCase()}</AvatarFallback>
                       </Avatar>
                       <span className="text-sm font-medium">{item.user.name}</span>
-                      <span className="text-xs text-muted-foreground">{formatTimestamp(item.timestamp)}</span>
+                      <span className="text-xs text-muted-foreground">{formatTimestamp(item.timestamp, isClient)}</span>
                     </div>
                     <p className="text-sm text-muted-foreground mt-1 capitalize">
                       {item.action.replace('_', ' ')}
