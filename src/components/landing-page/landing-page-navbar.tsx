@@ -19,21 +19,15 @@ import { useTranslation } from '@/lib/i18n/provider';
 export default function LandingPageNavbar() {
   const { user, logout } = useAuth();
   const [open, setOpen] = React.useState(false);
-  const [mounted, setMounted] = React.useState(false);
   const router = useRouter();
   const { t } = useTranslation();
 
-  // Fix hydration mismatch by only rendering translated content after mount
-  React.useEffect(() => {
-    setMounted(true);
-  }, []);
-
   const navMenuItems = [
-    { title: mounted ? t('landing.nav.home', 'Home') : 'Home', href: '/' },
-    { title: mounted ? t('landing.nav.features', 'Features') : 'Features', href: '#features' },
-    { title: mounted ? t('landing.nav.pricing', 'Pricing') : 'Pricing', href: '/pricing' },
-    { title: mounted ? t('landing.nav.faqs', 'FAQs') : 'FAQs', href: '#faqs' },
-    { title: mounted ? t('landing.nav.contactUs', 'Contact') : 'Contact', href: '#contact' }
+    { title: t('landing.nav.home', 'Home'), href: '/' },
+    { title: t('landing.nav.features', 'Features'), href: '#features' },
+    { title: t('landing.nav.pricing', 'Pricing'), href: '/pricing' },
+    { title: t('landing.nav.faqs', 'FAQs'), href: '#faqs' },
+    { title: t('landing.nav.contactUs', 'Contact'), href: '#contact' }
   ];
 
   const handleDashboardRedirect = () => {

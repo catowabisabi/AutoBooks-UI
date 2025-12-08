@@ -126,11 +126,6 @@ function AnimatedCounter({
 
 function StatItem({ icon, getValue, suffix, prefix, labelKey, defaultLabel, delay, format }: StatItemProps) {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   return (
     <motion.div
@@ -146,8 +141,8 @@ function StatItem({ icon, getValue, suffix, prefix, labelKey, defaultLabel, dela
       <div className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-1 md:mb-2">
         <AnimatedCounter getValue={getValue} suffix={suffix} prefix={prefix} format={format} />
       </div>
-      <p className="text-xs sm:text-sm text-muted-foreground" suppressHydrationWarning>
-        {mounted ? t(labelKey) : defaultLabel}
+      <p className="text-xs sm:text-sm text-muted-foreground">
+        {t(labelKey, defaultLabel)}
       </p>
     </motion.div>
   );
@@ -155,11 +150,6 @@ function StatItem({ icon, getValue, suffix, prefix, labelKey, defaultLabel, dela
 
 export default function StatsSection() {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Memoize getValue functions to prevent unnecessary re-renders
   const getUsers = useMemo(() => () => getBaseNumbers().users, []);
@@ -207,21 +197,17 @@ export default function StatsSection() {
       {/* Background */}
       <div className="absolute inset-0 bg-gradient-to-b from-primary/5 via-primary/10 to-primary/5" />
       
-      {/* Decorative elements - only render on client */}
-      {mounted && (
-        <>
-          <motion.div
-            className="absolute top-10 left-10 w-20 h-20 rounded-full bg-primary/20 blur-2xl"
-            animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
-            transition={{ duration: 5, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-purple-500/20 blur-2xl"
-            animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
-            transition={{ duration: 6, repeat: Infinity, delay: 1 }}
-          />
-        </>
-      )}
+      {/* Decorative elements */}
+      <motion.div
+        className="absolute top-10 left-10 w-20 h-20 rounded-full bg-primary/20 blur-2xl"
+        animate={{ scale: [1, 1.2, 1], opacity: [0.3, 0.5, 0.3] }}
+        transition={{ duration: 5, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute bottom-10 right-10 w-32 h-32 rounded-full bg-purple-500/20 blur-2xl"
+        animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2] }}
+        transition={{ duration: 6, repeat: Infinity, delay: 1 }}
+      />
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
@@ -231,15 +217,15 @@ export default function StatsSection() {
           viewport={{ once: true }}
           className="text-center mb-10 md:mb-16"
         >
-          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4" suppressHydrationWarning>
-            {mounted ? t('landing.stats.title') : 'Trusted by'}
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-bold mb-3 md:mb-4">
+            {t('landing.stats.title', 'Trusted by')}
             {' '}
-            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent" suppressHydrationWarning>
-              {mounted ? t('landing.stats.titleHighlight') : 'Growing Businesses'}
+            <span className="bg-gradient-to-r from-primary to-purple-600 bg-clip-text text-transparent">
+              {t('landing.stats.titleHighlight', 'Growing Businesses')}
             </span>
           </h2>
-          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4" suppressHydrationWarning>
-            {mounted ? t('landing.stats.subtitle') : 'Join thousands of businesses that have transformed their financial operations with AutoBooks.'}
+          <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
+            {t('landing.stats.subtitle', 'Join thousands of businesses that have transformed their financial operations with AutoBooks.')}
           </p>
         </motion.div>
 

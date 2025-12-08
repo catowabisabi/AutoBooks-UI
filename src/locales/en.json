@@ -145,6 +145,7 @@
     "creatingAccount": "Creating account...",
     "loginSuccess": "Login successful",
     "loginFailed": "Login failed",
+    "registrationFailed": "Failed to create account. Please try again.",
     "invalidCredentials": "Invalid email or password",
     "googleAuthFailed": "Google authentication failed",
     "completingGoogleSignIn": "Completing Google sign in...",

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import Link from 'next/link';
 import { Sparkles, Play, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
@@ -14,11 +14,6 @@ import AnimatedDashboardPreview from './animated-dashboard-preview';
 
 const LandingPageHeroSection = () => {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   const trustPoints = [
     { key: 'landing.hero.trustPoints.freeTrial', default: '14-day free trial' },
@@ -44,8 +39,8 @@ const LandingPageHeroSection = () => {
               className="mb-6 inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2 text-sm font-medium text-primary border border-primary/20"
             >
               <Sparkles size={16} className="animate-pulse" />
-              <span suppressHydrationWarning>
-                {mounted ? t('landing.hero.tagline') : 'Automate Accounting. Run Smarter.'}
+              <span>
+                {t('landing.hero.tagline', 'Automate Accounting. Run Smarter.')}
               </span>
             </motion.div>
 
@@ -55,14 +50,13 @@ const LandingPageHeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.1 }}
               className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight mb-6 break-words"
-              suppressHydrationWarning
             >
-              <span suppressHydrationWarning>
-                {mounted ? t('landing.hero.title') : 'Let AI Handle the Books.'}
+              <span>
+                {t('landing.hero.title', 'Let AI Handle the Books.')}
               </span>
               <br />
-              <span className="bg-gradient-to-r from-primary via-primary/80 to-purple-600 bg-clip-text text-transparent" suppressHydrationWarning>
-                {mounted ? t('landing.hero.titleHighlight') : 'You Focus on Growth.'}
+              <span className="bg-gradient-to-r from-primary via-primary/80 to-purple-600 bg-clip-text text-transparent">
+                {t('landing.hero.titleHighlight', 'You Focus on Growth.')}
               </span>
             </motion.h1>
 
@@ -72,9 +66,8 @@ const LandingPageHeroSection = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.2 }}
               className="text-lg text-muted-foreground mb-8 max-w-xl mx-auto lg:mx-0"
-              suppressHydrationWarning
             >
-              {mounted ? t('landing.hero.subtitle') : 'The intelligent ERP for modern business. Automated bookkeeping, one-click tax filing, and real-time financial insights.'}
+              {t('landing.hero.subtitle', 'The intelligent ERP for modern business. Automated bookkeeping, one-click tax filing, and real-time financial insights.')}
             </motion.p>
 
             {/* Hero Buttons */}
@@ -89,9 +82,8 @@ const LandingPageHeroSection = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="bg-primary text-primary-foreground px-8 py-4 rounded-xl text-lg font-semibold shadow-lg shadow-primary/25 hover:shadow-xl hover:shadow-primary/30 transition-all duration-300 w-full sm:w-auto"
-                  suppressHydrationWarning
                 >
-                  {mounted ? t('landing.hero.getStarted') : 'Start Free Trial'}
+                  {t('landing.hero.getStarted', 'Start Free Trial')}
                 </motion.button>
               </Link>
               <Link href='/#features'>
@@ -99,10 +91,9 @@ const LandingPageHeroSection = () => {
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                   className="bg-card border border-border px-8 py-4 rounded-xl text-lg font-semibold hover:bg-muted transition-all duration-300 flex items-center justify-center gap-2 w-full sm:w-auto"
-                  suppressHydrationWarning
                 >
                   <Play size={18} className="text-primary" />
-                  {mounted ? t('landing.hero.exploreFeatures') : 'Watch 1-Min Demo'}
+                  {t('landing.hero.exploreFeatures', 'Watch 1-Min Demo')}
                 </motion.button>
               </Link>
             </motion.div>
@@ -117,8 +108,8 @@ const LandingPageHeroSection = () => {
               {trustPoints.map((point, index) => (
                 <div key={index} className="flex items-center gap-2 text-sm text-muted-foreground">
                   <CheckCircle2 size={16} className="text-green-500" />
-                  <span suppressHydrationWarning>
-                    {mounted ? t(point.key) : point.default}
+                  <span>
+                    {t(point.key, point.default)}
                   </span>
                 </div>
               ))}

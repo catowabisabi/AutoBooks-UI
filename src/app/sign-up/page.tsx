@@ -48,10 +48,12 @@ export default function SignUpPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await api.post<{ access: string; refresh: string; success?: boolean; errors?: any }>('/api/v1/users/register/', {
+      const response = await api.post<{ access: string; refresh: string; success?: boolean; errors?: any }>('/api/v1/auth/signup/', {
         email,
         password,
-        full_name: `${firstName} ${lastName}`.trim()
+        password_confirm: confirmPassword,
+        full_name: `${firstName} ${lastName}`.trim(),
+        create_tenant: true
       }, { skipAuth: true });
       
       // Use setToken to handle login after successful registration

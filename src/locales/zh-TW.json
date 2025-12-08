@@ -147,6 +147,7 @@
     "creatingAccount": "建立帳號中...",
     "loginSuccess": "登入成功",
     "loginFailed": "登入失敗",
+    "registrationFailed": "建立帳號失敗，請再試一次。",
     "invalidCredentials": "電子郵件或密碼錯誤",
     "googleAuthFailed": "Google 認證失敗",
     "completingGoogleSignIn": "正在完成 Google 登入...",

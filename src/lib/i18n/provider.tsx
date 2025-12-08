@@ -8,7 +8,7 @@ type Messages = typeof import('@/locales/en.json');
 interface I18nContextType {
   locale: Locale;
   setLocale: (locale: Locale) => void;
-  t: (key: string, params?: Record<string, string | number>) => string;
+  t: (key: string, defaultValueOrParams?: string | Record<string, string | number>, params?: Record<string, string | number>) => string;
   messages: Messages;
   locales: readonly Locale[];
   localeNames: Record<Locale, string>;
@@ -39,32 +39,37 @@ interface I18nProviderProps {
 }
 
 export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
-  const [locale, setLocaleState] = useState<Locale>(() => {
-    if (initialLocale) return initialLocale;
+  // Always use defaultLocale for initial render to match SSR
+  const [locale, setLocaleState] = useState<Locale>(initialLocale || defaultLocale);
+  const [messages, setMessages] = useState<Messages>(() => getMessages(initialLocale || defaultLocale) as Messages);
+  const [isHydrated, setIsHydrated] = useState(false);
+
+  // After hydration, apply client-side locale preference
+  useEffect(() => {
+    setIsHydrated(true);
     
-    // Check localStorage (client-side only)
-    if (typeof window !== 'undefined') {
-      const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
-      if (stored && locales.includes(stored as Locale)) {
-        return stored as Locale;
-      }
-      
-      // Check browser language
-      const browserLang = navigator.language;
-      if (browserLang.startsWith('zh')) {
-        return 'zh-TW';
-      }
+    // Check localStorage for saved preference
+    const stored = localStorage.getItem(LOCALE_STORAGE_KEY);
+    if (stored && locales.includes(stored as Locale)) {
+      setLocaleState(stored as Locale);
+      setMessages(getMessages(stored as Locale) as Messages);
+      return;
     }
     
-    return defaultLocale;
-  });
+    // Check browser language preference
+    const browserLang = navigator.language;
+    if (browserLang.startsWith('zh')) {
+      setLocaleState('zh-TW');
+      setMessages(getMessages('zh-TW') as Messages);
+    }
+  }, []);
 
-  const [messages, setMessages] = useState<Messages>(() => getMessages(locale) as Messages);
-
-  // Update messages when locale changes
+  // Update messages when locale changes (after initial hydration)
   useEffect(() => {
-    setMessages(getMessages(locale) as Messages);
-  }, [locale]);
+    if (isHydrated) {
+      setMessages(getMessages(locale) as Messages);
+    }
+  }, [locale, isHydrated]);
 
   const setLocale = useCallback((newLocale: Locale) => {
     if (locales.includes(newLocale)) {
@@ -84,17 +89,21 @@ export function I18nProvider({ children, initialLocale }: I18nProviderProps) {
     }
   }, [locale]);
 
-  const t = useCallback((key: string, params?: Record<string, string | number>): string => {
+  const t = useCallback((key: string, defaultValueOrParams?: string | Record<string, string | number>, params?: Record<string, string | number>): string => {
     let value = getNestedValue(messages, key);
     
+    // Handle the case where second argument is a default value string
+    const defaultValue = typeof defaultValueOrParams === 'string' ? defaultValueOrParams : undefined;
+    const actualParams = typeof defaultValueOrParams === 'object' ? defaultValueOrParams : params;
+    
     if (!value) {
-      console.warn(`Translation key not found: ${key}`);
-      return key;
+      // Return default value if provided, otherwise return the key
+      return defaultValue || key;
     }
     
     // Replace parameters like {name} with actual values
-    if (params) {
-      Object.entries(params).forEach(([paramKey, paramValue]) => {
+    if (actualParams) {
+      Object.entries(actualParams).forEach(([paramKey, paramValue]) => {
         value = value!.replace(new RegExp(`\\{${paramKey}\\}`, 'g'), String(paramValue));
       });
     }

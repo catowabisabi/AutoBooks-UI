@@ -3,7 +3,8 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useAuth } from '@/lib/auth/provider';
+import { useAuth } from '@/contexts/auth-context';
+import { api } from '@/lib/api';
 import { useTranslation } from '@/lib/i18n/provider';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -11,7 +12,7 @@ import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Separator } from '@/components/ui/separator';
-import { Eye, EyeOff, Loader2 } from 'lucide-react';
+import { Eye, EyeOff, Loader2, Home } from 'lucide-react';
 import { LanguageSwitcher } from '@/components/language-switcher';
 
 // Google OAuth Configuration
@@ -19,7 +20,7 @@ const GOOGLE_CLIENT_ID = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || '';
 
 export default function SignInPage() {
   const router = useRouter();
-  const { login, loginWithGoogle, isLoading } = useAuth();
+  const { setToken } = useAuth();
   const { t } = useTranslation();
   
   const [email, setEmail] = useState('');
@@ -34,10 +35,15 @@ export default function SignInPage() {
     setIsSubmitting(true);
 
     try {
-      await login(email, password);
-      router.push('/dashboard');
+      const response = await api.post<{ access: string; refresh: string }>('/api/v1/auth/token/', {
+        email,
+        password
+      }, { skipAuth: true });
+      
+      await setToken(response.access, response.refresh);
+      // Router push is handled by setToken
     } catch (err: any) {
-      setError(err.message || 'Failed to sign in. Please check your credentials.');
+      setError(err.message || t('auth.invalidCredentials', 'Failed to sign in. Please check your credentials.'));
     } finally {
       setIsSubmitting(false);
     }
@@ -45,7 +51,7 @@ export default function SignInPage() {
 
   const handleGoogleLogin = () => {
     if (!GOOGLE_CLIENT_ID) {
-      setError('Google OAuth is not configured. Please add NEXT_PUBLIC_GOOGLE_CLIENT_ID to your environment.');
+      setError(t('auth.googleAuthFailed', 'Google OAuth is not configured.'));
       return;
     }
 
@@ -61,19 +67,16 @@ export default function SignInPage() {
     window.location.href = googleAuthUrl.toString();
   };
 
-  if (isLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin" />
-      </div>
-    );
-  }
-
   return (
     <div className="min-h-screen flex flex-col items-center justify-center bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 p-4">
-      {/* Language Switcher */}
-      <div className="absolute top-4 right-4">
-        <LanguageSwitcher showLabel />
+      {/* Language Switcher and Home Button */}
+      <div className="absolute top-4 right-4 flex items-center gap-2">
+        <LanguageSwitcher variant="outline" size="icon" />
+        <Button variant="outline" size="icon" asChild>
+          <Link href="/">
+            <Home className="h-4 w-4" />
+          </Link>
+        </Button>
       </div>
 
       {/* Logo */}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useRef } from 'react';
 import { motion, useInView } from 'framer-motion';
 import {
   Calculator,
@@ -95,11 +95,10 @@ interface FeaturePointProps {
   defaultText: string;
   defaultDesc: string;
   index: number;
-  mounted: boolean;
-  t: (key: string) => string;
+  t: (key: string, defaultValue?: string) => string;
 }
 
-function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index, mounted, t }: FeaturePointProps) {
+function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index, t }: FeaturePointProps) {
   const ref = useRef(null);
   const isInView = useInView(ref, { once: true, amount: 0.3 });
   const animationKey = animationKeys[index % animationKeys.length];
@@ -135,12 +134,12 @@ function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index,
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-2">
             <CheckCircle2 className="w-4 h-4 text-green-500 shrink-0" />
-            <h3 className="font-semibold text-base md:text-lg text-foreground group-hover:text-primary transition-colors" suppressHydrationWarning>
-              {mounted ? t(textKey) : defaultText}
+            <h3 className="font-semibold text-base md:text-lg text-foreground group-hover:text-primary transition-colors">
+              {t(textKey, defaultText)}
             </h3>
           </div>
-          <p className="text-sm md:text-base text-muted-foreground leading-relaxed" suppressHydrationWarning>
-            {mounted ? t(descKey) : defaultDesc}
+          <p className="text-sm md:text-base text-muted-foreground leading-relaxed">
+            {t(descKey, defaultDesc)}
           </p>
         </div>
         
@@ -164,11 +163,6 @@ function FeaturePoint({ icon, textKey, descKey, defaultText, defaultDesc, index,
 
 const LandingPageFeatureSection = () => {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    setMounted(true);
-  }, []);
 
   // Features List with translation keys
   const features = [
@@ -222,26 +216,22 @@ const LandingPageFeatureSection = () => {
       <div className="absolute inset-0 bg-gradient-to-b from-background via-primary/5 to-background" />
       
       {/* Floating decorations */}
-      {mounted && (
-        <>
-          <motion.div
-            className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
-            animate={{ 
-              scale: [1, 1.2, 1],
-              opacity: [0.3, 0.5, 0.3]
-            }}
-            transition={{ duration: 8, repeat: Infinity }}
-          />
-          <motion.div
-            className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl"
-            animate={{ 
-              scale: [1, 1.3, 1],
-              opacity: [0.2, 0.4, 0.2]
-            }}
-            transition={{ duration: 10, repeat: Infinity, delay: 2 }}
-          />
-        </>
-      )}
+      <motion.div
+        className="absolute top-20 right-10 w-64 h-64 rounded-full bg-primary/10 blur-3xl"
+        animate={{ 
+          scale: [1, 1.2, 1],
+          opacity: [0.3, 0.5, 0.3]
+        }}
+        transition={{ duration: 8, repeat: Infinity }}
+      />
+      <motion.div
+        className="absolute bottom-20 left-10 w-48 h-48 rounded-full bg-purple-500/10 blur-3xl"
+        animate={{ 
+          scale: [1, 1.3, 1],
+          opacity: [0.2, 0.4, 0.2]
+        }}
+        transition={{ duration: 10, repeat: Infinity, delay: 2 }}
+      />
 
       <div className="relative z-10 container mx-auto px-4">
         {/* Section Header */}
@@ -260,19 +250,19 @@ const LandingPageFeatureSection = () => {
             className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 text-primary text-sm font-medium mb-6"
           >
             <Sparkles className="w-4 h-4" />
-            <span suppressHydrationWarning>
-              {mounted ? t('landing.features.badge') : 'Powerful Features'}
+            <span>
+              {t('landing.features.badge', 'Powerful Features')}
             </span>
           </motion.div>
           
-          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6" suppressHydrationWarning>
-            {mounted ? t('landing.features.title') : 'Why Choose'}{' '}
+          <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold mb-4 md:mb-6">
+            {t('landing.features.title', 'Why Choose')}{' '}
             <span className="bg-gradient-to-r from-primary via-purple-500 to-primary bg-clip-text text-transparent">
-              {mounted ? t('landing.features.titleHighlight') : 'AutoBooks'}
+              {t('landing.features.titleHighlight', 'AutoBooks')}
             </span>
           </h2>
-          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto" suppressHydrationWarning>
-            {mounted ? t('landing.features.subtitle') : 'More than an ERP — your intelligent financial partner. Say goodbye to tedious tasks, embrace efficiency.'}
+          <p className="text-base md:text-lg text-muted-foreground max-w-2xl mx-auto">
+            {t('landing.features.subtitle', 'More than an ERP — your intelligent financial partner. Say goodbye to tedious tasks, embrace efficiency.')}
           </p>
         </motion.div>
 
@@ -294,7 +284,6 @@ const LandingPageFeatureSection = () => {
                 defaultText={feature.defaultText}
                 defaultDesc={feature.defaultDesc}
                 index={index}
-                mounted={mounted}
                 t={t}
               />
             ))}
