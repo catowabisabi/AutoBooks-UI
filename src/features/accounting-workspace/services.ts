@@ -22,6 +22,14 @@ import {
   Account,
   DocumentType,
   ExportFormat,
+  // Field extraction types
+  ExtractedField,
+  ExtractedFieldType,
+  ReceiptCorrectInput,
+  ReceiptFieldsResponse,
+  ReceiptCorrectResponse,
+  ReceiptCorrectionHistoryResponse,
+  BulkCreateFieldsInput,
 } from './types';
 
 // API base paths - using new accounting-projects endpoints
@@ -351,29 +359,104 @@ export const unrecognizedApi = {
 };
 
 // =================================================================
-// Field Extraction API - For field-level corrections
+// Field Extraction API - For field-level data with bounding boxes
 // =================================================================
 
+const RECEIPTS_API_BASE = '/receipts';
+
 export const fieldExtractionApi = {
-  // Get extractions for a receipt
+  /**
+   * Get all extracted fields for a receipt with bounding boxes
+   * Returns fields grouped by type for easy UI consumption
+   */
+  getFields: (receiptId: string) =>
+    apiClient.get<ReceiptFieldsResponse>(`${RECEIPTS_API_BASE}/${receiptId}/fields/`),
+
+  /**
+   * Correct extracted fields with optional bounding box overrides
+   * Creates version history for audit trail
+   */
+  correctFields: (receiptId: string, data: ReceiptCorrectInput) =>
+    apiClient.put<ReceiptCorrectResponse>(`${RECEIPTS_API_BASE}/${receiptId}/correct/`, data),
+
+  /**
+   * Get correction history for a receipt's fields
+   * Supports filtering by field_id and date range
+   */
+  getCorrectionHistory: (receiptId: string, params?: {
+    field_id?: string;
+    date_from?: string;
+    date_to?: string;
+  }) => apiClient.get<ReceiptCorrectionHistoryResponse>(
+    `${RECEIPTS_API_BASE}/${receiptId}/correction_history/`,
+    { params }
+  ),
+
+  /**
+   * Bulk create extracted fields from OCR processing
+   * Used by OCR integration to populate fields after processing
+   */
+  bulkCreateFields: (receiptId: string, data: BulkCreateFieldsInput) =>
+    apiClient.post<{
+      message: string;
+      receipt_id: string;
+      fields: ExtractedField[];
+    }>(`${RECEIPTS_API_BASE}/${receiptId}/fields/bulk-create/`, data),
+
+  /**
+   * Correct a single field value (convenience method)
+   */
+  correctSingleField: (receiptId: string, fieldId: string, value: string, reason?: string) =>
+    apiClient.put<ReceiptCorrectResponse>(`${RECEIPTS_API_BASE}/${receiptId}/correct/`, {
+      fields: [{
+        field_id: fieldId,
+        value,
+        correction_reason: reason,
+      }],
+      correction_source: 'UI',
+    }),
+
+  /**
+   * Create a new manual field entry
+   */
+  createField: (
+    receiptId: string,
+    fieldType: ExtractedFieldType,
+    value: string,
+    boundingBox?: { x1: number; y1: number; x2: number; y2: number },
+    pageNumber?: number
+  ) =>
+    apiClient.put<ReceiptCorrectResponse>(`${RECEIPTS_API_BASE}/${receiptId}/correct/`, {
+      fields: [{
+        field_type: fieldType,
+        value,
+        bounding_box: boundingBox,
+        page_number: pageNumber || 1,
+      }],
+      correction_source: 'UI',
+    }),
+
+  // Legacy methods for backwards compatibility
   getByReceipt: (receiptId: string) =>
-    apiClient.get(`/field-extractions/receipt/${receiptId}/`),
+    apiClient.get<ReceiptFieldsResponse>(`${RECEIPTS_API_BASE}/${receiptId}/fields/`),
     
-  // Correct a field
   correctField: (data: {
     field_id: string;
     corrected_value: string;
     mark_verified?: boolean;
-  }) => apiClient.post(`/field-extractions/correct/`, data),
+  }) => {
+    // Extract receipt ID from field_id or use a default endpoint
+    // This is a legacy method - prefer using correctFields with receipt ID
+    console.warn('Legacy correctField method - consider using correctFields with receipt ID');
+    return apiClient.post(`/field-extractions/correct/`, data);
+  },
     
-  // Bulk correct fields
   bulkCorrect: (corrections: Array<{
     field_id: string;
     corrected_value: string;
     mark_verified?: boolean;
   }>) => apiClient.post(`/field-extractions/bulk-correct/`, { corrections }),
     
-  // Verify all fields for a receipt
   verifyAll: (receiptId: string) =>
     apiClient.post(`/field-extractions/verify-all/${receiptId}/`),
 };

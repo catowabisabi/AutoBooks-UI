@@ -367,9 +367,204 @@ export interface ApiError {
 }
 
 // =================================================================
-// Field Extraction Types - For OCR field-level data
+// Field Extraction Types - For OCR field-level data with bounding boxes
 // =================================================================
 
+export type ExtractedFieldType = 
+  | 'VENDOR'
+  | 'TOTAL'
+  | 'DATE'
+  | 'CURRENCY'
+  | 'TAX'
+  | 'CATEGORY'
+  | 'SUBTOTAL'
+  | 'TIP'
+  | 'PAYMENT_METHOD'
+  | 'INVOICE_NUMBER'
+  | 'LINE_ITEM'
+  | 'OTHER';
+
+export type BoundingBoxUnit = 'ratio' | 'pixel';
+
+/**
+ * Bounding box coordinates for visual highlighting
+ * When unit is 'ratio': values are 0-1 representing percentage of image dimensions
+ * When unit is 'pixel': values are absolute pixel coordinates
+ */
+export interface BoundingBox {
+  x1: number;  // Left edge
+  y1: number;  // Top edge
+  x2: number;  // Right edge
+  y2: number;  // Bottom edge
+  unit?: BoundingBoxUnit;
+}
+
+/**
+ * Extracted field from OCR with bounding box and correction tracking
+ */
+export interface ExtractedField {
+  id: string;
+  receipt: string;  // Receipt UUID
+  field_type: ExtractedFieldType;
+  field_name: string;
+  raw_value: string;  // Original OCR value
+  normalized_value: string;  // Cleaned/formatted value
+  confidence_score: number;  // 0-1 confidence from OCR
+  
+  // Original bounding box from OCR
+  bbox_x1?: number;
+  bbox_y1?: number;
+  bbox_x2?: number;
+  bbox_y2?: number;
+  bbox_unit: BoundingBoxUnit;
+  page_number: number;
+  
+  // Correction tracking
+  is_corrected: boolean;
+  corrected_value?: string;
+  corrected_bbox_x1?: number;
+  corrected_bbox_y1?: number;
+  corrected_bbox_x2?: number;
+  corrected_bbox_y2?: number;
+  corrected_by?: string;
+  corrected_by_name?: string;
+  corrected_at?: string;
+  version: number;
+  
+  // Computed properties (from backend)
+  final_value: string;  // corrected_value if set, else raw_value
+  final_bbox?: BoundingBox;  // corrected bbox if set, else original
+  needs_review: boolean;  // True if confidence < threshold and not corrected
+  
+  created_at: string;
+  updated_at: string;
+}
+
+/**
+ * Simplified bounding box input for corrections
+ */
+export interface BoundingBoxInput {
+  x1: number;
+  y1: number;
+  x2: number;
+  y2: number;
+}
+
+/**
+ * Input for correcting a single field
+ */
+export interface FieldCorrectionInput {
+  field_id?: string;  // Required for existing field correction
+  field_type?: ExtractedFieldType;  // Required for new field creation
+  field_name?: string;
+  value: string;
+  bounding_box?: BoundingBoxInput;
+  correction_reason?: string;
+  page_number?: number;
+}
+
+/**
+ * Input for the PUT /receipts/{id}/correct endpoint
+ */
+export interface ReceiptCorrectInput {
+  fields: FieldCorrectionInput[];
+  correction_source?: 'UI' | 'API' | 'AI' | 'IMPORT';
+  notes?: string;
+}
+
+/**
+ * History entry for field correction audit trail
+ */
+export interface FieldCorrectionHistoryEntry {
+  id: string;
+  field: string;  // Field UUID
+  field_type: ExtractedFieldType;
+  field_name: string;
+  version: number;
+  previous_value: string;
+  new_value: string;
+  previous_bbox?: BoundingBox;
+  new_bbox?: BoundingBox;
+  correction_reason?: string;
+  corrected_by?: string;
+  corrected_by_name?: string;
+  correction_source: string;
+  notes?: string;
+  created_at: string;
+}
+
+/**
+ * Summary of corrections for a receipt
+ */
+export interface ReceiptCorrectionSummary {
+  receipt: string;
+  total_fields: number;
+  corrected_fields: number;
+  total_corrections: number;
+  correction_rate: number;  // Percentage of fields that have been corrected
+  last_correction_at?: string;
+  last_corrected_by?: string;
+  last_corrected_by_name?: string;
+}
+
+/**
+ * Response from GET /receipts/{id}/fields
+ */
+export interface ReceiptFieldsResponse {
+  receipt_id: string;
+  total_fields: number;
+  fields: ExtractedField[];
+  fields_by_type: Record<ExtractedFieldType, ExtractedField[]>;
+  correction_summary: ReceiptCorrectionSummary;
+}
+
+/**
+ * Response from PUT /receipts/{id}/correct
+ */
+export interface ReceiptCorrectResponse {
+  message: string;
+  receipt_id: string;
+  corrected_count: number;
+  created_count: number;
+  corrected_fields: ExtractedField[];
+  created_fields: ExtractedField[];
+  errors?: Array<{
+    field_id: string;
+    field_type?: ExtractedFieldType;
+    error: string;
+  }>;
+  correction_summary: ReceiptCorrectionSummary;
+}
+
+/**
+ * Response from GET /receipts/{id}/correction_history
+ */
+export interface ReceiptCorrectionHistoryResponse {
+  receipt_id: string;
+  total_corrections: number;
+  history: FieldCorrectionHistoryEntry[];
+}
+
+/**
+ * Input for bulk creating extracted fields (from OCR)
+ */
+export interface BulkCreateFieldsInput {
+  fields: Array<{
+    field_type: ExtractedFieldType;
+    field_name?: string;
+    raw_value: string;
+    normalized_value?: string;
+    confidence_score?: number;
+    bbox_x1?: number;
+    bbox_y1?: number;
+    bbox_x2?: number;
+    bbox_y2?: number;
+    bbox_unit?: BoundingBoxUnit;
+    page_number?: number;
+  }>;
+}
+
+// Legacy interface (kept for backwards compatibility)
 export interface FieldExtraction {
   id: string;
   receipt: string;  // Receipt UUID
@@ -388,14 +583,15 @@ export interface FieldExtraction {
   updated_at: string;
 }
 
-export interface FieldCorrectionInput {
+// Legacy interfaces (kept for backwards compatibility)
+export interface LegacyFieldCorrectionInput {
   field_id: string;
   corrected_value: string;
   mark_verified?: boolean;
 }
 
 export interface BulkFieldCorrectionInput {
-  corrections: FieldCorrectionInput[];
+  corrections: LegacyFieldCorrectionInput[];
 }
 
 // =================================================================
