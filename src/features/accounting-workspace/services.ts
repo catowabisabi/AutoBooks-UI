@@ -30,6 +30,23 @@ import {
   ReceiptCorrectResponse,
   ReceiptCorrectionHistoryResponse,
   BulkCreateFieldsInput,
+  // Financial Report types
+  FinancialReport,
+  FinancialReportListItem,
+  FinancialReportExport,
+  FinancialReportTemplate,
+  FinancialReportSchedule,
+  FinancialReportType,
+  FinancialReportStatus,
+  FinancialExportFormat,
+  ReportFilters,
+  GenerateFinancialReportInput,
+  ExportFinancialReportInput,
+  FinancialReportTypeInfo,
+  FinancialReportStatistics,
+  GenerateFinancialReportResponse,
+  ExportFinancialReportResponse,
+  RefreshFinancialReportResponse,
 } from './types';
 
 // API base paths - using new accounting-projects endpoints
@@ -482,6 +499,127 @@ export const accountsApi = {
 };
 
 // =================================================================
+// Financial Reports API - Using new financial-reports endpoint
+// =================================================================
+
+const FINANCIAL_REPORTS_API_BASE = '/accounting/financial-reports';
+
+export const financialReportApi = {
+  // Get all financial reports with pagination and filters
+  getReports: (params?: {
+    page?: number;
+    page_size?: number;
+    report_type?: FinancialReportType;
+    status?: FinancialReportStatus;
+    date_from?: string;
+    date_to?: string;
+    project_id?: string;
+    search?: string;
+  }) => apiClient.get<PaginatedResponse<FinancialReportListItem>>(`${FINANCIAL_REPORTS_API_BASE}/`, { params }),
+
+  // Get single report with full data
+  getReport: (reportId: string) =>
+    apiClient.get<FinancialReport>(`${FINANCIAL_REPORTS_API_BASE}/${reportId}/`),
+
+  // Generate a new report
+  generateReport: (data: GenerateFinancialReportInput) =>
+    apiClient.post<FinancialReport>(`${FINANCIAL_REPORTS_API_BASE}/`, data),
+
+  // Update report and regenerate
+  updateReport: (reportId: string, data: Partial<GenerateFinancialReportInput>) =>
+    apiClient.put<FinancialReport>(`${FINANCIAL_REPORTS_API_BASE}/${reportId}/`, data),
+
+  // Partial update report
+  patchReport: (reportId: string, data: Partial<GenerateFinancialReportInput>) =>
+    apiClient.patch<FinancialReport>(`${FINANCIAL_REPORTS_API_BASE}/${reportId}/`, data),
+
+  // Delete report
+  deleteReport: (reportId: string) =>
+    apiClient.delete(`${FINANCIAL_REPORTS_API_BASE}/${reportId}/`),
+
+  // Export report to Word/Excel/CSV
+  exportReport: (reportId: string, data: ExportFinancialReportInput) =>
+    apiClient.post<ExportFinancialReportResponse>(
+      `${FINANCIAL_REPORTS_API_BASE}/${reportId}/export/`,
+      data
+    ),
+
+  // List exports for a report
+  getExports: (reportId: string, params?: { page?: number; page_size?: number }) =>
+    apiClient.get<PaginatedResponse<FinancialReportExport>>(
+      `${FINANCIAL_REPORTS_API_BASE}/${reportId}/exports/`,
+      { params }
+    ),
+
+  // Download an export file
+  downloadExport: async (reportId: string, exportId?: string): Promise<Blob> => {
+    const url = exportId 
+      ? `${FINANCIAL_REPORTS_API_BASE}/${reportId}/download/?export_id=${exportId}`
+      : `${FINANCIAL_REPORTS_API_BASE}/${reportId}/download/`;
+    
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${url}`,
+      {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token')}`,
+        },
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error('Download failed');
+    }
+
+    return response.blob();
+  },
+
+  // Force refresh report data (clear cache and regenerate)
+  refreshReport: (reportId: string) =>
+    apiClient.post<RefreshFinancialReportResponse>(
+      `${FINANCIAL_REPORTS_API_BASE}/${reportId}/refresh/`
+    ),
+
+  // Get available report types with descriptions
+  getReportTypes: () =>
+    apiClient.get<{ report_types: FinancialReportTypeInfo[] }>(
+      `${FINANCIAL_REPORTS_API_BASE}/types/`
+    ),
+
+  // Get report templates
+  getTemplates: (params?: { report_type?: FinancialReportType }) =>
+    apiClient.get<{ templates: FinancialReportTemplate[] }>(
+      `${FINANCIAL_REPORTS_API_BASE}/templates/`,
+      { params }
+    ),
+
+  // Create a report template
+  createTemplate: (data: Partial<FinancialReportTemplate>) =>
+    apiClient.post<FinancialReportTemplate>(
+      `${FINANCIAL_REPORTS_API_BASE}/templates/`,
+      data
+    ),
+
+  // Get report schedules
+  getSchedules: () =>
+    apiClient.get<{ schedules: FinancialReportSchedule[] }>(
+      `${FINANCIAL_REPORTS_API_BASE}/schedules/`
+    ),
+
+  // Create a report schedule
+  createSchedule: (data: Partial<FinancialReportSchedule>) =>
+    apiClient.post<FinancialReportSchedule>(
+      `${FINANCIAL_REPORTS_API_BASE}/create_schedule/`,
+      data
+    ),
+
+  // Get report statistics
+  getStatistics: () =>
+    apiClient.get<FinancialReportStatistics>(
+      `${FINANCIAL_REPORTS_API_BASE}/statistics/`
+    ),
+};
+
+// =================================================================
 // Export all services
 // =================================================================
 
@@ -490,6 +628,7 @@ export const accountingWorkspaceApi = {
   documents: documentApi,
   entries: entryApi,
   reports: reportApi,
+  financialReports: financialReportApi,
   ai: aiProcessingApi,
   accounts: accountsApi,
   unrecognized: unrecognizedApi,

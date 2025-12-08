@@ -639,3 +639,370 @@ export interface ProjectTimeline {
     timestamp: string;
   }>;
 }
+
+// =================================================================
+// Financial Report Types (New Comprehensive Reporting System)
+// =================================================================
+
+export type FinancialReportType =
+  | 'INCOME_STATEMENT'
+  | 'BALANCE_SHEET'
+  | 'GENERAL_LEDGER'
+  | 'SUB_LEDGER'
+  | 'TRIAL_BALANCE'
+  | 'CASH_FLOW'
+  | 'ACCOUNTS_RECEIVABLE'
+  | 'ACCOUNTS_PAYABLE'
+  | 'EXPENSE_REPORT'
+  | 'TAX_SUMMARY'
+  | 'CUSTOM';
+
+export type FinancialReportStatus =
+  | 'DRAFT'
+  | 'GENERATING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'ARCHIVED';
+
+export type FinancialExportFormat = 'EXCEL' | 'WORD' | 'PDF' | 'CSV';
+
+export interface ReportFilters {
+  project_ids?: string[];
+  vendor_ids?: string[];
+  customer_ids?: string[];
+  account_ids?: string[];
+  account_types?: ('ASSET' | 'LIABILITY' | 'EQUITY' | 'REVENUE' | 'EXPENSE')[];
+  categories?: string[];
+  include_drafts?: boolean;
+  include_voided?: boolean;
+}
+
+export interface ReportDisplayConfig {
+  show_zero_balances?: boolean;
+  show_account_codes?: boolean;
+  group_by_category?: boolean;
+  include_charts?: boolean;
+  page_orientation?: 'portrait' | 'landscape';
+  paper_size?: 'A4' | 'Letter';
+  decimal_places?: number;
+}
+
+export interface FinancialReport {
+  id: string;
+  report_number: string;
+  name: string;
+  report_type: FinancialReportType;
+  report_type_display: string;
+  template?: string;
+  template_name?: string;
+  period_start: string;
+  period_end: string;
+  period_display?: string;
+  filters?: ReportFilters;
+  display_config?: ReportDisplayConfig;
+  include_comparison: boolean;
+  comparison_period_start?: string;
+  comparison_period_end?: string;
+  status: FinancialReportStatus;
+  generation_started_at?: string;
+  generation_completed_at?: string;
+  generation_error?: string;
+  cached_data?: Record<string, unknown>;
+  summary_totals?: Record<string, number>;
+  is_cache_valid?: boolean;
+  version: number;
+  parent_report?: string;
+  is_latest: boolean;
+  generated_by?: string;
+  generated_by_name?: string;
+  last_viewed_at?: string;
+  view_count: number;
+  notes?: string;
+  sections?: ReportSection[];
+  exports?: FinancialReportExport[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FinancialReportListItem {
+  id: string;
+  report_number: string;
+  name: string;
+  report_type: FinancialReportType;
+  template_name?: string;
+  period_start: string;
+  period_end: string;
+  status: FinancialReportStatus;
+  summary_totals?: Record<string, number>;
+  version: number;
+  is_latest: boolean;
+  generated_by_name?: string;
+  view_count: number;
+  export_count: number;
+  created_at: string;
+}
+
+export interface ReportSection {
+  id: string;
+  name: string;
+  section_type: string;
+  sequence: number;
+  header_text?: string;
+  footer_text?: string;
+  data?: Record<string, unknown>;
+  style_config?: Record<string, unknown>;
+  totals?: Record<string, number>;
+  children?: ReportSection[];
+}
+
+export interface FinancialReportExport {
+  id: string;
+  report: string;
+  report_name?: string;
+  export_format: FinancialExportFormat;
+  file?: string;
+  file_url?: string;
+  file_name: string;
+  file_size: number;
+  mime_type?: string;
+  status: 'PENDING' | 'PROCESSING' | 'COMPLETED' | 'FAILED';
+  error_message?: string;
+  export_config?: Record<string, unknown>;
+  expires_at?: string;
+  is_expired?: boolean;
+  download_count: number;
+  last_downloaded_at?: string;
+  exported_by?: string;
+  exported_by_name?: string;
+  created_at: string;
+}
+
+export interface FinancialReportTemplate {
+  id: string;
+  name: string;
+  report_type: FinancialReportType;
+  report_type_display?: string;
+  description?: string;
+  template_config?: Record<string, unknown>;
+  column_mappings?: Record<string, string>;
+  is_system: boolean;
+  is_active: boolean;
+  usage_count: number;
+  created_by?: string;
+  created_by_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface FinancialReportSchedule {
+  id: string;
+  name: string;
+  description?: string;
+  template?: string;
+  template_name?: string;
+  is_active: boolean;
+  schedule_type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+  schedule_day?: number;
+  schedule_time: string;
+  timezone: string;
+  period_type: 'PREVIOUS' | 'CURRENT' | 'CUSTOM';
+  auto_export: boolean;
+  export_formats: FinancialExportFormat[];
+  send_email: boolean;
+  email_recipients: string[];
+  email_subject_template?: string;
+  last_run_at?: string;
+  next_run_at?: string;
+  last_run_status?: 'SUCCESS' | 'FAILED' | 'SKIPPED';
+  run_count: number;
+  created_by?: string;
+  created_by_name?: string;
+  created_at: string;
+  updated_at: string;
+}
+
+// =================================================================
+// Report Generation Input Types
+// =================================================================
+
+export interface GenerateFinancialReportInput {
+  name: string;
+  report_type: FinancialReportType;
+  template_id?: string;
+  period_start: string;
+  period_end: string;
+  filters?: ReportFilters;
+  display_config?: ReportDisplayConfig;
+  include_comparison?: boolean;
+  comparison_period_start?: string;
+  comparison_period_end?: string;
+  notes?: string;
+}
+
+export interface UpdateReportInput {
+  regenerate_data?: boolean;
+  update_period?: boolean;
+  period_start?: string;
+  period_end?: string;
+  filters?: ReportFilters;
+  notes?: string;
+}
+
+export interface ExportFinancialReportInput {
+  export_format: FinancialExportFormat;
+  export_config?: {
+    include_charts?: boolean;
+    page_orientation?: 'portrait' | 'landscape';
+    paper_size?: 'A4' | 'Letter';
+    include_header?: boolean;
+    include_footer?: boolean;
+    company_logo?: boolean;
+  };
+}
+
+export interface CreateScheduleInput {
+  name: string;
+  description?: string;
+  template_id: string;
+  schedule_type: 'DAILY' | 'WEEKLY' | 'MONTHLY' | 'QUARTERLY' | 'YEARLY';
+  schedule_day?: number;
+  schedule_time: string;
+  timezone?: string;
+  period_type: 'PREVIOUS' | 'CURRENT' | 'CUSTOM';
+  auto_export?: boolean;
+  export_formats?: FinancialExportFormat[];
+  send_email?: boolean;
+  email_recipients?: string[];
+  email_subject_template?: string;
+}
+
+// =================================================================
+// Report Data Response Types
+// =================================================================
+
+export interface IncomeStatementLine {
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  current_amount: number;
+  comparison_amount?: number;
+  variance?: number;
+  variance_percent?: number;
+}
+
+export interface IncomeStatementData {
+  revenue: IncomeStatementLine[];
+  total_revenue: number;
+  cost_of_goods: IncomeStatementLine[];
+  total_cost_of_goods: number;
+  gross_profit: number;
+  operating_expenses: IncomeStatementLine[];
+  total_operating_expenses: number;
+  operating_income: number;
+  other_income: IncomeStatementLine[];
+  other_expenses: IncomeStatementLine[];
+  income_before_tax: number;
+  tax_expense: number;
+  net_income: number;
+  comparison_total_revenue?: number;
+  comparison_net_income?: number;
+}
+
+export interface BalanceSheetLine {
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  balance: number;
+  comparison_balance?: number;
+}
+
+export interface BalanceSheetData {
+  current_assets: BalanceSheetLine[];
+  total_current_assets: number;
+  fixed_assets: BalanceSheetLine[];
+  total_fixed_assets: number;
+  other_assets: BalanceSheetLine[];
+  total_other_assets: number;
+  total_assets: number;
+  current_liabilities: BalanceSheetLine[];
+  total_current_liabilities: number;
+  long_term_liabilities: BalanceSheetLine[];
+  total_long_term_liabilities: number;
+  total_liabilities: number;
+  equity: BalanceSheetLine[];
+  retained_earnings: number;
+  total_equity: number;
+  total_liabilities_and_equity: number;
+  is_balanced: boolean;
+}
+
+export interface GeneralLedgerEntry {
+  date: string;
+  entry_number: string;
+  description: string;
+  reference?: string;
+  debit: number;
+  credit: number;
+  balance: number;
+}
+
+export interface GeneralLedgerAccount {
+  account_id: string;
+  account_code: string;
+  account_name: string;
+  account_type: string;
+  opening_balance: number;
+  entries: GeneralLedgerEntry[];
+  total_debits: number;
+  total_credits: number;
+  closing_balance: number;
+}
+
+export interface GeneralLedgerData {
+  accounts: GeneralLedgerAccount[];
+  total_debits: number;
+  total_credits: number;
+  entry_count: number;
+}
+
+export interface FinancialReportData {
+  report_type: FinancialReportType;
+  report_name: string;
+  period_start?: string;
+  period_end?: string;
+  generated_at: string;
+  data: IncomeStatementData | BalanceSheetData | GeneralLedgerData | Record<string, unknown>;
+  summary?: Record<string, number | string>;
+  metadata?: Record<string, unknown>;
+}
+
+// =================================================================
+// Report API Response Types
+// =================================================================
+
+export interface FinancialReportTypeInfo {
+  value: FinancialReportType;
+  label: string;
+  description: string;
+}
+
+export interface FinancialReportStatistics {
+  total_reports: number;
+  by_type: Record<FinancialReportType, number>;
+  by_status: Record<FinancialReportStatus, number>;
+  recent_exports: FinancialReportExport[];
+}
+
+export interface GenerateFinancialReportResponse {
+  report: FinancialReport;
+}
+
+export interface ExportFinancialReportResponse {
+  message: string;
+  export: FinancialReportExport;
+}
+
+export interface RefreshFinancialReportResponse {
+  message: string;
+  report: FinancialReport;
+}
