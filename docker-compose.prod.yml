@@ -1,0 +1,27 @@
+# ===================================
+# AutoBooks-UI Docker Compose (Production)
+# Override file for production deployment
+# Usage: docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
+# ===================================
+
+services:
+  ui:
+    build:
+      target: production
+      args:
+        - NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+        - NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+        - NEXT_PUBLIC_SENTRY_ORG=${NEXT_PUBLIC_SENTRY_ORG}
+        - NEXT_PUBLIC_SENTRY_PROJECT=${NEXT_PUBLIC_SENTRY_PROJECT}
+    environment:
+      - NODE_ENV=production
+      - BUILD_TARGET=production
+    restart: always
+    deploy:
+      resources:
+        limits:
+          cpus: '1'
+          memory: 1G
+        reservations:
+          cpus: '0.25'
+          memory: 256M

@@ -1,11 +1,12 @@
 # ===================================
 # AutoBooks-UI Dockerfile (Next.js)
+# Multi-stage build for optimized production image
 # ===================================
 
 # ===================================
 # Dependencies Stage
 # ===================================
-FROM node:20-alpine AS deps
+FROM node:22-alpine AS deps
 
 # Install libc6-compat for Alpine compatibility
 RUN apk add --no-cache libc6-compat
@@ -19,9 +20,33 @@ COPY package.json pnpm-lock.yaml ./
 RUN corepack enable pnpm && pnpm install --frozen-lockfile
 
 # ===================================
+# Development Stage
+# ===================================
+FROM node:22-alpine AS development
+
+WORKDIR /app
+
+# Copy dependencies from deps stage
+COPY --from=deps /app/node_modules ./node_modules
+COPY . .
+
+# Set environment variables
+ENV NODE_ENV=development
+ENV NEXT_TELEMETRY_DISABLED=1
+
+# Enable pnpm
+RUN corepack enable pnpm
+
+# Expose development port
+EXPOSE 3000
+
+# Start development server with hot-reload
+CMD ["pnpm", "dev"]
+
+# ===================================
 # Builder Stage
 # ===================================
-FROM node:20-alpine AS builder
+FROM node:22-alpine AS builder
 
 WORKDIR /app
 
@@ -30,8 +55,17 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Set environment variables for build
+ARG NEXT_PUBLIC_API_BASE_URL
+ARG NEXT_PUBLIC_SENTRY_DSN
+ARG NEXT_PUBLIC_SENTRY_ORG
+ARG NEXT_PUBLIC_SENTRY_PROJECT
+
 ENV NEXT_TELEMETRY_DISABLED=1
 ENV NODE_ENV=production
+ENV NEXT_PUBLIC_API_BASE_URL=${NEXT_PUBLIC_API_BASE_URL}
+ENV NEXT_PUBLIC_SENTRY_DSN=${NEXT_PUBLIC_SENTRY_DSN}
+ENV NEXT_PUBLIC_SENTRY_ORG=${NEXT_PUBLIC_SENTRY_ORG}
+ENV NEXT_PUBLIC_SENTRY_PROJECT=${NEXT_PUBLIC_SENTRY_PROJECT}
 
 # Build the application
 RUN corepack enable pnpm && pnpm build
@@ -39,7 +73,7 @@ RUN corepack enable pnpm && pnpm build
 # ===================================
 # Production Stage
 # ===================================
-FROM node:20-alpine AS runner
+FROM node:22-alpine AS production
 
 WORKDIR /app
 
