@@ -142,7 +142,7 @@ export const documentApi = {
     formData.append('project_id', projectId);
 
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${PROJECT_API_BASE}/${projectId}/bulk-upload/`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001'}/api/v1${PROJECT_API_BASE}/${projectId}/bulk-upload/`,
       {
         method: 'POST',
         headers: {
@@ -256,7 +256,7 @@ export const reportApi = {
   // Download report
   downloadReport: async (projectId: string, reportId: string): Promise<Blob> => {
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${ASSISTANT_API_BASE}/reports/${reportId}/download/`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001'}/api/v1${ASSISTANT_API_BASE}/reports/${reportId}/download/`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token')}`,
@@ -558,7 +558,7 @@ export const financialReportApi = {
       : `${FINANCIAL_REPORTS_API_BASE}/${reportId}/download/`;
     
     const response = await fetch(
-      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1${url}`,
+      `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001'}/api/v1${url}`,
       {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token') || localStorage.getItem('access_token')}`,

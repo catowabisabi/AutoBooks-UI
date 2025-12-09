@@ -87,7 +87,7 @@ export async function generateInvoicePdf(
   };
 
   try {
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001';
     const response = await fetch(`${apiBaseUrl}/api/v1/invoices/generate-pdf/`, {
       method: 'POST',
       headers: {
@@ -122,7 +122,7 @@ export async function addStampToPdf(
     formData.append('stamp_image', stamp.image_data);
     formData.append('position', stamp.position || 'bottom-right');
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001';
     const response = await fetch(`${apiBaseUrl}/api/v1/documents/add-stamp/`, {
       method: 'POST',
       credentials: 'include',
@@ -158,7 +158,7 @@ export async function addSignatureToPdf(
       formData.append('title', signature.title);
     }
 
-    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000';
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001';
     const response = await fetch(`${apiBaseUrl}/api/v1/documents/add-signature/`, {
       method: 'POST',
       credentials: 'include',
