@@ -3,16 +3,34 @@ import { withSentryConfig } from '@sentry/nextjs';
 
 // Define the base Next.js configuration
 const baseConfig: NextConfig = {
+  // Enable standalone output for Docker deployment
+  output: 'standalone',
+  
+  // React strict mode for better development experience
+  reactStrictMode: true,
+  
+  // Disable powered by header for security
+  poweredByHeader: false,
+  
   images: {
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'api.slingacademy.com',
         port: ''
+      },
+      {
+        protocol: 'https',
+        hostname: '**',
       }
     ]
   },
-  transpilePackages: ['geist']
+  transpilePackages: ['geist'],
+  
+  // Environment variables
+  env: {
+    NEXT_PUBLIC_API_BASE_URL: process.env.NEXT_PUBLIC_API_BASE_URL,
+  },
 };
 
 let configWithPlugins = baseConfig;

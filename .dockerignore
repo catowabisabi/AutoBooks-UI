@@ -1,0 +1,54 @@
+# ===================================
+# AutoBooks UI - Docker Ignore
+# ===================================
+
+# Dependencies
+node_modules
+.pnpm-store
+
+# Build output
+.next
+out
+build
+dist
+
+# IDE
+.idea
+.vscode
+*.swp
+*.swo
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Logs
+*.log
+logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+
+# Testing
+coverage
+.nyc_output
+
+# Git
+.git
+.gitignore
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Documentation (keep README)
+*.md
+!README.md
+
+# Storybook
+storybook-static
+
+# Misc
+*.tsbuildinfo
+next-env.d.ts
