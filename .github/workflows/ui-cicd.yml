@@ -1,157 +1,17 @@
-# ===================================
-# AutoBooks-UI CI/CD Pipeline
-# Build, Push, and Deploy to Hostinger VPS
-# Supports: dev / prod environments
-# ===================================
-
-name: AutoBooks-UI CI/CD
+name: AutoBooks-UI Direct Deploy
 
 on:
   push:
-    branches:
+    branches: 
       - main
       - develop
-    paths:
-      - 'src/**'
-      - 'public/**'
-      - 'package.json'
-      - 'pnpm-lock.yaml'
-      - 'Dockerfile'
-      - 'docker-compose*.yml'
-      - 'next.config.ts'
-      - '.github/workflows/ui-cicd.yml'
-  pull_request:
-    branches:
-      - main
-      - develop
-
-env:
-  REGISTRY: docker.io
-  IMAGE_NAME: ${{ secrets.DOCKERHUB_USERNAME }}/autobooks-ui
 
 jobs:
-  # ===================================
-  # Lint and Type Check Job
-  # ===================================
-  lint:
-    name: Lint and Type Check
+  deploy:
     runs-on: ubuntu-latest
-    # Temporarily disable lint/type-check to unblock pipeline
-    if: false
-    
+
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '22'
-
-      - name: Install pnpm
-        uses: pnpm/action-setup@v2
-        with:
-          version: 9
-
-      - name: Get pnpm store directory
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-
-      - name: Setup pnpm cache
-        uses: actions/cache@v4
-        with:
-          path: ${{ env.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
-
-      - name: Install dependencies
-        run: pnpm install --frozen-lockfile
-
-      - name: Run ESLint
-        run: pnpm lint
-
-      - name: Run Type Check
-        run: pnpm exec tsc --noEmit
-
-  # ===================================
-  # Build and Push Job
-  # ===================================
-  build:
-    name: Build and Push Docker Image
-    runs-on: ubuntu-latest
-    # Temporarily allow build without lint
-    # needs: lint
-    if: github.event_name == 'push'
-    
-    outputs:
-      image_tag: ${{ steps.meta.outputs.tags }}
-      
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      - name: Set environment
-        id: set-env
-        run: |
-          if [[ "${{ github.ref }}" == "refs/heads/main" ]]; then
-            echo "ENVIRONMENT=prod" >> $GITHUB_OUTPUT
-            echo "TAG_SUFFIX=latest" >> $GITHUB_OUTPUT
-            echo "API_URL=${{ secrets.PROD_API_URL }}" >> $GITHUB_OUTPUT
-          else
-            echo "ENVIRONMENT=dev" >> $GITHUB_OUTPUT
-            echo "TAG_SUFFIX=dev" >> $GITHUB_OUTPUT
-            echo "API_URL=${{ secrets.DEV_API_URL }}" >> $GITHUB_OUTPUT
-          fi
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
-      - name: Login to Docker Hub
-        uses: docker/login-action@v3
-        with:
-          username: ${{ secrets.DOCKERHUB_USERNAME }}
-          password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-      - name: Extract metadata
-        id: meta
-        uses: docker/metadata-action@v5
-        with:
-          images: ${{ env.IMAGE_NAME }}
-          tags: |
-            type=raw,value=${{ steps.set-env.outputs.TAG_SUFFIX }}
-            type=sha,prefix=${{ steps.set-env.outputs.ENVIRONMENT }}-
-
-      - name: Build and push
-        uses: docker/build-push-action@v5
-        with:
-          context: .
-          file: ./Dockerfile
-          target: production
-          push: true
-          tags: ${{ steps.meta.outputs.tags }}
-          labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          build-args: |
-            NEXT_PUBLIC_API_BASE_URL=${{ steps.set-env.outputs.API_URL }}
-            NEXT_PUBLIC_SENTRY_DSN=${{ secrets.SENTRY_DSN }}
-            NEXT_PUBLIC_SENTRY_ORG=${{ secrets.SENTRY_ORG }}
-            NEXT_PUBLIC_SENTRY_PROJECT=${{ secrets.SENTRY_PROJECT }}
-
-  # ===================================
-  # Deploy to Development
-  # ===================================
-  deploy-dev:
-    name: Deploy to Development
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/develop'
-    environment: development
-    
-    steps:
-      - name: Deploy to Hostinger VPS (Dev)
+      - name: SSH to VPS & Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.VPS_HOST }}
@@ -159,85 +19,14 @@ jobs:
           key: ${{ secrets.VPS_SSH_KEY }}
           port: ${{ secrets.VPS_PORT || 22 }}
           script: |
-            cd /opt/autobooks-ui-dev
-            
-            # Pull latest image
-            docker pull ${{ env.IMAGE_NAME }}:dev
-            
-            # Update environment file
-            echo "Updating environment..."
-            
-            # Stop and restart with new image
-            docker compose -f docker-compose.yml -f docker-compose.dev.yml down
-            docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
-            
-            # Cleanup old images
-            docker image prune -f
-            
-            # Health check
-            sleep 15
-            curl -f http://localhost:3000/ || exit 1
-            
-            echo "Development deployment completed!"
+            cd /opt/autobooks-ui   # <-- 你放project嘅folder
+            echo "🔄 Pull latest code..."
+            git reset --hard
+            git pull origin $( [[ "${GITHUB_REF_NAME}" == "main" ]] && echo "main" || echo "develop" )
 
-  # ===================================
-  # Deploy to Production
-  # ===================================
-  deploy-prod:
-    name: Deploy to Production
-    runs-on: ubuntu-latest
-    needs: build
-    if: github.ref == 'refs/heads/main'
-    environment: production
-    
-    steps:
-      - name: Deploy to Hostinger VPS (Prod)
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.VPS_HOST }}
-          username: ${{ secrets.VPS_USER }}
-          key: ${{ secrets.VPS_SSH_KEY }}
-          port: ${{ secrets.VPS_PORT || 22 }}
-          script: |
-            cd /opt/autobooks-ui
-            
-            # Pull latest image
-            docker pull ${{ env.IMAGE_NAME }}:latest
-            
-            # Stop and restart with new image
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml down
-            docker compose -f docker-compose.yml -f docker-compose.prod.yml up -d
-            
-            # Cleanup old images
-            docker image prune -f
-            
-            # Health check with retry
-            for i in {1..5}; do
-              sleep 10
-              if curl -f http://localhost:3000/; then
-                echo "Production deployment completed!"
-                exit 0
-              fi
-              echo "Health check attempt $i failed, retrying..."
-            done
-            
-            echo "Health check failed after 5 attempts"
-            exit 1
+            echo "🔨 Building app..."
+            docker compose down
+            docker compose build --no-cache
+            docker compose up -d
 
-  # ===================================
-  # Notify on Completion
-  # ===================================
-  notify:
-    name: Notify Deployment Status
-    runs-on: ubuntu-latest
-    needs: [deploy-dev, deploy-prod]
-    if: always() && (needs.deploy-dev.result != 'skipped' || needs.deploy-prod.result != 'skipped')
-    
-    steps:
-      - name: Send notification
-        run: |
-          if [[ "${{ needs.deploy-dev.result }}" == "success" ]] || [[ "${{ needs.deploy-prod.result }}" == "success" ]]; then
-            echo "✅ UI Deployment successful!"
-          else
-            echo "❌ UI Deployment failed!"
-          fi
+            echo "🚀 Deployment complete!"
