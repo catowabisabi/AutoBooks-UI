@@ -471,7 +471,7 @@
 //     try {
 //       // Use your existing environment variable
 //       const API_BASE_URL =
-//         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+//         process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 //
 //       const response = await fetch(
 //         `${API_BASE_URL}/api/v1/document-assistant/process/`,
@@ -895,7 +895,7 @@ export default function WorkflowBuilder() {
     try {
       // Use your existing environment variable
       const API_BASE_URL =
-        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8000';
+        process.env.NEXT_PUBLIC_API_BASE_URL || 'http://localhost:8001';
 
       const response = await fetch(
         `${API_BASE_URL}/api/v1/document-assistant/process/`,

@@ -102,7 +102,7 @@ export default function EmailAssistantClient() {
       // Fallback: try legacy endpoint if new API returns empty
       const fetchEmails = async () => {
         try {
-          const res = await fetch('http://localhost:8000/email-assistant/emails');
+          const res = await fetch('http://localhost:8001/email-assistant/emails');
           const data = await res.json();
           setEmails(data);
         } catch (error) {
@@ -241,7 +241,7 @@ export default function EmailAssistantClient() {
 
   const handleSendEmail = async (email: Email) => {
     try {
-      const res = await fetch('http://localhost:8000/email-assistant/send', {
+      const res = await fetch('http://localhost:8001/email-assistant/send', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(email)
