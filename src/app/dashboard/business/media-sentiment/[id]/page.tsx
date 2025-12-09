@@ -21,7 +21,6 @@ import {
   IconMoodNeutral,
   IconMoodSad,
   IconEye,
-  IconThumbUp,
   IconClock,
   IconFileText,
   IconChartBar,
@@ -76,6 +75,7 @@ export default function MediaSentimentDetailPage({ params }: { params: Promise<{
         const result = await mediaSentimentApi.get(resolvedParams.id);
         setData(result);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch media sentiment:', error);
         toast.error('無法載入媒體情緒資料');
         // Use mock data for demo

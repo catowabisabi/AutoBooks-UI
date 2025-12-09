@@ -104,6 +104,7 @@ export default function IPOMandateDetailPage() {
         const data = await ipoMandatesApi.get(mandateId);
         setMandate(data);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch mandate:', error);
         toast.error('找不到該IPO項目');
         router.push('/dashboard/business/ipo-mandates');

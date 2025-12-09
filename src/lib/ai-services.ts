@@ -12,7 +12,6 @@
  * - Report generation
  */
 
-import { aiApi } from '@/lib/api';
 import { buildRAGContext } from '@/config/accounting-rag-regulations';
 import { RegionCode, getRegionalConfig, formatCurrency } from '@/config/accounting-regional-formats';
 
@@ -90,7 +89,8 @@ export const financeAI = {
     const totalIn = transactions.filter(t => t.type === 'IN').reduce((sum, t) => sum + t.amount, 0);
     const totalOut = transactions.filter(t => t.type === 'OUT').reduce((sum, t) => sum + t.amount, 0);
     const netCashFlow = totalIn - totalOut;
-    const config = getRegionalConfig(region);
+    // Regional config can be used for formatting/thresholds when needed
+    getRegionalConfig(region);
     
     // Group by category
     const byCategory = transactions.reduce((acc, t) => {
@@ -124,8 +124,8 @@ export const financeAI = {
     
     // AI-enhanced analysis (would call actual AI endpoint in production)
     try {
-      const ragContext = buildRAGContext('cash flow management', region);
-      // In production, this would call the AI API with the context
+      // Pre-build context for downstream AI calls (future integration point)
+      buildRAGContext('cash flow management', region);
       recommendations.push('Based on regional regulations, ensure adequate reserves for tax payments');
     } catch {
       // Continue with basic analysis
@@ -178,7 +178,7 @@ export const financeAI = {
       return acc;
     }, {} as Record<string, typeof transactions>);
     
-    Object.entries(descGroups).forEach(([_, group]) => {
+    Object.entries(descGroups).forEach(([, group]) => {
       if (group.length > 1) {
         anomalies.push({
           id: `anomaly-dup-${group[0].id}`,

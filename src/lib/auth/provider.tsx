@@ -48,6 +48,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       const userData = await authApi.getProfile();
       setUser(userData);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to refresh user:', error);
       setUser(null);
       localStorage.removeItem('access_token');
@@ -105,6 +106,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       await authApi.logout();
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Logout error:', error);
     } finally {
       localStorage.removeItem('access_token');

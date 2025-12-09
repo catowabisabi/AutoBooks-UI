@@ -133,19 +133,18 @@ const getFileIcon = (type: string) => {
 };
 
 export default function RagDocumentPanel({
-  onDocumentSelect,
   onExtractedDataClick
 }: RagDocumentPanelProps) {
   const { t } = useTranslation();
   const [files, setFiles] = useState<UploadedFile[]>(DEMO_FILES);
   const [expandedFiles, setExpandedFiles] = useState<Set<string>>(new Set(['1']));
   const [isDragging, setIsDragging] = useState(false);
-  const [loadingDocs, setLoadingDocs] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Load real documents on mount
   useEffect(() => {
     loadDocuments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const loadDocuments = async () => {
@@ -169,6 +168,7 @@ export default function RagDocumentPanel({
         setFiles(mappedFiles);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error loading documents:', error);
       // Keep demo files on error
     } finally {
@@ -267,11 +267,12 @@ export default function RagDocumentPanel({
                     tables: [],
                     entities: []
                   }
-                }
-              : f
+              }
+            : f
           )
         );
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Error uploading file:', error);
         // Fallback to demo processing
         let progress = 0;

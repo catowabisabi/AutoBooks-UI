@@ -79,6 +79,7 @@ export function exportToCSV<T extends Record<string, unknown>>(
   columns?: { key: keyof T; header: string }[]
 ): void {
   if (data.length === 0) {
+    // eslint-disable-next-line no-console
     console.warn('No data to export');
     return;
   }
@@ -632,12 +633,14 @@ export function generateReportHTML(report: ReportData): string {
 export function printToPDF(htmlContent: string, title: string = 'Document'): void {
   const printWindow = window.open('', '_blank');
   if (!printWindow) {
+    // eslint-disable-next-line no-console
     console.error('無法開啟列印視窗，請檢查彈出視窗阻擋設定');
     return;
   }
 
   printWindow.document.write(htmlContent);
   printWindow.document.close();
+  printWindow.document.title = title;
   
   // 等待內容載入後列印
   printWindow.onload = () => {

@@ -411,6 +411,7 @@ export function useDashboardData(): DashboardData {
       });
       
     } catch (err) {
+      // eslint-disable-next-line no-console
       console.error('[Dashboard] Error fetching data:', err);
       // 使用 mock 數據
       setData({

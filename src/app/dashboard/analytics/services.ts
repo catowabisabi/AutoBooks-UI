@@ -98,6 +98,7 @@ export async function sendAnalystQuery(
     const data = await response.json();
     return data as RechartsResponse;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error sending analyst query:', error);
     throw error;
   }
@@ -138,6 +139,7 @@ export async function getSalesAnalytics(params?: {
 
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching sales analytics:', error);
     return getDemoSalesAnalytics();
   }
@@ -168,6 +170,7 @@ export async function getFinanceAnalytics(params?: {
 
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching finance analytics:', error);
     return getDemoFinanceAnalytics();
   }
@@ -190,6 +193,7 @@ export async function saveDashboard(dashboard: Partial<DashboardData>): Promise<
     
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error saving dashboard:', error);
     throw error;
   }
@@ -208,6 +212,7 @@ export async function getDashboard(id: string): Promise<DashboardData | null> {
 
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching dashboard:', error);
     throw error;
   }
@@ -225,6 +230,7 @@ export async function getDashboards(): Promise<DashboardData[]> {
     const data = await response.json();
     return data.results || data;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error fetching dashboards:', error);
     return getDemoDashboards();
   }
@@ -246,6 +252,7 @@ export async function updateDashboard(id: string, dashboard: Partial<DashboardDa
     
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error updating dashboard:', error);
     throw error;
   }
@@ -261,6 +268,7 @@ export async function deleteDashboard(id: string): Promise<void> {
       throw new Error('Failed to delete dashboard');
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error deleting dashboard:', error);
     throw error;
   }
@@ -283,6 +291,7 @@ export async function addWidget(dashboardId: string, widget: Partial<WidgetData>
     
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error adding widget:', error);
     throw error;
   }
@@ -304,6 +313,7 @@ export async function updateWidget(widgetId: string, widget: Partial<WidgetData>
     
     return response.json();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error updating widget:', error);
     throw error;
   }
@@ -319,6 +329,7 @@ export async function deleteWidget(widgetId: string): Promise<void> {
       throw new Error('Failed to delete widget');
     }
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error deleting widget:', error);
     throw error;
   }

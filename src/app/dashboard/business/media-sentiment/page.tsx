@@ -135,6 +135,7 @@ export default function MediaSentimentPage() {
       const results = response.results || [];
       
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[MediaSentiment] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -143,6 +144,7 @@ export default function MediaSentimentPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch media sentiment:', error);
       setIsUsingMockData(true);
       setData(mockData);
@@ -151,6 +153,7 @@ export default function MediaSentimentPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

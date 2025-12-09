@@ -558,7 +558,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@/components/ui/tooltip';
-import { IconEdit, IconResize, IconTrash, IconDotsVertical, IconDownload, IconCopy, IconPhoto, IconFileTypeSvg, IconClock } from '@tabler/icons-react';
+import { IconEdit, IconResize, IconTrash, IconDotsVertical, IconCopy, IconPhoto, IconFileTypeSvg, IconClock } from '@tabler/icons-react';
 import { ChartRenderer } from './chart-renderer';
 import { MarkdownDisplay } from '@/components/ui/markdown-display';
 import { toast } from 'sonner';

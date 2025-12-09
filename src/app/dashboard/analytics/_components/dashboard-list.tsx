@@ -461,6 +461,7 @@ import { Badge } from '@/components/ui/badge';
 import { useRouter } from 'next/navigation';
 import { getDashboards, saveDashboard, DashboardData } from '../services';
 
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 type DashboardCardProps = React.ComponentProps<typeof DashboardCard>;
 
 type SortField =
@@ -500,6 +501,7 @@ export default function DashboardList() {
       const data = await getDashboards();
       setDashboardsData(data);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load dashboards:', error);
     } finally {
       setIsLoading(false);
@@ -620,6 +622,7 @@ export default function DashboardList() {
       // Navigate to the new dashboard
       router.push(`/dashboard/analytics/${newDashboard.id}`);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error creating dashboard:', error);
       // On API error, generate local ID and navigate
       const newId = `dashboard-${Date.now()}`;

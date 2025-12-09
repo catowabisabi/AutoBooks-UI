@@ -162,6 +162,7 @@ export default function AnnouncementsPage() {
       const results = response.results || [];
       
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[Announcements] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -170,6 +171,7 @@ export default function AnnouncementsPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch announcements:', error);
       setIsUsingMockData(true);
       setData(mockData);
@@ -178,6 +180,7 @@ export default function AnnouncementsPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

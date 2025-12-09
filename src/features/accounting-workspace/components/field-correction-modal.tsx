@@ -523,7 +523,7 @@ export function FieldCorrectionModal({
                     <Alert>
                       <AlertDescription className="text-xs">
                         Bounding box shows the field location on the receipt image.
-                        Click "Edit" to modify coordinates.
+                        Click &quot;Edit&quot; to modify coordinates.
                       </AlertDescription>
                     </Alert>
                   )}

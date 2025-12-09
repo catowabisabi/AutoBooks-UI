@@ -150,8 +150,10 @@ export default function AiAssistantPanel() {
     const startAssistant = async () => {
       try {
         await analystApi.start();
+        // eslint-disable-next-line no-console
         console.log('Assistant started');
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to start assistant:', error);
       }
     };
@@ -197,6 +199,7 @@ export default function AiAssistantPanel() {
 
       setMessages((prev) => [...prev, aiResponse]);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Error getting response from analyst assistant:', error);
 
       const errorResponse: Message = {
@@ -234,6 +237,7 @@ export default function AiAssistantPanel() {
     window.dispatchEvent(event);
 
     // Also log for debugging
+    // eslint-disable-next-line no-console
     console.log('Adding chart to dashboard:', chart);
 
     toast(`Chart "${chart.title}" would be added to dashboard`);

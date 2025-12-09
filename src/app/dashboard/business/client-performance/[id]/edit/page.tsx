@@ -69,6 +69,7 @@ export default function ClientPerformanceEditPage({ params }: { params: Promise<
         const response = await companiesApi.list({ page_size: 1000 });
         setCompanies(response.results || []);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch companies:', error);
         // Mock companies for demo
         setCompanies([
@@ -97,6 +98,7 @@ export default function ClientPerformanceEditPage({ params }: { params: Promise<
           is_active: result.is_active,
         });
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch client performance:', error);
         toast.error('無法載入客戶績效資料');
       } finally {

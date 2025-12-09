@@ -20,6 +20,7 @@ export async function exportChartToPng(
       // @ts-expect-error - html2canvas is an optional dependency
       html2canvasModule = await import('html2canvas');
     } catch {
+      // eslint-disable-next-line no-console
       console.warn('html2canvas not installed. Install with: pnpm add html2canvas');
       // Fallback to browser print functionality
       window.print();
@@ -38,6 +39,7 @@ export async function exportChartToPng(
     link.href = canvas.toDataURL('image/png');
     link.click();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to export chart to PNG:', error);
     throw new Error('Failed to export chart');
   }
@@ -83,6 +85,7 @@ export function exportChartToSvg(
     link.click();
     URL.revokeObjectURL(link.href);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to export chart to SVG:', error);
     throw new Error('Failed to export chart');
   }
@@ -96,6 +99,7 @@ export async function copyChartData(data: any[]): Promise<void> {
     const jsonString = JSON.stringify(data, null, 2);
     await navigator.clipboard.writeText(jsonString);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to copy chart data:', error);
     throw new Error('Failed to copy data');
   }
@@ -129,6 +133,7 @@ export async function copyChartDataAsCsv(data: any[]): Promise<void> {
     
     await navigator.clipboard.writeText(csvRows.join('\n'));
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Failed to copy chart data as CSV:', error);
     throw new Error('Failed to copy data');
   }

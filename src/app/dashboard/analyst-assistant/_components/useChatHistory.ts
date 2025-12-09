@@ -53,6 +53,7 @@ export function loadChatSessions(): ChatSession[] {
     // Sort by updatedAt descending
     return sessions.sort((a, b) => b.updatedAt - a.updatedAt);
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('[ChatHistory] Failed to load sessions:', error);
     return [];
   }
@@ -79,6 +80,7 @@ export function saveChatSessions(sessions: ChatSession[]): boolean {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(trimmedSessions));
     return true;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('[ChatHistory] Failed to save sessions:', error);
     // If quota exceeded, try to clear old sessions
     if (error instanceof DOMException && error.name === 'QuotaExceededError') {
@@ -171,6 +173,7 @@ export function clearAllSessions(): boolean {
     localStorage.removeItem(STORAGE_KEY);
     return true;
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('[ChatHistory] Failed to clear sessions:', error);
     return false;
   }

@@ -9,7 +9,7 @@
  * - Type-safe queries and mutations
  */
 
-import { useQuery, useMutation, useQueryClient, UseQueryOptions, UseMutationOptions } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient, UseQueryOptions } from '@tanstack/react-query';
 import { authApi } from './auth';
 import { usersApi } from './users';
 import { tenantsApi } from './tenants';
@@ -18,28 +18,16 @@ import { hrmsApi } from './hrms';
 import { projectsModule } from './projects';
 import type {
   User,
-  UserProfile,
-  UserProfileUpdateRequest,
   UserSettings,
   UserSettingsUpdateRequest,
-  Tenant,
-  TenantListItem,
   TenantCreateRequest,
-  Account,
   AccountCreateRequest,
-  Invoice,
   InvoiceCreateRequest,
-  Expense,
   ExpenseCreateRequest,
-  Employee,
   EmployeeCreateRequest,
-  Project,
   ProjectCreateRequest,
-  Task,
   TaskCreateRequest,
-  PaginatedResponse,
   ListParams,
-  UUID,
 } from './types';
 
 // =================================================================

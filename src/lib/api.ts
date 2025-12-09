@@ -63,11 +63,13 @@ class ApiService {
   // 刷新 access token
   async refreshAccessToken(): Promise<boolean> {
     if (!this.refreshToken) {
+      // eslint-disable-next-line no-console
       console.warn('[API] No refresh token available');
       return false;
     }
 
     try {
+      // eslint-disable-next-line no-console
       console.log('[API] Attempting to refresh token...');
       const response = await fetch(`${this.baseUrl}/api/v1/auth/token/refresh/`, {
         method: 'POST',
@@ -83,15 +85,18 @@ class ApiService {
           localStorage.setItem('token', data.access);
           localStorage.setItem('access_token', data.access);
         }
+        // eslint-disable-next-line no-console
         console.log('[API] Token refreshed successfully');
         return true;
       }
       
       // Refresh token 也過期了，清除所有 token
+      // eslint-disable-next-line no-console
       console.warn('[API] Refresh token expired or invalid');
       this.clearTokens();
       return false;
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('[API] Token refresh error:', error);
       return false;
     }

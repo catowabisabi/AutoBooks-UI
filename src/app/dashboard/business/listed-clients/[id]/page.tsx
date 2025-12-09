@@ -6,11 +6,11 @@ import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { toast } from 'sonner';
-import { IconArrowLeft, IconEdit, IconTrash, IconExternalLink } from '@tabler/icons-react';
+import { IconArrowLeft, IconEdit, IconTrash } from '@tabler/icons-react';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -90,6 +90,7 @@ export default function ListedClientDetailPage() {
         const data = await listedClientsApi.get(clientId);
         setClient(data);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch client:', error);
         toast.error('找不到該客戶');
         router.push('/dashboard/business/listed-clients');

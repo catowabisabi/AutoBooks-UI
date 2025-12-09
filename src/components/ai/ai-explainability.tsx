@@ -277,7 +277,7 @@ export function ExtractedField({
             <div>
               <p className="text-xs font-medium text-muted-foreground">Source Text</p>
               <p className="text-sm mt-1 bg-yellow-100 dark:bg-yellow-900/30 px-2 py-1 rounded">
-                "{field.sourceHighlight.text}"
+                &quot;{field.sourceHighlight.text}&quot;
               </p>
             </div>
           )}
@@ -449,7 +449,7 @@ export function ClassificationExplanation({
             AI Classification Explanation
           </DialogTitle>
           <DialogDescription>
-            Understanding why AI classified this item as "{classification.label}"
+            Understanding why AI classified this item as &quot;{classification.label}&quot;
           </DialogDescription>
         </DialogHeader>
         

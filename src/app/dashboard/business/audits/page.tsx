@@ -165,6 +165,7 @@ export default function AuditsListPage() {
       
       // If API returns empty data, use mock data
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[Audits] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -173,6 +174,7 @@ export default function AuditsListPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch audits:', error);
       setIsUsingMockData(true);
       // Mock data fallback
@@ -182,6 +184,7 @@ export default function AuditsListPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

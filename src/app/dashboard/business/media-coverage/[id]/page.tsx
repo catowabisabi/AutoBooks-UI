@@ -85,6 +85,7 @@ export default function MediaCoverageDetailPage() {
         const data = await mediaCoverageApi.get(coverageId);
         setCoverage(data);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch coverage:', error);
         toast.error('找不到該媒體報導');
         router.push('/dashboard/business/media-coverage');

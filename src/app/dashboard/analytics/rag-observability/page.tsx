@@ -26,9 +26,6 @@ import {
   IconSearch,
   IconAlertTriangle,
   IconCheck,
-  IconX,
-  IconTrendingUp,
-  IconTrendingDown,
   IconBrain,
   IconRobot,
   IconLoader2,
@@ -46,7 +43,6 @@ import {
   Cell,
   BarChart,
   Bar,
-  Legend,
 } from 'recharts';
 import {
   getRAGDashboard,
@@ -58,7 +54,6 @@ import {
   formatCostUSD,
   formatLatency,
   formatTokenCount,
-  getQualityIndicatorColor,
   getPriorityColor,
   type RAGObservabilityDashboard,
   type RequestStats,
@@ -100,6 +95,7 @@ export default function RAGObservabilityPage() {
       setGapSummary(gaps);
       setFailingQueries(failing);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to load RAG observability data:', error);
       toast.error(t('common.loadError') || 'Failed to load data');
     } finally {
@@ -109,6 +105,7 @@ export default function RAGObservabilityPage() {
 
   useEffect(() => {
     loadData();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [days]);
 
   if (loading && !dashboard) {

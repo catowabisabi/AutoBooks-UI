@@ -62,6 +62,7 @@ export default function BillableHourDetailPage() {
         const response = await billableHoursApi.get(recordId);
         setData(response);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch billable hour:', error);
         setData({
           id: recordId,

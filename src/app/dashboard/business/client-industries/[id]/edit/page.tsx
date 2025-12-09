@@ -64,6 +64,7 @@ export default function ClientIndustryEditPage({ params }: { params: Promise<{ i
           is_active: result.is_active,
         });
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch client industry:', error);
         toast.error('無法載入客戶行業資料');
       } finally {

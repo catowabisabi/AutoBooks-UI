@@ -97,6 +97,7 @@ export default function AnnouncementEditPage() {
           });
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch data:', error);
         toast.error('載入資料失敗');
         if (!isNew) {
@@ -133,6 +134,7 @@ export default function AnnouncementEditPage() {
       }
       router.push('/dashboard/business/announcements');
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error('Save error:', error);
       const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
       toast.error(message);

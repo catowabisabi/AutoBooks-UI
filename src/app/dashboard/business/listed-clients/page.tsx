@@ -143,6 +143,7 @@ export default function ListedClientsPage() {
       const results = response.results || [];
       
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[ListedClients] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -151,6 +152,7 @@ export default function ListedClientsPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch listed clients:', error);
       setIsUsingMockData(true);
       setData(mockData);
@@ -159,6 +161,7 @@ export default function ListedClientsPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

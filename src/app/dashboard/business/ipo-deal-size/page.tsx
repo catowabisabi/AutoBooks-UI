@@ -123,11 +123,13 @@ export default function IPODealSizePage() {
       setIsLoading(true);
       try {
         const result = await ipoDealSizeApi.list();
+        // eslint-disable-next-line no-console
         console.log('IPO Deal Size API result:', result);
         // Handle both array and paginated response
         const items = Array.isArray(result) ? result : (result.results || []);
         setData(items);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch IPO deal size:', error);
         toast.error(t('business.loadDealSizeError'));
         setData(mockData);
@@ -137,6 +139,7 @@ export default function IPODealSizePage() {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -237,6 +240,7 @@ export default function IPODealSizePage() {
         </div>
       ),
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t, sizeLabels]);
 
   const { table } = useDataTable({

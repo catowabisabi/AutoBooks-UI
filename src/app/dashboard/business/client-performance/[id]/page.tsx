@@ -80,6 +80,7 @@ export default function ClientPerformanceDetailPage({ params }: { params: Promis
         const result = await clientPerformanceApi.get(resolvedParams.id);
         setData(result);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch client performance:', error);
         toast.error('無法載入客戶績效資料');
         // Use mock data for demo

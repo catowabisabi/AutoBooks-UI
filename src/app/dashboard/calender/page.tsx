@@ -110,7 +110,7 @@ export default function CalendarPage() {
       <div className='grid grid-cols-1 gap-4 lg:grid-cols-3'>
         <Card className='lg:col-span-2'>
           <CardHeader>
-            <CardTitle className='text-base'>Today's Schedule</CardTitle>
+            <CardTitle className='text-base'>Today&apos;s Schedule</CardTitle>
             <CardDescription>{demoEvents.length} events scheduled</CardDescription>
           </CardHeader>
           <CardContent>

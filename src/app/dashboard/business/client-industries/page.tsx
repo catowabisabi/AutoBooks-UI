@@ -119,6 +119,7 @@ export default function ClientIndustriesPage() {
       const results = response.results || [];
       
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[ClientIndustries] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -127,6 +128,7 @@ export default function ClientIndustriesPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch client industries:', error);
       setIsUsingMockData(true);
       setData(mockData);
@@ -135,6 +137,7 @@ export default function ClientIndustriesPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

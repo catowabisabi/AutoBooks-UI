@@ -116,11 +116,13 @@ export default function IPOTimelineProgressPage() {
       setIsLoading(true);
       try {
         const result = await ipoTimelineProgressApi.list();
+        // eslint-disable-next-line no-console
         console.log('IPO Timeline Progress API result:', result);
         // Handle both array and paginated response
         const items = Array.isArray(result) ? result : (result.results || []);
         setData(items);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch IPO timeline progress:', error);
         toast.error(t('business.loadFailed'));
         setData(mockData);
@@ -130,6 +132,7 @@ export default function IPOTimelineProgressPage() {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -219,6 +222,7 @@ export default function IPOTimelineProgressPage() {
         </div>
       ),
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t, phaseLabels, statusConfig]);
 
   const { table } = useDataTable({

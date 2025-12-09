@@ -73,6 +73,7 @@ export default function EngagementEditPage({ params }: { params: Promise<{ id: s
         const response = await companiesApi.list({ page_size: 1000 });
         setCompanies(response.results || []);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch companies:', error);
         // Mock companies for demo
         setCompanies([
@@ -102,6 +103,7 @@ export default function EngagementEditPage({ params }: { params: Promise<{ id: s
           is_active: result.is_active,
         });
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch engagement:', error);
         toast.error('無法載入項目委託資料');
       } finally {

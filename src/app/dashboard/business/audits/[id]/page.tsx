@@ -6,7 +6,7 @@ import Link from 'next/link';
 import PageContainer from '@/components/layout/page-container';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Progress } from '@/components/ui/progress';
@@ -16,7 +16,6 @@ import {
   IconEdit,
   IconTrash,
   IconCalendar,
-  IconUser,
   IconClock,
   IconBuilding,
   IconFileText,
@@ -76,6 +75,7 @@ export default function AuditDetailPage() {
         const response = await auditsApi.get(auditId);
         setData(response);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch audit:', error);
         // Demo data fallback
         setData({

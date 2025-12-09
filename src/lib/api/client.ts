@@ -14,7 +14,6 @@ import type {
   PaginatedResponse,
   ApiError,
   ListParams,
-  TokenResponse,
   TokenRefreshResponse,
 } from './types';
 
@@ -160,6 +159,7 @@ class TokenManager {
         this.clearTokens();
         return false;
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('[TokenManager] Refresh failed:', error);
         return false;
       } finally {
@@ -272,6 +272,7 @@ class RetryHandler {
 
   async wait(attempt: number): Promise<void> {
     const delay = this.getDelay(attempt);
+    // eslint-disable-next-line no-console
     console.log(`[RetryHandler] Retrying in ${delay}ms (attempt ${attempt + 1}/${this.config.maxRetries})`);
     return new Promise((resolve) => setTimeout(resolve, delay));
   }
@@ -663,11 +664,13 @@ export const typedApi = new TypedApiClient();
 // Add default logging interceptor in development
 if (process.env.NODE_ENV === 'development') {
   typedApi.addRequestInterceptor((config) => {
+    // eslint-disable-next-line no-console
     console.log(`[API] ${config.method} ${config.url}`);
     return config;
   });
 
   typedApi.addErrorInterceptor((error) => {
+    // eslint-disable-next-line no-console
     console.error('[API Error]', error);
     return error;
   });

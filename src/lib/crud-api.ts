@@ -162,7 +162,7 @@ export function createCrudApi<T extends BaseEntity>(
     crudApi.export = async (params?: ListParams) => {
       const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
       const queryString = params ? new URLSearchParams(
-        Object.entries(params).filter(([_, v]) => v != null).map(([k, v]) => [k, String(v)])
+        Object.entries(params).filter(([, v]) => v != null).map(([k, v]) => [k, String(v)])
       ).toString() : '';
       const response = await fetch(
         `${api.baseUrl}${baseUrl}/export/${queryString ? '?' + queryString : ''}`,
@@ -185,7 +185,7 @@ export function createCrudApi<T extends BaseEntity>(
  * @param parentUrl - The parent entity's URL (e.g., '/api/v1/projects')
  * @param childPath - The child entity path (e.g., 'tasks')
  */
-export function createNestedCrudApi<T extends BaseEntity, ParentKey extends string = 'parentId'>(
+export function createNestedCrudApi<T extends BaseEntity>(
   parentUrl: string,
   childPath: string
 ) {

@@ -103,6 +103,7 @@ export async function generateInvoicePdf(
 
     return await response.blob();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error generating invoice PDF:', error);
     throw error;
   }
@@ -134,6 +135,7 @@ export async function addStampToPdf(
 
     return await response.blob();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error adding stamp to PDF:', error);
     throw error;
   }
@@ -169,6 +171,7 @@ export async function addSignatureToPdf(
 
     return await response.blob();
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.error('Error adding signature to PDF:', error);
     throw error;
   }

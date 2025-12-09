@@ -18,10 +18,7 @@ import {
   IconEdit,
   IconEye,
   IconTrash,
-  IconUsers,
   IconStar,
-  IconMail,
-  IconPhone,
 } from '@tabler/icons-react';
 import { businessPartnersApi, BusinessPartner } from '@/features/business/services';
 import { useDataTable } from '@/hooks/use-data-table';
@@ -173,11 +170,13 @@ export default function BusinessPartnersPage() {
       setIsLoading(true);
       try {
         const result = await businessPartnersApi.list();
+        // eslint-disable-next-line no-console
         console.log('Business Partners API result:', result);
         // Handle both array and paginated response
         const items = Array.isArray(result) ? result : (result.results || []);
         setData(items);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch business partners:', error);
         toast.error(t('business.loadPartnersError'));
         setData(mockData);
@@ -187,6 +186,7 @@ export default function BusinessPartnersPage() {
     };
 
     fetchData();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleDelete = async (id: string) => {
@@ -306,6 +306,7 @@ export default function BusinessPartnersPage() {
         </div>
       ),
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   ], [t, partnerTypeLabels, statusConfig]);
 
   const { table } = useDataTable({

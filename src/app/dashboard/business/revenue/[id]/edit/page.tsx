@@ -87,6 +87,7 @@ export default function RevenueEditPage() {
           });
         }
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch data:', error);
         toast.error('找不到該收入記錄');
         setCompanies([
@@ -128,6 +129,7 @@ export default function RevenueEditPage() {
       }
       router.push('/dashboard/business/revenue');
     } catch (error: any) {
+      // eslint-disable-next-line no-console
       console.error('Save error:', error);
       const message = error?.response?.data?.detail || error?.message || (isNew ? '建立失敗' : '更新失敗');
       toast.error(message);

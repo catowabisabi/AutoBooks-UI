@@ -19,7 +19,6 @@ import {
   IconArrowLeft,
   IconTrash,
   IconCurrencyDollar,
-  IconCalendar,
   IconUser,
   IconFileText,
   IconClock,
@@ -98,6 +97,7 @@ export default function EngagementDetailPage({ params }: { params: Promise<{ id:
         const result = await engagementsApi.get(resolvedParams.id);
         setData(result);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch engagement:', error);
         toast.error('無法載入項目委託資料');
         // Use mock data for demo

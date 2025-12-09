@@ -249,7 +249,7 @@ export function KanbanAIAssistant() {
               {insights.length === 0 ? (
                 <div className="text-center text-muted-foreground py-8">
                   <IconBrain className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                  <p className="text-sm">Click "Analyze Board" to get AI insights</p>
+                  <p className="text-sm">Click &quot;Analyze Board&quot; to get AI insights</p>
                 </div>
               ) : (
                 <div className="space-y-2 pr-4">

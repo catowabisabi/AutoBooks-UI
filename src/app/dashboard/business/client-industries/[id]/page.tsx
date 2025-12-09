@@ -17,7 +17,6 @@ import {
   IconEdit,
   IconArrowLeft,
   IconTrash,
-  IconCurrencyDollar,
   IconUsers,
   IconClock,
   IconFileText,
@@ -66,6 +65,7 @@ export default function ClientIndustryDetailPage({ params }: { params: Promise<{
         const result = await clientIndustriesApi.get(resolvedParams.id);
         setData(result);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch client industry:', error);
         toast.error('無法載入客戶行業資料');
         // Use mock data for demo

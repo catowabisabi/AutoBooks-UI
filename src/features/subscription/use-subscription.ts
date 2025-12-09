@@ -3,8 +3,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { 
   subscriptionApi, 
-  UserSubscription, 
-  SubscriptionPlan,
   FeatureName,
   LimitName,
   FREE_PLAN_FEATURES,

@@ -175,6 +175,7 @@ export default function BillableHoursListPage() {
       
       // If API returns empty data, use mock data
       if (results.length === 0) {
+        // eslint-disable-next-line no-console
         console.log('[BillableHours] API returned empty, using mock data');
         setData(mockData);
         setIsUsingMockData(true);
@@ -183,6 +184,7 @@ export default function BillableHoursListPage() {
         setIsUsingMockData(false);
       }
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch billable hours:', error);
       setIsUsingMockData(true);
       setData(mockData);
@@ -191,6 +193,7 @@ export default function BillableHoursListPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, []);

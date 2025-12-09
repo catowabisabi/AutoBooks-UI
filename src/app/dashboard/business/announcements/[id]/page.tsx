@@ -98,6 +98,7 @@ export default function AnnouncementDetailPage() {
         const data = await announcementsApi.get(announcementId);
         setAnnouncement(data);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch announcement:', error);
         toast.error('找不到該公告');
         router.push('/dashboard/business/announcements');

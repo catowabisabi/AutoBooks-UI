@@ -54,6 +54,7 @@ export default function MediaSentimentEditPage({ params }: { params: Promise<{ i
         const result = await mediaSentimentApi.get(resolvedParams.id);
         setFormData(result);
       } catch (error) {
+        // eslint-disable-next-line no-console
         console.error('Failed to fetch media sentiment:', error);
         toast.error('無法載入媒體情緒資料');
         // Use mock data for demo

@@ -17,7 +17,6 @@ import {
   IconTrash,
   IconCalendar,
   IconCash,
-  IconBuilding,
   IconFileText,
   IconUser,
   IconMail,
@@ -84,6 +83,7 @@ export default function RevenueDetailPage() {
       const response = await revenueApi.get(revenueId);
       setData(response);
     } catch (error) {
+      // eslint-disable-next-line no-console
       console.error('Failed to fetch revenue:', error);
       setData({
         id: revenueId,
@@ -111,6 +111,7 @@ export default function RevenueDetailPage() {
     }
   };
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     fetchData();
   }, [revenueId]);

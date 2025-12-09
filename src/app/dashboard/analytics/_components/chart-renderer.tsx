@@ -316,8 +316,8 @@ const COLORS = [
 export function ChartRenderer({
   type,
   data,
-  title,
-  description,
+  title: _title,
+  description: _description,
   xKey = 'x',
   yKey = 'y',
   labelKey = 'label',

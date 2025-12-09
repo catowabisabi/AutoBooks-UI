@@ -105,16 +105,17 @@ export default function EmailAssistantClient() {
           const res = await fetch('http://localhost:8001/email-assistant/emails');
           const data = await res.json();
           setEmails(data);
-        } catch (error) {
+        } catch {
           toast({
             title: 'Error loading emails',
             description: 'Unable to fetch emails from the server'
-        });
-      }
-    };
+          });
+        }
+      };
 
-    fetchEmails();
-  }, []);
+      fetchEmails();
+    }
+  }, [emailsData, emailsLoading, toast]);
 
   const handleSendMessage = async () => {
     if (!newMessage.trim() || isLoading) return;
