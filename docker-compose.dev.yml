@@ -11,7 +11,7 @@ services:
     environment:
       - NODE_ENV=development
       - BUILD_TARGET=development
-      - NEXT_PUBLIC_API_BASE_URL=http://93.127.216.51:8001
+      - NEXT_PUBLIC_API_BASE_URL=http://93.127.215.144:8001
       - WATCHPACK_POLLING=true
     volumes:
       - .:/app:cached
