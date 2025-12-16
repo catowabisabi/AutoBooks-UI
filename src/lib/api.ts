@@ -25,6 +25,10 @@ class ApiService {
   private _baseUrl: string;
   private accessToken: string | null = null;
   private refreshToken: string | null = null;
+  
+  // Token refresh lock to prevent multiple simultaneous refresh attempts
+  private isRefreshing: boolean = false;
+  private refreshPromise: Promise<boolean> | null = null;
 
   constructor(baseUrl: string) {
     this._baseUrl = baseUrl;
@@ -71,14 +75,38 @@ class ApiService {
     return this.accessToken;
   }
 
-  // 刷新 access token
+  // 刷新 access token (with lock to prevent race conditions)
   async refreshAccessToken(): Promise<boolean> {
+    // If already refreshing, wait for the existing refresh to complete
+    if (this.isRefreshing && this.refreshPromise) {
+      // eslint-disable-next-line no-console
+      console.log('[API] Token refresh already in progress, waiting...');
+      return this.refreshPromise;
+    }
+
     if (!this.refreshToken) {
       // eslint-disable-next-line no-console
       console.warn('[API] No refresh token available');
       return false;
     }
 
+    // Set the lock
+    this.isRefreshing = true;
+    
+    // Create the refresh promise
+    this.refreshPromise = this._doRefreshToken();
+    
+    try {
+      return await this.refreshPromise;
+    } finally {
+      // Release the lock
+      this.isRefreshing = false;
+      this.refreshPromise = null;
+    }
+  }
+
+  // Internal method to actually perform the token refresh
+  private async _doRefreshToken(): Promise<boolean> {
     try {
       // eslint-disable-next-line no-console
       console.log('[API] Attempting to refresh token...');
@@ -158,6 +186,10 @@ class ApiService {
       if (this.refreshToken) {
         const refreshed = await this.refreshAccessToken();
         if (refreshed) {
+          // Re-read the latest token after refresh (important for concurrent requests)
+          if (typeof window !== 'undefined') {
+            this.accessToken = localStorage.getItem('token') || localStorage.getItem('access_token');
+          }
           headers['Authorization'] = `Bearer ${this.accessToken}`;
           response = await fetch(url, {
             ...fetchOptions,

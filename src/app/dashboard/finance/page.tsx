@@ -16,6 +16,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
+import { PageContentLoader, LoadingSpinner } from '@/components/ui/loading-overlay';
 import {
   AreaChart,
   Area,
@@ -132,41 +133,8 @@ export default function FinanceHomePage() {
 
   if (isLoading) {
     return (
-      <div className='flex flex-1 flex-col space-y-2'>
-        <div className='flex items-center justify-between'>
-          <Skeleton className='h-8 w-48' />
-        </div>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-4'>
-          {[1, 2, 3, 4].map((i) => (
-            <Card key={i}>
-              <CardHeader className='pb-2'>
-                <Skeleton className='h-4 w-24' />
-                <Skeleton className='h-8 w-32' />
-              </CardHeader>
-              <CardFooter>
-                <Skeleton className='h-4 w-full' />
-              </CardFooter>
-            </Card>
-          ))}
-        </div>
-        <div className='grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-7'>
-          <Card className='col-span-4'>
-            <CardHeader>
-              <Skeleton className='h-6 w-48' />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className='h-[250px] w-full' />
-            </CardContent>
-          </Card>
-          <Card className='col-span-3'>
-            <CardHeader>
-              <Skeleton className='h-6 w-48' />
-            </CardHeader>
-            <CardContent>
-              <Skeleton className='h-[250px] w-full' />
-            </CardContent>
-          </Card>
-        </div>
+      <div className='flex flex-1 flex-col'>
+        <PageContentLoader />
       </div>
     );
   }

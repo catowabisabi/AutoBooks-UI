@@ -202,7 +202,7 @@ export function useAccounting(options: UseAccountingOptions = {}) {
  * Hook for finance-specific AI features
  */
 export function useFinanceAI(region: RegionCode = 'HK') {
-  const { formatAmount, ai, getAIContext } = useAccounting({ defaultRegion: region });
+  const { formatAmount, ai, getAIContext, searchRegs } = useAccounting({ defaultRegion: region });
   
   return {
     analyzeCashFlow: (transactions: Parameters<typeof ai.finance.analyzeCashFlow>[0]) => 
@@ -213,6 +213,7 @@ export function useFinanceAI(region: RegionCode = 'HK') {
       ai.finance.generateReportSummary(data, region),
     formatAmount,
     getContext: getAIContext,
+    searchRegs,
   };
 }
 
