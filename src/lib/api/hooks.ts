@@ -20,6 +20,7 @@ import type {
   User,
   UserSettings,
   UserSettingsUpdateRequest,
+  UserProfileUpdateRequest,
   TenantCreateRequest,
   AccountCreateRequest,
   InvoiceCreateRequest,
@@ -29,6 +30,14 @@ import type {
   TaskCreateRequest,
   ListParams,
 } from './types';
+
+// =================================================================
+// Cache Time Constants - Centralized for consistency
+// =================================================================
+const DEFAULT_STALE_TIME = 5 * 60 * 1000; // 5 minutes - data considered fresh
+const DEFAULT_GC_TIME = 15 * 60 * 1000; // 15 minutes - garbage collection
+const LONG_STALE_TIME = 30 * 60 * 1000; // 30 minutes - for rarely changing data
+const USER_STALE_TIME = 10 * 60 * 1000; // 10 minutes - for user-specific data
 
 // =================================================================
 // Query Keys Factory
@@ -149,7 +158,8 @@ export function useCurrentUser(options?: UseQueryOptions<User>) {
   return useQuery({
     queryKey: queryKeys.currentUser,
     queryFn: () => authApi.getCurrentUser(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
+    staleTime: USER_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
     ...options,
   });
 }

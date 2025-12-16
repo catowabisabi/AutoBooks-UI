@@ -1,5 +1,17 @@
 // services.ts
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1`;
+// Use centralized API client with proper auth
+import { api } from '@/lib/api';
+
+// Helper to get auth headers for raw fetch calls
+const getAuthHeaders = () => {
+  const token = typeof window !== 'undefined' 
+    ? (localStorage.getItem('token') || localStorage.getItem('access_token')) 
+    : null;
+  return {
+    'Content-Type': 'application/json',
+    ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
+  };
+};
 
 export interface AnalystQueryPayload {
   query: string;
@@ -80,23 +92,9 @@ export async function sendAnalystQuery(
   payload: AnalystQueryPayload
 ): Promise<RechartsResponse> {
   try {
-    const response = await fetch(
-      `${API_BASE_URL}/analyst-assistant/query/`,
-      {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error('Failed to fetch data from analyst assistant');
-    }
-
-    const data = await response.json();
-    return data as RechartsResponse;
+    // Use centralized API client with auth
+    const data = await api.post<RechartsResponse>('/api/v1/analyst-assistant/query/', payload);
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error sending analyst query:', error);
@@ -104,40 +102,23 @@ export async function sendAnalystQuery(
   }
 }
 
-// Analytics Module Services
-
+// Analytics Module Services - Using centralized API with auth
 export const analyticsApi = {
-  getCharts: () => fetch(`${API_BASE_URL}/analytics/charts/`).then(res => res.json()),
-  getKPIs: () => fetch(`${API_BASE_URL}/analytics/kpis/`).then(res => res.json()),
-  getReportSchedules: () => fetch(`${API_BASE_URL}/analytics/report-schedules/`).then(res => res.json()),
-  getOverview: () => fetch(`${API_BASE_URL}/analytics/overview/`).then(res => res.json()),
+  getCharts: () => api.get('/api/v1/analytics/charts/'),
+  getKPIs: () => api.get('/api/v1/analytics/kpis/'),
+  getReportSchedules: () => api.get('/api/v1/analytics/report-schedules/'),
+  getOverview: () => api.get('/api/v1/analytics/overview/'),
 };
 
-// Sales Analytics API
+// Sales Analytics API - Using centralized API with auth
 export async function getSalesAnalytics(params?: {
   start_date?: string;
   end_date?: string;
   period?: 'day' | 'week' | 'month' | 'quarter' | 'year';
 }): Promise<SalesAnalytics> {
   try {
-    const searchParams = new URLSearchParams();
-    if (params?.start_date) searchParams.append('start_date', params.start_date);
-    if (params?.end_date) searchParams.append('end_date', params.end_date);
-    if (params?.period) searchParams.append('period', params.period);
-    
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/sales/?${searchParams}`,
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-
-    if (!response.ok) {
-      // Return demo data on error
-      return getDemoSalesAnalytics();
-    }
-
-    return response.json();
+    const data = await api.get<SalesAnalytics>('/api/v1/analytics/sales/', { params });
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching sales analytics:', error);
@@ -145,30 +126,15 @@ export async function getSalesAnalytics(params?: {
   }
 }
 
-// Finance Analytics API
+// Finance Analytics API - Using centralized API with auth
 export async function getFinanceAnalytics(params?: {
   start_date?: string;
   end_date?: string;
   period?: 'day' | 'week' | 'month' | 'quarter' | 'year';
 }): Promise<FinanceAnalytics> {
   try {
-    const searchParams = new URLSearchParams();
-    if (params?.start_date) searchParams.append('start_date', params.start_date);
-    if (params?.end_date) searchParams.append('end_date', params.end_date);
-    if (params?.period) searchParams.append('period', params.period);
-    
-    const response = await fetch(
-      `${API_BASE_URL}/analytics/finance/?${searchParams}`,
-      {
-        headers: { 'Content-Type': 'application/json' }
-      }
-    );
-
-    if (!response.ok) {
-      return getDemoFinanceAnalytics();
-    }
-
-    return response.json();
+    const data = await api.get<FinanceAnalytics>('/api/v1/analytics/finance/', { params });
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching finance analytics:', error);
@@ -176,22 +142,11 @@ export async function getFinanceAnalytics(params?: {
   }
 }
 
-// Dashboard management functions
+// Dashboard management functions - Using centralized API with auth
 export async function saveDashboard(dashboard: Partial<DashboardData>): Promise<DashboardData> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/dashboards/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dashboard)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to save dashboard');
-    }
-    
-    return response.json();
+    const data = await api.post<DashboardData>('/api/v1/analytics/dashboards/', dashboard);
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error saving dashboard:', error);
@@ -201,17 +156,12 @@ export async function saveDashboard(dashboard: Partial<DashboardData>): Promise<
 
 export async function getDashboard(id: string): Promise<DashboardData | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/dashboards/${id}/`);
-
-    if (!response.ok) {
-      if (response.status === 404) {
-        return null;
-      }
-      throw new Error('Failed to fetch dashboard');
+    const data = await api.get<DashboardData>(`/api/v1/analytics/dashboards/${id}/`);
+    return data;
+  } catch (error: any) {
+    if (error?.message?.includes('404') || error?.status === 404) {
+      return null;
     }
-
-    return response.json();
-  } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching dashboard:', error);
     throw error;
@@ -220,15 +170,11 @@ export async function getDashboard(id: string): Promise<DashboardData | null> {
 
 export async function getDashboards(): Promise<DashboardData[]> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/dashboards/`);
-
-    if (!response.ok) {
-      // Return demo data on error
-      return getDemoDashboards();
+    const data = await api.get<{ results?: DashboardData[] } | DashboardData[]>('/api/v1/analytics/dashboards/');
+    if (Array.isArray(data)) {
+      return data;
     }
-
-    const data = await response.json();
-    return data.results || data;
+    return data.results || [];
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error fetching dashboards:', error);
@@ -238,19 +184,8 @@ export async function getDashboards(): Promise<DashboardData[]> {
 
 export async function updateDashboard(id: string, dashboard: Partial<DashboardData>): Promise<DashboardData> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/dashboards/${id}/`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(dashboard)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update dashboard');
-    }
-    
-    return response.json();
+    const data = await api.patch<DashboardData>(`/api/v1/analytics/dashboards/${id}/`, dashboard);
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error updating dashboard:', error);
@@ -260,13 +195,7 @@ export async function updateDashboard(id: string, dashboard: Partial<DashboardDa
 
 export async function deleteDashboard(id: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/dashboards/${id}/`, {
-      method: 'DELETE'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete dashboard');
-    }
+    await api.delete(`/api/v1/analytics/dashboards/${id}/`);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error deleting dashboard:', error);
@@ -274,22 +203,11 @@ export async function deleteDashboard(id: string): Promise<void> {
   }
 }
 
-// Widget management
+// Widget management - Using centralized API with auth
 export async function addWidget(dashboardId: string, widget: Partial<WidgetData>): Promise<WidgetData> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/widgets/`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify({ ...widget, dashboard: dashboardId })
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to add widget');
-    }
-    
-    return response.json();
+    const data = await api.post<WidgetData>('/api/v1/analytics/widgets/', { ...widget, dashboard: dashboardId });
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error adding widget:', error);
@@ -299,19 +217,8 @@ export async function addWidget(dashboardId: string, widget: Partial<WidgetData>
 
 export async function updateWidget(widgetId: string, widget: Partial<WidgetData>): Promise<WidgetData> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/widgets/${widgetId}/`, {
-      method: 'PATCH',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(widget)
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to update widget');
-    }
-    
-    return response.json();
+    const data = await api.patch<WidgetData>(`/api/v1/analytics/widgets/${widgetId}/`, widget);
+    return data;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error updating widget:', error);
@@ -321,13 +228,7 @@ export async function updateWidget(widgetId: string, widget: Partial<WidgetData>
 
 export async function deleteWidget(widgetId: string): Promise<void> {
   try {
-    const response = await fetch(`${API_BASE_URL}/analytics/widgets/${widgetId}/`, {
-      method: 'DELETE'
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to delete widget');
-    }
+    await api.delete(`/api/v1/analytics/widgets/${widgetId}/`);
   } catch (error) {
     // eslint-disable-next-line no-console
     console.error('Error deleting widget:', error);

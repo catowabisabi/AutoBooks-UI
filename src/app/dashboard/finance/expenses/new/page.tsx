@@ -1,11 +1,12 @@
 'use client';
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Upload, ScanLine, CheckCircle, AlertCircle } from 'lucide-react';
 import PageContainer from '@/components/layout/page-container';
+import { useCurrencies, useCountries } from '@/features/core/hooks';
 
 interface Currency {
   code: string;
@@ -33,43 +34,18 @@ const ExpenseForm = () => {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
   const [scanStatus, setScanStatus] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
 
-  useEffect(() => {
-    const fetchCurrencies = async () => {
-      try {
-        const currencyResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/currency-list`
-        );
-        if (!currencyResponse.ok) {
-          throw new Error('Failed to fetch currency list');
-        }
-        const currencyData = await currencyResponse.json();
-        setCurrencies(currencyData.currencies || []);
-
-        const countryResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/country-list`
-        );
-        if (!countryResponse.ok) {
-          throw new Error('Failed to fetch country list');
-        }
-        const countryData = await countryResponse.json();
-        setCountries(countryData.countries || []);
-      } catch (error) {
-        console.error('Error fetching data:', error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchCurrencies();
-  }, []);
+  // Use cached hooks instead of raw fetch
+  const { data: currencyData, isLoading: isCurrencyLoading } = useCurrencies();
+  const { data: countryData, isLoading: isCountryLoading } = useCountries();
+  
+  const currencies: Currency[] = (currencyData as any)?.currencies || currencyData || [];
+  const countries: Country[] = (countryData as any)?.countries || countryData || [];
+  const isLoading = isCurrencyLoading || isCountryLoading;
 
   const handleInputChange = (
     e: React.ChangeEvent<

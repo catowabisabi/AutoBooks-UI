@@ -5,6 +5,17 @@
 
 const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001';
 
+// Debug logging in development mode
+if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  console.log('%c🔧 AutoBooks API Configuration', 'color: #00C853; font-weight: bold; font-size: 14px;');
+  console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #00C853;');
+  console.log('%c📡 API Base URL:', 'color: #2196F3; font-weight: bold;', API_BASE_URL);
+  console.log('%c🔐 Auth Endpoint:', 'color: #FF9800; font-weight: bold;', `${API_BASE_URL}/api/v1/auth/token/`);
+  console.log('%c🔄 Refresh Endpoint:', 'color: #FF9800;', `${API_BASE_URL}/api/v1/auth/token/refresh/`);
+  console.log('%c📚 API Docs:', 'color: #9C27B0;', `${API_BASE_URL}/api/docs/`);
+  console.log('%c━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━', 'color: #00C853;');
+}
+
 interface ApiOptions extends RequestInit {
   skipAuth?: boolean;
   params?: Record<string, any>;

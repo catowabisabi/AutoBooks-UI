@@ -22,6 +22,7 @@ import PageContainer from '@/components/layout/page-container';
 import { toast } from 'sonner';
 import { useTranslation } from '@/lib/i18n/provider';
 import { getExpense, updateExpense, type Expense } from '../../../services';
+import { useCurrencies, useCountries } from '@/features/core/hooks';
 
 interface Currency {
   code: string;
@@ -103,13 +104,30 @@ export default function EditExpensePage() {
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
   const [fileType, setFileType] = useState<string | null>(null);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [currencies, setCurrencies] = useState<Currency[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [isMetaLoading, setIsMetaLoading] = useState(true);
   const [scanStatus, setScanStatus] = useState<{
     success: boolean;
     message: string;
   } | null>(null);
+
+  // Use cached hooks instead of raw fetch
+  const { data: currencyData, isLoading: isCurrencyLoading } = useCurrencies();
+  const { data: countryData, isLoading: isCountryLoading } = useCountries();
+  
+  // Extract currencies and countries with fallbacks
+  const currencies: Currency[] = (currencyData as any)?.currencies || currencyData || [
+    { code: 'USD', name: 'US Dollar' },
+    { code: 'EUR', name: 'Euro' },
+    { code: 'GBP', name: 'British Pound' },
+    { code: 'HKD', name: 'Hong Kong Dollar' },
+    { code: 'TWD', name: 'Taiwan Dollar' },
+  ];
+  const countries: Country[] = (countryData as any)?.countries || countryData || [
+    { code: 'US', name: 'United States' },
+    { code: 'HK', name: 'Hong Kong' },
+    { code: 'TW', name: 'Taiwan' },
+    { code: 'GB', name: 'United Kingdom' },
+  ];
+  const isMetaLoading = isCurrencyLoading || isCountryLoading;
 
   // Load expense data
   useEffect(() => {
@@ -160,49 +178,6 @@ export default function EditExpensePage() {
 
     loadExpense();
   }, [expenseId, router, t]);
-
-  // Load currencies and countries
-  useEffect(() => {
-    const fetchMetaData = async () => {
-      try {
-        const currencyResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/currency-list`
-        );
-        if (currencyResponse.ok) {
-          const currencyData = await currencyResponse.json();
-          setCurrencies(currencyData.currencies || []);
-        }
-
-        const countryResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_API_BASE_URL}/api/v1/country-list`
-        );
-        if (countryResponse.ok) {
-          const countryData = await countryResponse.json();
-          setCountries(countryData.countries || []);
-        }
-      } catch (error) {
-        console.error('Error fetching meta data:', error);
-        // Set default values
-        setCurrencies([
-          { code: 'USD', name: 'US Dollar' },
-          { code: 'EUR', name: 'Euro' },
-          { code: 'GBP', name: 'British Pound' },
-          { code: 'HKD', name: 'Hong Kong Dollar' },
-          { code: 'TWD', name: 'Taiwan Dollar' },
-        ]);
-        setCountries([
-          { code: 'US', name: 'United States' },
-          { code: 'HK', name: 'Hong Kong' },
-          { code: 'TW', name: 'Taiwan' },
-          { code: 'GB', name: 'United Kingdom' },
-        ]);
-      } finally {
-        setIsMetaLoading(false);
-      }
-    };
-
-    fetchMetaData();
-  }, []);
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>

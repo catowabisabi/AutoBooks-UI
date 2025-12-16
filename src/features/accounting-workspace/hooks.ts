@@ -55,6 +55,10 @@ export const accountingKeys = {
   accounts: () => [...accountingKeys.all, 'accounts'] as const,
 };
 
+// Cache time constants
+const DEFAULT_STALE_TIME = 5 * 60 * 1000; // 5 minutes
+const DEFAULT_GC_TIME = 15 * 60 * 1000; // 15 minutes
+
 // =================================================================
 // Project Hooks
 // =================================================================
@@ -70,6 +74,8 @@ export function useProjects(filters?: {
   return useQuery({
     queryKey: accountingKeys.projectList(filters),
     queryFn: () => projectApi.getProjects(filters),
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -78,6 +84,8 @@ export function useProject(projectId: string) {
     queryKey: accountingKeys.project(projectId),
     queryFn: () => projectApi.getProject(projectId),
     enabled: !!projectId,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 
@@ -86,6 +94,8 @@ export function useProjectStats(projectId: string) {
     queryKey: accountingKeys.projectStats(projectId),
     queryFn: () => projectApi.getProjectStats(projectId),
     enabled: !!projectId,
+    staleTime: DEFAULT_STALE_TIME,
+    gcTime: DEFAULT_GC_TIME,
   });
 }
 

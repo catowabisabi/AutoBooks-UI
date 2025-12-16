@@ -3,7 +3,8 @@
  * Comprehensive finance and accounting API services
  */
 
-const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8000'}/api/v1`;
+// Use correct default port 8001 to match main API client
+const API_BASE_URL = `${process.env.NEXT_PUBLIC_API_BASE_URL || 'http://127.0.0.1:8001'}/api/v1`;
 
 // Helper function to get auth headers
 const getAuthHeaders = () => {

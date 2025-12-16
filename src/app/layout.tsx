@@ -11,7 +11,9 @@ import './globals.css';
 import './theme.css';
 import React from 'react';
 import { AuthProvider } from '@/contexts/auth-context';
+import { ConnectionProvider } from '@/contexts/connection-context';
 import { I18nProvider } from '@/lib/i18n/provider';
+import { ApiDebugBanner } from '@/components/debug/api-debug-banner';
 
 const META_THEME_COLORS = {
   light: '#ffffff',
@@ -71,12 +73,15 @@ export default async function RootLayout({
             enableColorScheme
           >
             <Providers activeThemeValue={activeThemeValue as string}>
-              <I18nProvider>
-                <AuthProvider>
-                  <Toaster />
-                  {children}
-                </AuthProvider>
-              </I18nProvider>
+              <ConnectionProvider>
+                <I18nProvider>
+                  <AuthProvider>
+                    <Toaster />
+                    {children}
+                    <ApiDebugBanner />
+                  </AuthProvider>
+                </I18nProvider>
+              </ConnectionProvider>
             </Providers>
           </ThemeProvider>
         </NuqsAdapter>

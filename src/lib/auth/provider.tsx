@@ -45,7 +45,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
         return;
       }
 
-      const userData = await authApi.getProfile();
+      const userData = await authApi.getCurrentUser() as User;
       setUser(userData);
     } catch (error) {
       // eslint-disable-next-line no-console
@@ -73,7 +73,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('refresh_token', response.refresh);
       
       // Fetch user profile
-      const userData = await authApi.getProfile();
+      const userData = await authApi.getCurrentUser() as User;
       setUser(userData);
     } catch (error) {
       throw error;
@@ -93,7 +93,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
       localStorage.setItem('refresh_token', response.refresh);
       
       // Fetch user profile
-      const userData = await authApi.getProfile();
+      const userData = await authApi.getCurrentUser() as User;
       setUser(userData);
     } catch (error) {
       throw error;
@@ -127,14 +127,14 @@ export function AuthProvider({ children }: AuthProviderProps) {
         email,
         password,
         full_name: `${firstName} ${lastName}`.trim()
-      });
+      }) as { access?: string; refresh?: string };
       
       // If registration returns tokens, use them
       if (response.access) {
         localStorage.setItem('access_token', response.access);
-        localStorage.setItem('refresh_token', response.refresh);
+        localStorage.setItem('refresh_token', response.refresh!);
         
-        const userData = await authApi.getProfile();
+        const userData = await authApi.getCurrentUser() as User;
         setUser(userData);
       }
     } catch (error) {
