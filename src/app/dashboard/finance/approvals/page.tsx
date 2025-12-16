@@ -142,10 +142,14 @@ export default function ApprovalsPage() {
   const loadPendingItems = useCallback(async () => {
     setLoading(true);
     try {
-      const [expenses, invoices] = await Promise.all([
+      const [expensesResponse, invoicesResponse] = await Promise.all([
         getExpenses(),
         getInvoices(),
       ]);
+      
+      // Handle paginated response - extract results array
+      const expenses = Array.isArray(expensesResponse) ? expensesResponse : expensesResponse?.results || [];
+      const invoices = Array.isArray(invoicesResponse) ? invoicesResponse : invoicesResponse?.results || [];
       
       // Filter for pending items only
       const pending = expenses.filter(e => e.status === 'PENDING');
