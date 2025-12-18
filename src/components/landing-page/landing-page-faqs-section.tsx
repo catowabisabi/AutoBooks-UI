@@ -267,40 +267,16 @@ const FAQSection = () => {
               transition={{ duration: 0.5 }}
               className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border/50 p-6"
             >
-              {/* Contact Info */}
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6 pb-6 border-b border-border/50">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Mail className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                      {mounted ? t('landing.contact.emailLabel') : 'Email'}
-                    </p>
-                    <p className="text-sm font-medium">hi@autobooks.ai</p>
-                  </div>
+              {/* Contact Info - Email Only */}
+              <div className="flex items-center gap-3 mb-6 pb-6 border-b border-border/50">
+                <div className="p-2 rounded-lg bg-primary/10">
+                  <Mail className="w-4 h-4 text-primary" />
                 </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <Phone className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                      {mounted ? t('landing.contact.phoneLabel') : 'Phone'}
-                    </p>
-                    <p className="text-sm font-medium">+852 1234 5678</p>
-                  </div>
-                </div>
-                <div className="flex items-center gap-3">
-                  <div className="p-2 rounded-lg bg-primary/10">
-                    <MapPin className="w-4 h-4 text-primary" />
-                  </div>
-                  <div>
-                    <p className="text-xs text-muted-foreground" suppressHydrationWarning>
-                      {mounted ? t('landing.contact.locationLabel') : 'Location'}
-                    </p>
-                    <p className="text-sm font-medium">Hong Kong</p>
-                  </div>
+                <div>
+                  <p className="text-xs text-muted-foreground" suppressHydrationWarning>
+                    {mounted ? t('landing.contact.emailLabel', 'Email') : 'Email'}
+                  </p>
+                  <p className="text-sm font-medium">hi@autobooks.ai</p>
                 </div>
               </div>
 

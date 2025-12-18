@@ -6,6 +6,9 @@
  * 
  * 統一的 Dashboard 數據接口，所有公司類型共用
  * 每個公司根據類型返回不同的數據值
+ * 
+ * Demo 帳戶: 只有 enomars@gmail.com 會顯示 mock 數據
+ * 其他用戶: 顯示真實數據或空白狀態
  */
 
 'use client';
@@ -25,6 +28,10 @@ import {
 } from '@/features/business/services';
 import { salesAnalyticsApi } from '@/features/analytics/services';
 import { useApp } from '@/contexts/app-context';
+import { useAuth } from '@/contexts/auth-context';
+
+// Demo 帳戶 email 列表
+const DEMO_ACCOUNTS = ['enomars@gmail.com', 'admin@wisematic.com'];
 
 // 統一的 Dashboard 數據結構
 // 所有公司類型共用這個結構，但值不同
@@ -394,8 +401,12 @@ async function fetchDashboardDataByType(companyType: string) {
 
 export function useDashboardData(): DashboardData {
   const { currentCompany } = useApp();
+  const { user } = useAuth();
   const queryClient = useQueryClient();
   const companyType = currentCompany?.type || 'accounting';
+  
+  // 檢查是否為 demo 帳戶
+  const isDemoAccount = user?.email ? DEMO_ACCOUNTS.includes(user.email.toLowerCase()) : false;
 
   const { data, isLoading, error, refetch } = useQuery({
     queryKey: dashboardQueryKeys.data(companyType),
@@ -404,23 +415,26 @@ export function useDashboardData(): DashboardData {
     staleTime: 5 * 60 * 1000,
     // Keep in cache for 15 minutes
     gcTime: 15 * 60 * 1000,
-    // Use previous data while fetching
+    // Only use mock data as placeholder for demo accounts
     placeholderData: (previousData) => previousData ?? {
-      dashboardData: getMockDataByCompanyType(companyType),
+      dashboardData: isDemoAccount ? getMockDataByCompanyType(companyType) : emptyDashboardData,
       recentAudits: [],
       recentTaxReturns: [],
       revenueData: [],
       salesTrend: [],
-      isUsingMockData: true,
+      isUsingMockData: isDemoAccount,
     },
   });
 
+  // 對於非 demo 帳戶，如果 API 返回 mock 數據，則返回空數據
+  const shouldShowEmptyState = !isDemoAccount && data?.isUsingMockData;
+
   return {
-    dashboardData: data?.dashboardData ?? getMockDataByCompanyType(companyType),
-    recentAudits: data?.recentAudits ?? [],
-    recentTaxReturns: data?.recentTaxReturns ?? [],
-    revenueData: data?.revenueData ?? [],
-    salesTrend: data?.salesTrend ?? [],
+    dashboardData: shouldShowEmptyState ? emptyDashboardData : (data?.dashboardData ?? (isDemoAccount ? getMockDataByCompanyType(companyType) : emptyDashboardData)),
+    recentAudits: shouldShowEmptyState ? [] : (data?.recentAudits ?? []),
+    recentTaxReturns: shouldShowEmptyState ? [] : (data?.recentTaxReturns ?? []),
+    revenueData: shouldShowEmptyState ? [] : (data?.revenueData ?? []),
+    salesTrend: shouldShowEmptyState ? [] : (data?.salesTrend ?? []),
     isLoading,
     error: error?.message ?? null,
     isUsingMockData: data?.isUsingMockData ?? true,

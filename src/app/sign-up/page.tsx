@@ -114,7 +114,7 @@ export default function SignUpPage() {
         <CardContent>
           {error && (
             <Alert variant="destructive" className="mb-4">
-              <AlertDescription>{error}</AlertDescription>
+              <AlertDescription className="whitespace-pre-line">{error}</AlertDescription>
             </Alert>
           )}
 

@@ -5,6 +5,45 @@
       "description": "本季度 {count} 個進行中的客戶委託。"
     }
   },
+  "emptyState": {
+    "noData": "暫無資料",
+    "getStarted": "開始新增您的第一個項目。",
+    "dashboard": {
+      "title": "歡迎使用 AutoBooks",
+      "description": "從設定公司資料和新增您的第一筆交易開始。",
+      "action": "完成設定"
+    },
+    "invoices": {
+      "title": "暫無發票",
+      "description": "建立您的第一張發票以開始追蹤收入。",
+      "action": "建立發票"
+    },
+    "clients": {
+      "title": "暫無客戶",
+      "description": "新增您的第一個客戶以開始管理業務關係。",
+      "action": "新增客戶"
+    },
+    "projects": {
+      "title": "暫無專案",
+      "description": "建立您的第一個專案以開始追蹤工作和計費時數。",
+      "action": "建立專案"
+    },
+    "audits": {
+      "title": "暫無審計項目",
+      "description": "開始您的第一個審計委託以追蹤進度和截止日期。",
+      "action": "建立審計"
+    },
+    "taxReturns": {
+      "title": "暫無稅務申報",
+      "description": "新增稅務申報以追蹤截止日期和合規性。",
+      "action": "新增稅務申報"
+    },
+    "company": {
+      "title": "公司未設定",
+      "description": "完成公司資料設定以解鎖所有功能。",
+      "action": "設定公司"
+    }
+  },
   "common": {
     "save": "儲存",
     "saving": "儲存中...",
@@ -209,6 +248,13 @@
     "billing": "帳單",
     "notifications": "通知",
     "signOut": "登出"
+  },
+  "company": {
+    "notSet": "設定公司",
+    "yourCompany": "您的公司",
+    "setupCompany": "設定您的公司",
+    "companyName": "公司名稱",
+    "companySettings": "公司設定"
   },
   "dashboard": {
     "welcome": "歡迎使用 AutoBooks ERP",
@@ -1507,6 +1553,73 @@
       "privacy": "隱私政策",
       "terms": "服務條款"
     }
+  },
+  "contact": {
+    "hero": {
+      "title": "讓我們談談您的",
+      "titleHighlight": "業務",
+      "subtitle": "無論您對我們的平台、定價有疑問，或想預約示範，我們都很樂意協助您轉型財務營運。"
+    },
+    "features": {
+      "response": {
+        "title": "24 小時回覆",
+        "description": "我們的團隊會在 24 小時內回覆所有查詢"
+      },
+      "support": {
+        "title": "專屬支援",
+        "description": "獲得我們專業團隊的個人化協助"
+      },
+      "security": {
+        "title": "企業級安全",
+        "description": "銀行級別的資料安全保護"
+      }
+    },
+    "directEmail": "直接發送電郵",
+    "officeHours": "我們的團隊服務時間為週一至週五，上午 9 時至下午 6 時（香港時間）",
+    "stats": {
+      "businesses": "企業客戶",
+      "satisfaction": "滿意度"
+    },
+    "form": {
+      "title": "聯絡我們",
+      "description": "填寫以下表格，我們會在 24 小時內回覆您。",
+      "name": "您的姓名",
+      "namePlaceholder": "陳大文",
+      "email": "工作電郵",
+      "emailPlaceholder": "john@company.com",
+      "company": "公司名稱",
+      "companyPlaceholder": "貴公司有限公司",
+      "companySize": "公司規模",
+      "selectSize": "選擇規模",
+      "size": {
+        "startup": "1-10 名員工",
+        "small": "11-50 名員工",
+        "medium": "51-200 名員工",
+        "large": "201-500 名員工",
+        "enterprise": "500+ 名員工"
+      },
+      "subject": "主題",
+      "selectSubject": "我們能幫您什麼？",
+      "subjects": {
+        "demo": "預約產品示範",
+        "pricing": "定價資訊",
+        "features": "產品功能",
+        "support": "技術支援",
+        "partnership": "合作洽談",
+        "other": "其他"
+      },
+      "message": "訊息內容",
+      "messagePlaceholder": "請告訴我們更多關於您的業務需求，以及我們可以如何幫助您...",
+      "send": "發送訊息",
+      "sending": "發送中...",
+      "privacy": "提交此表格即表示您同意我們的隱私政策和服務條款。"
+    },
+    "success": {
+      "title": "訊息已發送！",
+      "message": "感謝您的來信，我們會在 24 小時內回覆您。",
+      "sendAnother": "發送另一封訊息"
+    },
+    "error": "發生錯誤，請重試。"
   },
   "bookDemo": {
     "title": "預約",

@@ -207,7 +207,34 @@ class ApiService {
 
     if (!response.ok) {
       const error = await response.json().catch(() => ({ detail: 'Request failed' }));
-      throw new Error(error.detail || error.message || 'API request failed');
+      // Handle various error response formats from backend
+      let errorMessage = error.detail || error.message || 'API request failed';
+      
+      // Handle validation errors object (e.g., { "errors": { "email": ["This email is already in use."] } })
+      if (error.errors && typeof error.errors === 'object') {
+        const errorMessages: string[] = [];
+        Object.entries(error.errors).forEach(([field, messages]) => {
+          if (Array.isArray(messages)) {
+            // For non_field_errors, don't show the field name
+            if (field === 'non_field_errors') {
+              errorMessages.push(...messages);
+            } else {
+              errorMessages.push(...messages.map(msg => `${field}: ${msg}`));
+            }
+          } else if (typeof messages === 'string') {
+            if (field === 'non_field_errors') {
+              errorMessages.push(messages);
+            } else {
+              errorMessages.push(`${field}: ${messages}`);
+            }
+          }
+        });
+        if (errorMessages.length > 0) {
+          errorMessage = errorMessages.join('\n');
+        }
+      }
+      
+      throw new Error(errorMessage);
     }
 
     return response.json();

@@ -5,6 +5,45 @@
       "description": "{count} active client engagements this quarter."
     }
   },
+  "emptyState": {
+    "noData": "No data yet",
+    "getStarted": "Get started by adding your first item.",
+    "dashboard": {
+      "title": "Welcome to AutoBooks",
+      "description": "Start by setting up your company profile and adding your first transactions.",
+      "action": "Complete Setup"
+    },
+    "invoices": {
+      "title": "No invoices yet",
+      "description": "Create your first invoice to start tracking your revenue.",
+      "action": "Create Invoice"
+    },
+    "clients": {
+      "title": "No clients yet",
+      "description": "Add your first client to start managing your business relationships.",
+      "action": "Add Client"
+    },
+    "projects": {
+      "title": "No projects yet",
+      "description": "Create your first project to start tracking work and billable hours.",
+      "action": "Create Project"
+    },
+    "audits": {
+      "title": "No audit projects yet",
+      "description": "Start your first audit engagement to track progress and deadlines.",
+      "action": "Create Audit"
+    },
+    "taxReturns": {
+      "title": "No tax returns yet",
+      "description": "Add tax return filings to track deadlines and compliance.",
+      "action": "Add Tax Return"
+    },
+    "company": {
+      "title": "Company not set up",
+      "description": "Complete your company profile to unlock all features.",
+      "action": "Set Up Company"
+    }
+  },
   "common": {
     "save": "Save",
     "cancel": "Cancel",
@@ -207,6 +246,13 @@
     "billing": "Billing",
     "notifications": "Notifications",
     "signOut": "Sign Out"
+  },
+  "company": {
+    "notSet": "Set up company",
+    "yourCompany": "Your Company",
+    "setupCompany": "Set up your company",
+    "companyName": "Company Name",
+    "companySettings": "Company Settings"
   },
   "dashboard": {
     "welcome": "Welcome to AutoBooks ERP",
@@ -1373,6 +1419,7 @@
       "subtitle": "Have questions or want to know more? Drop us a message below and we'll get back to you soon.",
       "name": "Name",
       "email": "Email",
+      "emailLabel": "Email",
       "subject": "Subject",
       "message": "Message",
       "send": "Send Message",
@@ -1504,6 +1551,73 @@
       "privacy": "Privacy Policy",
       "terms": "Terms of Service"
     }
+  },
+  "contact": {
+    "hero": {
+      "title": "Let's Talk About Your",
+      "titleHighlight": "Business",
+      "subtitle": "Whether you have questions about our platform, pricing, or want to schedule a demo, we're here to help you transform your financial operations."
+    },
+    "features": {
+      "response": {
+        "title": "24-Hour Response",
+        "description": "Our team responds to all inquiries within 24 hours"
+      },
+      "support": {
+        "title": "Dedicated Support",
+        "description": "Get personalized assistance from our expert team"
+      },
+      "security": {
+        "title": "Enterprise Security",
+        "description": "Bank-grade security for your financial data"
+      }
+    },
+    "directEmail": "Email us directly",
+    "officeHours": "Our team is available Monday to Friday, 9am - 6pm HKT",
+    "stats": {
+      "businesses": "Businesses",
+      "satisfaction": "Satisfaction"
+    },
+    "form": {
+      "title": "Get in Touch",
+      "description": "Fill out the form below and we'll get back to you within 24 hours.",
+      "name": "Your Name",
+      "namePlaceholder": "John Doe",
+      "email": "Work Email",
+      "emailPlaceholder": "john@company.com",
+      "company": "Company Name",
+      "companyPlaceholder": "Your Company Ltd.",
+      "companySize": "Company Size",
+      "selectSize": "Select size",
+      "size": {
+        "startup": "1-10 employees",
+        "small": "11-50 employees",
+        "medium": "51-200 employees",
+        "large": "201-500 employees",
+        "enterprise": "500+ employees"
+      },
+      "subject": "Subject",
+      "selectSubject": "What can we help you with?",
+      "subjects": {
+        "demo": "Request a Demo",
+        "pricing": "Pricing Information",
+        "features": "Product Features",
+        "support": "Technical Support",
+        "partnership": "Partnership Inquiry",
+        "other": "Other"
+      },
+      "message": "Message",
+      "messagePlaceholder": "Tell us more about your business needs and how we can help...",
+      "send": "Send Message",
+      "sending": "Sending...",
+      "privacy": "By submitting this form, you agree to our Privacy Policy and Terms of Service."
+    },
+    "success": {
+      "title": "Message Sent!",
+      "message": "Thank you for reaching out. We'll get back to you within 24 hours.",
+      "sendAnother": "Send Another Message"
+    },
+    "error": "Something went wrong. Please try again."
   },
   "bookDemo": {
     "title": "Book a",
